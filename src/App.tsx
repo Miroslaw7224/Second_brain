@@ -16,13 +16,21 @@ import {
   X,
   ChevronRight,
   Search,
-  History
+  History,
+  Calendar,
+  Briefcase,
+  ListTodo,
+  Tag
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getFirebaseAuth } from './lib/firebase-client';
+import { CalendarView } from './components/CalendarView';
+import { TasksSection } from './components/TasksSection';
+import { ActivityLog } from './components/ActivityLog';
+import { TagsSection, type UserTag } from './components/TagsSection';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -95,6 +103,36 @@ const translations = {
     noAccount: "Don't have an account?",
     hasAccount: "Already have an account?",
     continueGuest: "Continue as Guest",
+    modeWiedza: "Knowledge",
+    modePlanowanie: "Planning",
+    tabCalendar: "Calendar",
+    tabActivity: "My Work",
+    tabTasks: "Tasks",
+    tabTags: "Tags",
+    tagsTitle: "Tag list",
+    tagsSubtitle: "Assign a default title to each tag. When you pick a tag in a calendar entry, the title will be filled in.",
+    tagsTagLabel: "Tag",
+    tagsTitleLabel: "Default title",
+    tagsAdd: "Add tag",
+    tagsNoTags: "No tags yet. Add your first tag and its default title.",
+    calendarAddEntry: "Add entry",
+    calendarEditEntry: "Edit entry",
+    calendarNewEntry: "New entry",
+    calendarDeleteEntry: "Delete entry",
+    calendarDay: "Day",
+    calendarSave: "Save",
+    calendarCancel: "Cancel",
+    activityFrom: "From",
+    activityTo: "To",
+    activityNoEntries: "No entries in the selected period.",
+    activityTitle: "My Work",
+    tasksAdd: "Add",
+    tasksNewPlaceholder: "New task...",
+    tasksNoTasks: "No tasks. Add your first.",
+    tasksTodo: "To do",
+    tasksInProgress: "In progress",
+    tasksDone: "Done",
+    planAskPlaceholder: "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
     prompts: [
       "What were the terms for the Acme project?",
       "Summarize my latest meeting notes",
@@ -132,6 +170,36 @@ const translations = {
     noAccount: "Nie masz konta?",
     hasAccount: "Masz już konto?",
     continueGuest: "Kontynuuj jako Gość",
+    modeWiedza: "Wiedza",
+    modePlanowanie: "Planowanie",
+    tabCalendar: "Kalendarz",
+    tabActivity: "Moja Praca",
+    tabTasks: "Zadania",
+    tabTags: "Tagi",
+    tagsTitle: "Lista tagów",
+    tagsSubtitle: "Przypisz do każdego tagu domyślny tytuł. Przy wyborze tagu we wpisie kalendarza tytuł zostanie uzupełniony.",
+    tagsTagLabel: "Tag",
+    tagsTitleLabel: "Domyślny tytuł",
+    tagsAdd: "Dodaj tag",
+    tagsNoTags: "Brak tagów. Dodaj pierwszy tag i przypisz mu domyślny tytuł.",
+    calendarAddEntry: "Dodaj wpis",
+    calendarEditEntry: "Edytuj wpis",
+    calendarNewEntry: "Nowy wpis",
+    calendarDeleteEntry: "Usuń wpis",
+    calendarDay: "Dzień",
+    calendarSave: "Zapisz",
+    calendarCancel: "Anuluj",
+    activityFrom: "Od",
+    activityTo: "Do",
+    activityNoEntries: "Brak wpisów w wybranym okresie.",
+    activityTitle: "Moja Praca",
+    tasksAdd: "Dodaj",
+    tasksNewPlaceholder: "Nowe zadanie...",
+    tasksNoTasks: "Brak zadań. Dodaj pierwsze.",
+    tasksTodo: "Do zrobienia",
+    tasksInProgress: "W toku",
+    tasksDone: "Zrobione",
+    planAskPlaceholder: "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
     prompts: [
       "Jakie były warunki projektu Acme?",
       "Podsumuj moje ostatnie notatki ze spotkania",
@@ -160,15 +228,21 @@ export default function App() {
   const [name, setName] = useState('');
   const [authError, setAuthError] = useState('');
   
+  const [appMode, setAppMode] = useState<'wiedza' | 'planowanie'>('wiedza');
   const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat');
+  const [planningTab, setPlanningTab] = useState<'calendar' | 'activity' | 'tasks' | 'tags'>('calendar');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [planAskInput, setPlanAskInput] = useState('');
+  const [planAskResponse, setPlanAskResponse] = useState('');
+  const [planAskLoading, setPlanAskLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -181,10 +255,31 @@ export default function App() {
     return () => unsub();
   }, []);
 
+  const fetchTags = async () => {
+    try {
+      const res = await apiFetch('/api/tags');
+      if (!res.ok) {
+        setUserTags([]);
+        return;
+      }
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        setUserTags([]);
+        return;
+      }
+      const data = await res.json();
+      setUserTags(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error('Failed to fetch tags', err);
+      setUserTags([]);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchDocuments();
       fetchNotes();
+      fetchTags();
     }
   }, [user]);
 
@@ -332,6 +427,30 @@ export default function App() {
       setDocuments(docs => docs.filter(d => d.id !== id));
     } catch (err) {
       console.error('Delete failed', err);
+    }
+  };
+
+  const handlePlanAsk = async () => {
+    if (!planAskInput.trim() || planAskLoading) return;
+    const msg = planAskInput.trim();
+    setPlanAskInput('');
+    setPlanAskLoading(true);
+    setPlanAskResponse('');
+    try {
+      const res = await apiFetch('/api/plan/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: msg, lang }),
+      });
+      const data = await res.json();
+      setPlanAskResponse(data.text || data.error || '');
+      if (data.created && planningTab === 'calendar') {
+        setPlanningTab('calendar');
+      }
+    } catch (err) {
+      setPlanAskResponse('Sorry, something went wrong.');
+    } finally {
+      setPlanAskLoading(false);
     }
   };
 
@@ -513,6 +632,54 @@ export default function App() {
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-6">
+          {appMode === 'planowanie' && (
+          <div>
+            <h2 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest mb-3 px-2">{t.modePlanowanie}</h2>
+            <div className="space-y-1">
+              <button
+                onClick={() => setPlanningTab('calendar')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left",
+                  planningTab === 'calendar' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]"
+                )}
+              >
+                <Calendar className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{t.tabCalendar}</span>
+              </button>
+              <button
+                onClick={() => setPlanningTab('activity')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left",
+                  planningTab === 'activity' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]"
+                )}
+              >
+                <Briefcase className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{t.tabActivity}</span>
+              </button>
+              <button
+                onClick={() => setPlanningTab('tasks')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left",
+                  planningTab === 'tasks' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]"
+                )}
+              >
+                <ListTodo className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{t.tabTasks}</span>
+              </button>
+              <button
+                onClick={() => setPlanningTab('tags')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left",
+                  planningTab === 'tags' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]"
+                )}
+              >
+                <Tag className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm font-medium">{t.tabTags}</span>
+              </button>
+            </div>
+          </div>
+          )}
+          {appMode === 'wiedza' && (
           <div>
             <div className="flex items-center justify-between mb-4 px-2">
               <h2 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest">{t.knowledge}</h2>
@@ -564,6 +731,7 @@ export default function App() {
               )}
             </div>
           </div>
+          )}
         </div>
 
         <div className="p-4 border-t border-[#F3F4F6] space-y-4">
@@ -596,7 +764,7 @@ export default function App() {
       </motion.aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col relative">
+      <main className="flex-1 min-w-0 flex flex-col relative">
         {/* Header */}
         <header className="h-16 border-b border-[#E5E7EB] bg-white flex items-center justify-between px-6 z-10">
           <div className="flex items-center gap-4">
@@ -607,6 +775,27 @@ export default function App() {
               <ChevronRight className={cn("w-5 h-5 transition-transform", isSidebarOpen && "rotate-180")} />
             </button>
             <div className="flex bg-[#F3F4F6] p-1 rounded-xl">
+              <button 
+                onClick={() => setAppMode('wiedza')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm font-semibold transition-all",
+                  appMode === 'wiedza' ? "bg-white shadow-sm text-black" : "text-[#6B7280] hover:text-black"
+                )}
+              >
+                {t.modeWiedza}
+              </button>
+              <button 
+                onClick={() => setAppMode('planowanie')}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-sm font-semibold transition-all",
+                  appMode === 'planowanie' ? "bg-white shadow-sm text-black" : "text-[#6B7280] hover:text-black"
+                )}
+              >
+                {t.modePlanowanie}
+              </button>
+            </div>
+            {appMode === 'wiedza' && (
+            <div className="flex bg-[#F3F4F6] p-1 rounded-xl ml-2">
               <button 
                 onClick={() => setActiveTab('chat')}
                 className={cn(
@@ -626,6 +815,7 @@ export default function App() {
                 {t.notesTab}
               </button>
             </div>
+            )}
             <div className="flex items-center gap-2 ml-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               <span className="text-sm font-semibold">{t.brainActive}</span>
@@ -647,8 +837,18 @@ export default function App() {
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-hidden flex flex-col">
-          {activeTab === 'chat' ? (
+        <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
+          {appMode === 'planowanie' ? (
+            planningTab === 'calendar' ? (
+              <CalendarView apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
+            ) : planningTab === 'activity' ? (
+              <ActivityLog apiFetch={apiFetch} lang={lang} t={t} />
+            ) : planningTab === 'tags' ? (
+              <TagsSection apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} onTagsChange={fetchTags} />
+            ) : (
+              <TasksSection apiFetch={apiFetch} lang={lang} t={t} />
+            )
+          ) : activeTab === 'chat' ? (
             <div className="flex-1 overflow-y-auto p-6 space-y-8">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
@@ -817,7 +1017,7 @@ export default function App() {
         </div>
 
         {/* Input Area (Only for Chat) */}
-        {activeTab === 'chat' && (
+        {appMode === 'wiedza' && activeTab === 'chat' && (
           <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA] to-transparent">
             <div className="max-w-3xl mx-auto relative">
               <div className="relative flex items-end gap-2 bg-white border border-[#E5E7EB] rounded-[2rem] p-2 shadow-lg shadow-black/5 focus-within:border-black transition-all">
@@ -848,6 +1048,37 @@ export default function App() {
               <p className="text-[10px] text-center mt-3 text-[#9CA3AF] font-medium uppercase tracking-widest">
                 {t.disclaimer}
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Plan AI bar (Planning mode) – not absolute so calendar scrollbar stays visible above */}
+        {appMode === 'planowanie' && (
+          <div className="flex-shrink-0 p-4 bg-white border-t border-[#E5E7EB]">
+            <div className="max-w-2xl mx-auto">
+              {planAskResponse && (
+                <p className="text-sm text-[#374151] mb-2 px-2 py-1 bg-[#F3F4F6] rounded-lg">{planAskResponse}</p>
+              )}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={planAskInput}
+                  onChange={(e) => setPlanAskInput(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handlePlanAsk()}
+                  placeholder={t.planAskPlaceholder}
+                  className="flex-1 px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+                />
+                <button
+                  onClick={handlePlanAsk}
+                  disabled={!planAskInput.trim() || planAskLoading}
+                  className={cn(
+                    "px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1",
+                    planAskInput.trim() && !planAskLoading ? "bg-black text-white" : "bg-[#F3F4F6] text-[#9CA3AF]"
+                  )}
+                >
+                  {planAskLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           </div>
         )}

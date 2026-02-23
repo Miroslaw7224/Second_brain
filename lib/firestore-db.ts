@@ -30,6 +30,18 @@ export type ChunkRecord = {
   noteTitle?: string;
 };
 
+export type CalendarEventRecord = {
+  id: string;
+  date: string; // YYYY-MM-DD (date-only, user's day)
+  start_minutes: number;
+  duration_minutes: number;
+  title: string;
+  tags: string[];
+  color: string;
+  created_at?: string;
+  createdAt?: Timestamp;
+};
+
 function db() {
   return getFirestore();
 }
@@ -44,6 +56,10 @@ function notesCol(userId: string) {
 
 function chunksCol(userId: string) {
   return db().collection(COLLECTION_USERS).doc(String(userId)).collection("chunks");
+}
+
+function calendarEventsCol(userId: string) {
+  return db().collection(COLLECTION_USERS).doc(String(userId)).collection("calendar_events");
 }
 
 export async function getDocuments(userId: string): Promise<DocumentRecord[]> {
@@ -217,4 +233,248 @@ export async function getChunksForSearch(
     documentId: d.documentId,
     noteId: d.noteId,
   }));
+}
+
+// --- Calendar events ---
+
+export async function getCalendarEvents(
+  userId: string,
+  options?: { startDate?: string; endDate?: string }
+): Promise<CalendarEventRecord[]> {
+  const snap = await calendarEventsCol(userId).orderBy("date", "asc").get();
+  let list = snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      date: data.date ?? "",
+      start_minutes: data.start_minutes ?? 0,
+      duration_minutes: data.duration_minutes ?? 0,
+      title: data.title ?? "",
+      tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : []),
+      color: data.color ?? "#3B82F6",
+      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
+      createdAt: data.createdAt,
+    };
+  });
+  if (options?.startDate) {
+    list = list.filter((e) => e.date >= options.startDate!);
+  }
+  if (options?.endDate) {
+    list = list.filter((e) => e.date <= options.endDate!);
+  }
+  list.sort((a, b) => a.date.localeCompare(b.date) || a.start_minutes - b.start_minutes);
+  return list;
+}
+
+export async function createCalendarEvent(
+  userId: string,
+  data: {
+    date: string;
+    start_minutes: number;
+    duration_minutes: number;
+    title: string;
+    tags: string[];
+    color: string;
+  }
+): Promise<CalendarEventRecord> {
+  if (data.duration_minutes % 15 !== 0) {
+    throw new Error("duration_minutes must be a multiple of 15");
+  }
+  const ref = await calendarEventsCol(userId).add({
+    date: data.date,
+    start_minutes: data.start_minutes,
+    duration_minutes: data.duration_minutes,
+    title: data.title,
+    tags: data.tags ?? [],
+    color: data.color ?? "#3B82F6",
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  const doc = await ref.get();
+  const d = doc.data()!;
+  return {
+    id: ref.id,
+    date: d.date ?? "",
+    start_minutes: d.start_minutes ?? 0,
+    duration_minutes: d.duration_minutes ?? 0,
+    title: d.title ?? "",
+    tags: Array.isArray(d.tags) ? d.tags : [],
+    color: d.color ?? "#3B82F6",
+    created_at: d.createdAt?.toDate?.()?.toISOString?.(),
+    createdAt: d.createdAt,
+  };
+}
+
+export async function updateCalendarEvent(
+  userId: string,
+  eventId: string,
+  data: Partial<{
+    date: string;
+    start_minutes: number;
+    duration_minutes: number;
+    title: string;
+    tags: string[];
+    color: string;
+  }>
+): Promise<void> {
+  if (data.duration_minutes != null && data.duration_minutes % 15 !== 0) {
+    throw new Error("duration_minutes must be a multiple of 15");
+  }
+  const ref = calendarEventsCol(userId).doc(eventId);
+  const update: Record<string, unknown> = { ...data };
+  if (Object.keys(update).length > 0) {
+    await ref.update(update);
+  }
+}
+
+export async function deleteCalendarEvent(userId: string, eventId: string): Promise<void> {
+  await calendarEventsCol(userId).doc(eventId).delete();
+}
+
+// --- Tasks (to-do) ---
+
+export type TaskRecord = {
+  id: string;
+  title: string;
+  description: string;
+  status: "todo" | "in_progress" | "done";
+  due_date: string | null;
+  priority: number | null;
+  created_at?: string;
+  updated_at?: string;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+};
+
+function tasksCol(userId: string) {
+  return db().collection(COLLECTION_USERS).doc(String(userId)).collection("tasks");
+}
+
+export async function getTasks(userId: string): Promise<TaskRecord[]> {
+  const snap = await tasksCol(userId).orderBy("createdAt", "desc").get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      title: data.title ?? "",
+      description: data.description ?? "",
+      status: (data.status as TaskRecord["status"]) ?? "todo",
+      due_date: data.due_date ?? null,
+      priority: data.priority ?? null,
+      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
+      updated_at: data.updatedAt?.toDate?.()?.toISOString?.(),
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    };
+  });
+}
+
+export async function createTask(
+  userId: string,
+  data: { title: string; description?: string; status?: TaskRecord["status"]; due_date?: string | null; priority?: number | null }
+): Promise<TaskRecord> {
+  const ref = await tasksCol(userId).add({
+    title: data.title ?? "",
+    description: data.description ?? "",
+    status: data.status ?? "todo",
+    due_date: data.due_date ?? null,
+    priority: data.priority ?? null,
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  const doc = await ref.get();
+  const d = doc.data()!;
+  return {
+    id: ref.id,
+    title: d.title ?? "",
+    description: d.description ?? "",
+    status: (d.status as TaskRecord["status"]) ?? "todo",
+    due_date: d.due_date ?? null,
+    priority: d.priority ?? null,
+    created_at: d.createdAt?.toDate?.()?.toISOString?.(),
+    updated_at: d.updatedAt?.toDate?.()?.toISOString?.(),
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  };
+}
+
+export async function updateTask(
+  userId: string,
+  taskId: string,
+  data: Partial<{ title: string; description: string; status: TaskRecord["status"]; due_date: string | null; priority: number | null }>
+): Promise<void> {
+  await tasksCol(userId).doc(taskId).update({
+    ...data,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}
+
+export async function deleteTask(userId: string, taskId: string): Promise<void> {
+  await tasksCol(userId).doc(taskId).delete();
+}
+
+// --- User tags (tag name + default title for calendar entries) ---
+
+export type UserTagRecord = {
+  id: string;
+  tag: string;
+  title: string;
+  created_at?: string;
+  createdAt?: Timestamp;
+};
+
+function userTagsCol(userId: string) {
+  return db().collection(COLLECTION_USERS).doc(String(userId)).collection("user_tags");
+}
+
+export async function getUserTags(userId: string): Promise<UserTagRecord[]> {
+  const snap = await userTagsCol(userId).orderBy("createdAt", "asc").get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      tag: (data.tag ?? "").trim().replace(/^#/, "") || "",
+      title: (data.title ?? "").trim() || "",
+      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
+      createdAt: data.createdAt,
+    };
+  });
+}
+
+export async function createUserTag(
+  userId: string,
+  data: { tag: string; title: string }
+): Promise<UserTagRecord> {
+  const tag = (data.tag ?? "").trim().replace(/^#/, "") || "";
+  const title = (data.title ?? "").trim() || "";
+  const ref = await userTagsCol(userId).add({
+    tag,
+    title,
+    createdAt: FieldValue.serverTimestamp(),
+  });
+  const doc = await ref.get();
+  const d = doc.data()!;
+  return {
+    id: ref.id,
+    tag: d.tag ?? "",
+    title: d.title ?? "",
+    created_at: d.createdAt?.toDate?.()?.toISOString?.(),
+    createdAt: d.createdAt,
+  };
+}
+
+export async function updateUserTag(
+  userId: string,
+  tagId: string,
+  data: { tag?: string; title?: string }
+): Promise<void> {
+  const update: Record<string, unknown> = {};
+  if (data.tag !== undefined) update.tag = (data.tag ?? "").trim().replace(/^#/, "") || "";
+  if (data.title !== undefined) update.title = (data.title ?? "").trim() || "";
+  if (Object.keys(update).length > 0) {
+    await userTagsCol(userId).doc(tagId).update(update);
+  }
+}
+
+export async function deleteUserTag(userId: string, tagId: string): Promise<void> {
+  await userTagsCol(userId).doc(tagId).delete();
 }

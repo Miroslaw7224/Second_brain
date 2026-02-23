@@ -22,10 +22,11 @@ Wybieramy **Firestore (NoSQL)** jako główną bazę danych.
 Struktura kolekcji:
 ```
 users/{userId}/documents/{docId}  → metadane dokumentu
-users/{userId}/chunks/{chunkId}   → chunk + wektor embeddingu (pole tablicowe)
+users/{userId}/notes/{noteId}     → notatki użytkownika
+users/{userId}/chunks/{chunkId}   → chunk + (opcjonalnie) wektor embeddingu
 ```
 
-Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu, automatyczne skalowanie. Elastyczność NoSQL pozwala na zmiany struktury bez migracji. Cosine similarity jest obliczane w Next.js API Route — bez dedykowanego vector store na MVP.
+Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu, automatyczne skalowanie. Elastyczność NoSQL pozwala na zmiany struktury bez migracji. Wyszukiwanie kontekstu dla RAG jest realizowane w Express (obecny stack: Vite + Express), bez dedykowanego vector store na MVP.
 
 ## Rozważane alternatywy
 
@@ -44,3 +45,7 @@ Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu,
 **Negatywne:**
 - Cosine similarity w kodzie aplikacji wolniejsze niż dedykowany vector store — akceptowalne do ~2000 chunków/user
 - Przy skalowaniu (10k+ chunków/user) konieczna migracja do Pinecone lub pgvector — świadomy wybór z progiem migracji
+
+## Aktualizacja po wdrożeniu (2025)
+
+Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Express + `lib/firestore-db.ts`; wszystkie dane użytkownika w `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`. Jednorazowa migracja z SQLite: skrypt `scripts/migrate-sqlite-to-firestore.ts`.

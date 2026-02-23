@@ -33,3 +33,7 @@ App Router upraszcza routing, a server components redukują ilość JS wysyłane
 **Negatywne:**
 - App Router ma stromą krzywą uczenia dla osób znających tylko Pages Router
 - SSR może komplikować real-time UI czatu — rozwiązanie: Streaming Response z Gemini API
+
+## Odchylenie od ADR (stan bieżący)
+
+Aktualny stack to **Vite + React (SPA) + Express** (serwer w `server.ts`), nie Next.js. API (auth, documents, notes, chat, upload) są zaimplementowane jako trasy Express. ADR-001 pozostaje zapisem docelowej opcji (Next.js); ewentualna migracja na Next.js w przyszłości — zgodnie z konsekwencjami opisanymi powyżej.

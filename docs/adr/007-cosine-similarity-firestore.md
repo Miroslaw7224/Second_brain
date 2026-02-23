@@ -40,3 +40,7 @@ Bez dodatkowego serwisu — zero nowego konta, billingów i punktów awarii. Na 
 - Wolniejsze przy dużej liczbie chunków — celowo odroczona optymalizacja
 - Brak zaawansowanego filtrowania metadanych — wystarczające na MVP
 - Pełne pobieranie chunków usera przy każdym zapytaniu — przy > 2000 chunków może być bottleneck
+
+## Aktualizacja po wdrożeniu (2025)
+
+Obecna implementacja RAG używa **wyszukiwania po słowach kluczowych** (keyword filter na treści chunków), nie cosine similarity na wektorach. Embeddingi nie są jeszcze zapisywane w chunkach. Decyzja z ADR pozostaje: przy rozroście (lub potrzebie lepszej jakości retrieval) dodać embeddingi + cosine similarity w aplikacji lub migracja do vector store.
