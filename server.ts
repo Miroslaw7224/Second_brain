@@ -3,11 +3,26 @@ import express from "express";
 import { createServer as createViteServer } from "vite";
 import multer from "multer";
 import path from "path";
-import { GoogleGenAI } from "@google/genai";
 import { getFirestore, verifyIdToken } from "./lib/firebase-admin.js";
-import * as firestoreDb from "./lib/firestore-db.js";
+import { DomainError } from "./lib/errors.js";
+import * as planService from "./services/planService.js";
+import * as ragService from "./services/ragService.js";
+import * as calendarService from "./services/calendarService.js";
+import * as documentService from "./services/documentService.js";
+import * as noteService from "./services/noteService.js";
+import * as tagService from "./services/tagService.js";
+import * as taskService from "./services/taskService.js";
 
 getFirestore(); // fail fast if Firebase not configured
+
+function handleServiceError(err: unknown, res: express.Response): void {
+  if (err instanceof DomainError) {
+    res.status(err.statusCode).json({ error: err.message });
+    return;
+  }
+  console.error(err);
+  res.status(500).json({ error: err instanceof Error ? err.message : "Internal server error" });
+}
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -53,22 +68,20 @@ async function startServer() {
   app.get("/api/documents", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     try {
-      const docs = await firestoreDb.getDocuments(userId);
+      const docs = await documentService.listDocuments(userId);
       res.json(docs.map((d) => ({ id: d.id, name: d.name, content: d.content, type: d.type, created_at: d.created_at })));
-    } catch (err: any) {
-      console.error("Firestore getDocuments:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
   app.get("/api/notes", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     try {
-      const notes = await firestoreDb.getNotes(userId);
+      const notes = await noteService.listNotes(userId);
       res.json(notes.map((n) => ({ id: n.id, title: n.title, content: n.content, created_at: n.created_at })));
-    } catch (err: any) {
-      console.error("Firestore getNotes:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -76,11 +89,10 @@ async function startServer() {
     const userId = req.uid!;
     const { title, content } = req.body;
     try {
-      const result = await firestoreDb.createNote(userId, { title, content });
+      const result = await noteService.createNote(userId, { title, content });
       res.json(result);
-    } catch (err: any) {
-      console.error("Firestore createNote:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -89,11 +101,10 @@ async function startServer() {
     const userId = req.uid!;
     const { title, content } = req.body;
     try {
-      await firestoreDb.updateNote(userId, id, { title, content });
+      await noteService.updateNote(userId, id, { title, content });
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("Firestore updateNote:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -101,11 +112,10 @@ async function startServer() {
     const { id } = req.params;
     const userId = req.uid!;
     try {
-      await firestoreDb.deleteNote(userId, id);
+      await noteService.deleteNote(userId, id);
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("Firestore deleteNote:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -119,18 +129,10 @@ async function startServer() {
     const type = file.mimetype;
 
     try {
-      const { id: docId } = await firestoreDb.createDocument(userId, { name, content, type });
-      const paragraphs = content.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0);
-      if (paragraphs.length > 0) {
-        await firestoreDb.addChunks(
-          userId,
-          paragraphs.map((p: string) => ({ documentId: docId, content: p }))
-        );
-      }
-      res.json({ id: docId, name });
-    } catch (err: any) {
-      console.error("Firestore upload:", err);
-      res.status(500).json({ error: err.message });
+      const result = await documentService.ingestDocument(userId, { name, content, type });
+      res.json(result);
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -139,34 +141,11 @@ async function startServer() {
     if (!message) return res.status(400).json({ error: "Message is required" });
 
     const userId = req.uid!;
-    const keywords = message.split(" ").filter((w: string) => w.length > 3);
-
     try {
-      const relevantChunks = await firestoreDb.getChunksForSearch(userId, keywords, 5);
-
-      const context = relevantChunks
-        .map((c: any) => `[Source: ${c.source_name || c.note_title || "Note"}]\n${c.content}`)
-        .join("\n\n");
-
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const systemInstruction =
-        lang === "pl"
-          ? "Jesteś asystentem 'Drugi Mózg' dla freelancerów. Odpowiadaj na pytania użytkownika WYŁĄCZNIE na podstawie dostarczonego kontekstu. Jeśli odpowiedzi nie ma w kontekście, powiedz, że nie wiesz. Zawsze podawaj nazwę dokumentu źródłowego w swojej odpowiedzi. Odpowiadaj w języku polskim."
-          : "You are a 'Second Brain' assistant for freelancers. Answer the user's question based ONLY on the provided context. If the answer is not in the context, say you don't know. Always cite the source document name in your answer. Respond in English.";
-
-      const response = await ai.models.generateContent({
-        model: "gemini-3-flash-preview",
-        contents: `Context from user documents:\n${context}\n\nUser Question: ${message}`,
-        config: { systemInstruction },
-      });
-
-      const sources = Array.from(
-        new Set(relevantChunks.map((c: any) => c.source_name || c.note_title || "Note"))
-      );
-      res.json({ text: response.text, sources });
-    } catch (error: any) {
-      console.error("Chat error:", error);
-      res.status(500).json({ error: error.message });
+      const result = await ragService.query(userId, { message, lang });
+      res.json(result);
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -174,11 +153,10 @@ async function startServer() {
     const { id } = req.params;
     const userId = req.uid!;
     try {
-      await firestoreDb.deleteDocument(userId, id);
+      await documentService.deleteDocument(userId, id);
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("Firestore deleteDocument:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -188,11 +166,10 @@ async function startServer() {
     const startDate = req.query.startDate as string | undefined;
     const endDate = req.query.endDate as string | undefined;
     try {
-      const events = await firestoreDb.getCalendarEvents(userId, { startDate, endDate });
+      const events = await calendarService.getCalendarEvents(userId, { startDate, endDate });
       res.json(events);
-    } catch (err: any) {
-      console.error("getCalendarEvents:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -206,7 +183,7 @@ async function startServer() {
       return res.status(400).json({ error: "duration_minutes must be a multiple of 15" });
     }
     try {
-      const event = await firestoreDb.createCalendarEvent(userId, {
+      const event = await calendarService.createCalendarEvent(userId, {
         date,
         start_minutes: Number(start_minutes) ?? 0,
         duration_minutes: Number(duration_minutes),
@@ -215,9 +192,8 @@ async function startServer() {
         color: color ?? "#3B82F6",
       });
       res.json(event);
-    } catch (err: any) {
-      console.error("createCalendarEvent:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -229,7 +205,7 @@ async function startServer() {
       return res.status(400).json({ error: "duration_minutes must be a multiple of 15" });
     }
     try {
-      await firestoreDb.updateCalendarEvent(userId, id, {
+      await calendarService.updateCalendarEvent(userId, id, {
         date: body.date,
         start_minutes: body.start_minutes,
         duration_minutes: body.duration_minutes,
@@ -238,9 +214,8 @@ async function startServer() {
         color: body.color,
       });
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("updateCalendarEvent:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -248,11 +223,10 @@ async function startServer() {
     const userId = req.uid!;
     const { id } = req.params;
     try {
-      await firestoreDb.deleteCalendarEvent(userId, id);
+      await calendarService.deleteCalendarEvent(userId, id);
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("deleteCalendarEvent:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -260,11 +234,10 @@ async function startServer() {
   app.get("/api/tasks", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     try {
-      const tasks = await firestoreDb.getTasks(userId);
+      const tasks = await taskService.getTasks(userId);
       res.json(tasks);
-    } catch (err: any) {
-      console.error("getTasks:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -275,7 +248,7 @@ async function startServer() {
       return res.status(400).json({ error: "title required" });
     }
     try {
-      const task = await firestoreDb.createTask(userId, {
+      const task = await taskService.createTask(userId, {
         title,
         description: description ?? "",
         status: status ?? "todo",
@@ -283,9 +256,8 @@ async function startServer() {
         priority: priority ?? null,
       });
       res.json(task);
-    } catch (err: any) {
-      console.error("createTask:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -294,7 +266,7 @@ async function startServer() {
     const { id } = req.params;
     const { title, description, status, due_date, priority } = req.body;
     try {
-      await firestoreDb.updateTask(userId, id, {
+      await taskService.updateTask(userId, id, {
         title,
         description,
         status,
@@ -302,9 +274,8 @@ async function startServer() {
         priority,
       });
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("updateTask:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -312,11 +283,10 @@ async function startServer() {
     const userId = req.uid!;
     const { id } = req.params;
     try {
-      await firestoreDb.deleteTask(userId, id);
+      await taskService.deleteTask(userId, id);
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("deleteTask:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -324,11 +294,10 @@ async function startServer() {
   app.get("/api/tags", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     try {
-      const list = await firestoreDb.getUserTags(userId);
+      const list = await tagService.getUserTags(userId);
       res.json(list);
-    } catch (err: any) {
-      console.error("getUserTags:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -339,14 +308,13 @@ async function startServer() {
       return res.status(400).json({ error: "tag required" });
     }
     try {
-      const created = await firestoreDb.createUserTag(userId, {
+      const created = await tagService.createUserTag(userId, {
         tag: tag.trim(),
         title: typeof title === "string" ? title.trim() : "",
       });
       res.json(created);
-    } catch (err: any) {
-      console.error("createUserTag:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -355,14 +323,13 @@ async function startServer() {
     const { id } = req.params;
     const { tag, title } = req.body;
     try {
-      await firestoreDb.updateUserTag(userId, id, {
+      await tagService.updateUserTag(userId, id, {
         tag: typeof tag === "string" ? tag.trim() : undefined,
         title: typeof title === "string" ? title.trim() : undefined,
       });
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("updateUserTag:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -370,11 +337,10 @@ async function startServer() {
     const userId = req.uid!;
     const { id } = req.params;
     try {
-      await firestoreDb.deleteUserTag(userId, id);
+      await tagService.deleteUserTag(userId, id);
       res.json({ success: true });
-    } catch (err: any) {
-      console.error("deleteUserTag:", err);
-      res.status(500).json({ error: err.message });
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 
@@ -385,80 +351,11 @@ async function startServer() {
       return res.status(400).json({ error: "message required" });
     }
     const userId = req.uid!;
-    const now = new Date();
-    const past = new Date(now);
-    past.setDate(past.getDate() - 60);
-    const future = new Date(now);
-    future.setDate(future.getDate() + 60);
-    const startDate = past.toISOString().slice(0, 10);
-    const endDate = future.toISOString().slice(0, 10);
     try {
-      const events = await firestoreDb.getCalendarEvents(userId, { startDate, endDate });
-      const eventsContext = events
-        .map(
-          (e: any) =>
-            `- ${e.date} ${Math.floor(e.start_minutes / 60)}:${String(e.start_minutes % 60).padStart(2, "0")} ${e.duration_minutes}min "${e.title}" tags:${(e.tags || []).join(",")}`
-        )
-        .join("\n");
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY! });
-      const systemInstruction =
-        lang === "pl"
-          ? `Jesteś asystentem planowania. Masz listę wpisów kalendarza użytkownika (data, godzina, czas w min, tytuł, tagi).
-Zadania:
-1) Gdy użytkownik pyta ile czasu poświęcił na coś (np. "ile czasu na testy w tym tygodniu", "sprawdź czas na #nauka") - policz sumę duration_minutes z wpisów pasujących do tagu/okresu i odpowiedz jednym zdaniem po polsku (np. "W tym tygodniu: 8h na #testy").
-2) Gdy użytkownik mówi że ma coś do zrobienia (np. "mam do zrobienia w tym tygodniu testy modułu auth", "mam 3 dni na zrobienie testów auth") - zwróć TYLKO poprawny JSON bez markdown, w formacie:
-{"action":"add_events","events":[{"title":"...","tags":["tag1"],"dates":["YYYY-MM-DD"],"duration_minutes":60,"start_minutes":540}]}
-- start_minutes: 540 = 9:00. dates: jeden dzień = jeden blok; jeśli "3 dni" podaj 3 daty (np. następne 3 dni robocze). "w tym tygodniu" = jeden dzień (np. piątek).`
-          : `You are a planning assistant. You have the user's calendar events (date, time, duration_minutes, title, tags).
-Tasks:
-1) If the user asks how much time they spent on something (e.g. "how much time on tests this week", "check time on #learning") - sum duration_minutes from matching events and reply in one sentence.
-2) If the user says they have something to do (e.g. "I have to do auth module tests this week", "I have 3 days to do auth tests") - return ONLY valid JSON, no markdown:
-{"action":"add_events","events":[{"title":"...","tags":["tag1"],"dates":["YYYY-MM-DD"],"duration_minutes":60,"start_minutes":540}]}
-- start_minutes: 540 = 9:00. dates: one date = one block; if "3 days" give 3 dates. "this week" = one day (e.g. Friday).`;
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
-        contents: `User calendar events:\n${eventsContext}\n\nUser message: ${message}`,
-        config: { systemInstruction },
-      });
-      let text = (response.text || "").trim();
-      const jsonMatch = text.match(/\{[\s\S]*"action"\s*:\s*"add_events"[\s\S]*\}/);
-      if (jsonMatch) {
-        try {
-          const data = JSON.parse(jsonMatch[0]);
-          if (data.action === "add_events" && Array.isArray(data.events)) {
-            const colors = ["#3B82F6", "#10B981", "#F59E0B", "#8B5CF6"];
-            let created = 0;
-            for (const ev of data.events) {
-              const dates = ev.dates || (ev.date ? [ev.date] : []);
-              const title = ev.title || "Task";
-              const tags = Array.isArray(ev.tags) ? ev.tags : [];
-              const d = Number(ev.duration_minutes) || 60;
-              const duration = Math.max(15, Math.round(d / 15) * 15);
-              const startMin = Number(ev.start_minutes) || 540;
-              const color = ev.color || colors[created % colors.length];
-              for (const date of dates) {
-                await firestoreDb.createCalendarEvent(userId, {
-                  date: String(date).slice(0, 10),
-                  start_minutes: startMin,
-                  duration_minutes: duration,
-                  title,
-                  tags,
-                  color,
-                });
-                created++;
-              }
-            }
-            text = lang === "pl" ? `Dodano ${created} wpis(ów) do kalendarza.` : `Added ${created} event(s) to calendar.`;
-            return res.json({ text, created });
-          }
-        } catch (parseErr) {
-          console.error("Plan ask parse:", parseErr);
-        }
-      }
-      res.json({ text });
-    } catch (error: any) {
-      console.error("Plan ask error:", error);
-      res.status(500).json({ error: error.message });
+      const result = await planService.ask(userId, { message, lang });
+      res.json(result);
+    } catch (err) {
+      handleServiceError(err, res);
     }
   });
 

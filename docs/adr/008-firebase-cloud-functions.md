@@ -39,3 +39,7 @@ Przypadki użycia:
 - Cold start (100–500ms) przy rzadkich wywołaniach — nieistotne dla triggerów w tle
 - Limit czasu wykonania 540s — wystarczający dla opisanych przypadków
 - Lokalny development wymaga Firebase Emulator Suite — jednorazowy setup
+
+## Stan aplikacji (luty 2026)
+
+Cloud Functions nie są wdrożone. Backend to Express (`server.ts`). Automatyzacje (emaile powitalne, onboarding, webhook Stripe) pozostają w planach na Etap 2.

@@ -44,11 +44,33 @@ Infrastructure (Firestore, Storage, Gemini, Stripe)
 
 Dopuszczalne: `lib/` może zawierać też współdzielone narzędzia (utils, typy), przy czym klienty zewnętrznych systemów (Firestore, Gemini, Stripe) są w `lib/` i to one są wywoływane wyłącznie z `services/`.
 
+**Kontrakt typów (typy domenowe):**
+
+Serwisy zwracają i przyjmują **wyłącznie typy domenowe** (np. z `types/` lub `domain/`), nie surowe typy Firestore ani odpowiedzi Gemini. Mapowanie z/do infrastruktury odbywa się w `lib/`. Chroni to UI i Route Handlery przed wyciekaniem szczegółów implementacji i ułatwia zmianę dostawcy (np. inna baza, inny model).
+
+```ts
+// ❌ serwis zwraca FirestoreDocument / typ odpowiedzi Gemini
+// ✅ serwis zwraca Document, ChatResponse (Twoje typy domenowe)
+```
+
+**Obsługa błędów między warstwami:**
+
+Ustalamy jedną strategię, żeby uniknąć mieszanki throw / return w całym stosie. **Serwisy mogą rzucać wyjątki** (błędy walidacji, domeny, sieci, Firestore, Gemini). **Route Handlery i Server Actions** łapią je na granicy, mapują na status HTTP i body (np. 400, 404, 500) lub na komunikat dla użytkownika. Nie przekazujemy surowych wyjątków SDK do UI. Przy Gemini API i Firestore błędy sieciowe będą się zdarzać — jedna, spójna obsługa na granicy ułatwia logowanie i UX.
+
+**Server Actions a Route Handlers:**
+
+- **Server Actions** — mutacje wywołane z formularzy i z Server Components (submit, zapis, usunięcie). Użyj, gdy akcja jest powiązana z jedną stroną/formularzem i nie potrzebujesz REST z zewnątrz.
+- **Route Handlers** — endpointy REST (`/api/...`), webhooki (np. Stripe), wywołania z zewnątrz lub z klienta przez `fetch`. Użyj, gdy endpoint ma być dostępny jako URL lub musi być wywołany przez zewnętrzny system.
+
+**Warstwa Repository (opcjonalna):**
+
+Nie wymuszamy jej od dnia jeden. Warto ją rozważyć, gdy zapytań Firestore przybędzie lub gdy testowanie serwisów mockami stanie się uciążliwe. Cienka warstwa Repository między `services/` a `lib/`: serwis wywołuje np. `documentRepository.getByUser(userId)`, repozytorium wie, jak to wyciągnąć z Firestore i operuje na `lib/firestore`. Ułatwia testowanie (mock repozytorium) i skupia zapytania Firestore w jednym miejscu. Decyzja o wprowadzeniu — gdy pojawi się realna potrzeba.
+
 ## Rozważane alternatywy
 
 - **Bez Service Layer:** logika w Route Handlers — szybsze na start, ale grube handlery i testowanie przez HTTP; odrzucone.
 - **UI może wywoływać Firestore w Server Components:** „bo to serwer i wygodnie" — prowadzi do rozproszenia logiki i braku jednego miejsca do testów; odrzucone.
-- **Brak mapowania na foldery:** pozostawienie granic tylko „w głowie" — mniejsza actionable; odrzucone na rzecz jawnego podziału na `app/`, `app/api/`, `services/`, `lib/`.
+- **Brak mapowania na foldery:** pozostawienie granic tylko „w głowie" — mniejsza actionable; odrzucone na rzecz jawnego podziału na `app/`, `app/api/`, `services/`, `lib/`. W stacku Express odpowiednikiem Route Handlers są trasy w `server.ts`.
 
 ## Konsekwencje
 
@@ -61,3 +83,7 @@ Dopuszczalne: `lib/` może zawierać też współdzielone narzędzia (utils, typ
 **Negatywne:**
 - Więcej plików i jednego poziomu indirekcji — akceptowalne za czytelność i testy.
 - Trzeba dyscyplinować się, żeby nie „skrócić" przez wywołanie Firestore/Gemini z komponentu — ADR służy właśnie jako przypomnienie.
+
+## Stan aplikacji (luty 2026)
+
+Wdrożone. **Trasy Express** w `server.ts`: `/api/auth/me`, `/api/documents`, `/api/notes`, `/api/chat`, `/api/plan`, `/api/calendar`, `/api/tasks`, `/api/tags`, upload. **Serwisy:** ragService, documentService, noteService, taskService, planService, calendarService, tagService. **lib/:** firestore-db, gemini, errors, firebase-admin. Błędy: `DomainError` w `lib/errors.ts`, mapowanie w `handleServiceError` (statusCode → HTTP, body z `error`).

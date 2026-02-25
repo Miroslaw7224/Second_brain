@@ -32,6 +32,6 @@ Wybieramy **Firebase Auth** jako system autentykacji. Email + Google OAuth, bez 
 - Silny lock-in w ekosystem Google — celowy wybór na MVP
 - Migracja do własnego auth w przyszłości wymagałaby pracy — akceptowalne
 
-## Aktualizacja po wdrożeniu (2025)
+## Stan aplikacji (luty 2026)
 
-Zaimplementowano: Firebase Auth (email+hasło, Google, logowanie anonimowe). Frontend: SDK `firebase/auth` (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `signInWithPopup`, `signInAnonymously`), stan z `onAuthStateChanged`, nagłówek `Authorization: Bearer <idToken>`. Backend: middleware weryfikacji tokena (`admin.auth().verifyIdToken`), `req.uid` dla tras API. Usunięto custom auth (SQLite users, `/api/auth/register`, `/api/auth/login`). Reguły Firestore: `users/{userId}/**` z `request.auth.uid == userId`.
+Wdrożone: Firebase Auth (email+hasło, Google, logowanie anonimowe). Frontend: `firebase/auth` (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `signInWithPopup`, `signInAnonymously`), `onAuthStateChanged`, nagłówek `Authorization: Bearer <idToken>`. Backend: middleware weryfikacji tokena (`verifyIdToken` w `server.ts`), `req.uid` dla tras API. Reguły Firestore: `users/{userId}/**` z `request.auth.uid == userId`.

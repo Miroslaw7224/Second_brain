@@ -41,3 +41,7 @@ AI odpowiada wyłącznie na podstawie dokumentów użytkownika — brak dostępu
 **Negatywne:**
 - Jakość odpowiedzi zależy od jakości chunkingu i similarity search — wymaga iteracji
 - Koszt API: embedding + LLM przy każdym zapytaniu — monitorować przy wzroście ruchu
+
+## Stan aplikacji (luty 2026)
+
+Pipeline RAG wdrożony w `services/ragService.ts` (Express). Retrieval po słowach kluczowych (ADR-007), bez embeddingów. Chunking: paragrafy (split po podwójnej newline). Odpowiedź zawiera `text` i `sources` (źródła). Planowanie z kontekstem kalendarza w `planService.ask`.

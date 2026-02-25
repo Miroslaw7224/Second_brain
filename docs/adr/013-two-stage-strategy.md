@@ -49,3 +49,7 @@ Etap 2 startuje **tylko** po potwierdzeniu: problem jest realny, użytkownicy ch
 - Etap 1 to throwaway UI (Glide) — celowy koszt
 - Make zostanie zastąpiony przez Cloud Functions — przepisanie logiki (jednorazowe)
 - Opóźnienie docelowego produktu o tydzień — akceptowalne za zmniejszenie ryzyka
+
+## Stan aplikacji (luty 2026)
+
+Produkt w fazie budowy: Vite + React + Express, Firestore, Gemini (RAG + plan). Etap 1 no-code nie był wdrożony w obecnym repo; aplikacja to wersja „Etap 2” z Express zamiast Next.js. Cloud Functions i Stripe w planach.

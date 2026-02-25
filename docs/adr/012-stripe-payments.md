@@ -33,3 +33,7 @@ Na MVP: jeden plan $19/msc + Free Trial 7 dni bez karty kredytowej.
 **Negatywne:**
 - Prowizja 2.9% + $0.30 per transakcja — przy $19/msc ~$0.85, akceptowalne
 - Paddle/LemonSqueezy obsługują VAT globalnie lepiej — rozważyć przy ekspansji poza US/EU
+
+## Stan aplikacji (luty 2026)
+
+Stripe nie jest zintegrowany. Planowane na Etap 2 (Cloud Functions + webhook, Checkout, Customer Portal).

@@ -33,3 +33,7 @@ Na MVP limit 10MB per plik i 3 pliki jednocześnie jest wystarczający.
 **Negatywne:**
 - Droższe niż Cloudflare R2 przy dużej skali — nieistotne na MVP
 - Brak edge CDN dla plików — nieistotne dla dokumentów tekstowych
+
+## Stan aplikacji (luty 2026)
+
+Firebase Storage nie jest wdrożony. Upload dokumentów odbywa się przez Express (multer, memoryStorage); treść zapisywana w Firestore (kolekcje documents + chunks). Decyzja z ADR pozostaje aktualna przy dodawaniu przechowywania binarnych plików.

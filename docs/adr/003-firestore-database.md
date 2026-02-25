@@ -46,6 +46,6 @@ Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu,
 - Cosine similarity w kodzie aplikacji wolniejsze niż dedykowany vector store — akceptowalne do ~2000 chunków/user
 - Przy skalowaniu (10k+ chunków/user) konieczna migracja do Pinecone lub pgvector — świadomy wybór z progiem migracji
 
-## Aktualizacja po wdrożeniu (2025)
+## Stan aplikacji (luty 2026)
 
-Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Express + `lib/firestore-db.ts`; wszystkie dane użytkownika w `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`. Jednorazowa migracja z SQLite: skrypt `scripts/migrate-sqlite-to-firestore.ts`.
+Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Express + `lib/firestore-db.ts`. Kolekcje: `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`, `users/{uid}/calendar_events`, `users/{uid}/tasks`, `users/{uid}/user_tags`. Migracja z SQLite: `scripts/migrate-sqlite-to-firestore.ts`.

@@ -31,3 +31,7 @@ Wybieramy **Gemini text-embedding-004** do wektoryzacji dokumentów. Wektory 768
 **Negatywne:**
 - Nieznacznie niższa jakość niż OpenAI dla specjalistycznych domen — nieistotne dla notatek freelancerów
 - Zależność od dostępności Google API — ryzyko łagodzone przez prostotę zamiany
+
+## Stan aplikacji (luty 2026)
+
+Embeddingi nie są wdrożone. RAG używa wyszukiwania po słowach kluczowych w treści chunków (ADR-007). Decyzja o text-embedding-004 pozostaje aktualna przy ewentualnym wdrożeniu similarity search na wektorach.

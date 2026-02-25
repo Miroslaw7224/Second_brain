@@ -1,0 +1,29 @@
+import { describe, it, expect } from "vitest";
+import { DomainError } from "../../../lib/errors.js";
+
+describe("lib/errors", () => {
+  describe("DomainError", () => {
+    it("given message and default statusCode, when constructed, then has name DomainError and statusCode 400", () => {
+      const err = new DomainError("Invalid input");
+
+      expect(err.name).toBe("DomainError");
+      expect(err.message).toBe("Invalid input");
+      expect(err.statusCode).toBe(400);
+    });
+
+    it("given message and custom statusCode, when constructed, then has given statusCode", () => {
+      const err = new DomainError("Not found", 404);
+
+      expect(err.name).toBe("DomainError");
+      expect(err.message).toBe("Not found");
+      expect(err.statusCode).toBe(404);
+    });
+
+    it("given DomainError is thrown, then it is an instance of Error", () => {
+      const err = new DomainError("Test");
+
+      expect(err).toBeInstanceOf(Error);
+      expect(err).toBeInstanceOf(DomainError);
+    });
+  });
+});

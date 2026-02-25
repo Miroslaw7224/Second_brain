@@ -32,3 +32,7 @@ Wybieramy **Vercel** jako platformę hostingu dla Next.js. Zero konfiguracji —
 **Negatywne:**
 - Vercel Hobby ma limity (100GB bandwidth, brak team features) — przy wzroście upgrade do Pro ($20/msc)
 - Serverless cold start — nieistotne dla rzadkich requestów na MVP
+
+## Stan aplikacji (luty 2026)
+
+Aplikacja to Vite + Express, nie Next.js — hosting poza Vercel (np. Railway, Render, VPS). Vercel pozostaje docelową opcją przy ewentualnej migracji na Next.js (ADR-001).

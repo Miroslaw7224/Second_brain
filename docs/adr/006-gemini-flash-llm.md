@@ -33,3 +33,7 @@ Spójność z Gemini text-embedding-004 — jeden dostawca API (Google).
 **Negatywne:**
 - Flash mniej precyzyjny niż Gemini Pro/Ultra przy skomplikowanym wnioskowaniu — dla prostego Q&A różnica nieistotna
 - Latencja pierwszego tokenu bywa wyższa niż GPT-4o-mini — monitorować po launchu
+
+## Stan aplikacji (luty 2026)
+
+Gemini używany w Express przez `lib/gemini.ts` (ragService, planService). Modele w kodzie: np. gemini-3-flash-preview (RAG), gemini-2.0-flash (plan). Odpowiedzi zwracane w całości (brak Next.js Streaming API).

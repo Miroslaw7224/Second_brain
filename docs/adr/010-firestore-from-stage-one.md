@@ -30,3 +30,7 @@ Celowo odrzucamy Airtable pomimo prostoty w no-code: użycie Firestore od dnia 1
 
 **Negatywne:**
 - Make + Firestore wymaga więcej konfiguracji niż Tally + Airtable — akceptowalne jednorazowo
+
+## Stan aplikacji (luty 2026)
+
+Firestore w pełnym użyciu. Backend Express + `lib/firestore-db.ts`; wszystkie dane użytkownika w kolekcjach pod `users/{uid}/`.
