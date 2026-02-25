@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { Plus, Trash2, Pencil } from "lucide-react";
+import { CALENDAR_COLORS } from "./calendarConstants";
 
 export interface UserTag {
   id: string;
   tag: string;
   title: string;
+  color?: string;
   created_at?: string;
 }
 
@@ -19,12 +21,13 @@ interface TagsSectionProps {
 }
 
 export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsSectionProps) {
-  const tags = userTags;
   const [newTag, setNewTag] = useState("");
   const [newTitle, setNewTitle] = useState("");
+  const [newColor, setNewColor] = useState(CALENDAR_COLORS[0]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTag, setEditTag] = useState("");
   const [editTitle, setEditTitle] = useState("");
+  const [editColor, setEditColor] = useState(CALENDAR_COLORS[0]);
   const [saving, setSaving] = useState(false);
 
   const addTag = async () => {
@@ -35,10 +38,11 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
       await apiFetch("/api/tags", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tag, title: newTitle.trim() }),
+        body: JSON.stringify({ tag, title: newTitle.trim(), color: newColor }),
       });
       setNewTag("");
       setNewTitle("");
+      setNewColor(CALENDAR_COLORS[0]);
       onTagsChange();
     } catch (err) {
       console.error("Add tag failed", err);
@@ -51,6 +55,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
     setEditingId(item.id);
     setEditTag(item.tag);
     setEditTitle(item.title);
+    setEditColor(item.color || CALENDAR_COLORS[0]);
   };
 
   const saveEdit = async (id: string) => {
@@ -65,11 +70,12 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
       await apiFetch(`/api/tags/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tag, title: editTitle.trim() }),
+        body: JSON.stringify({ tag, title: editTitle.trim(), color: editColor }),
       });
       setEditingId(null);
       setEditTag("");
       setEditTitle("");
+      setEditColor(CALENDAR_COLORS[0]);
       onTagsChange();
     } catch (err) {
       console.error("Update tag failed", err);
@@ -82,6 +88,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
     setEditingId(null);
     setEditTag("");
     setEditTitle("");
+    setEditColor(CALENDAR_COLORS[0]);
   };
 
   const deleteTag = async (id: string) => {
@@ -107,7 +114,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
       <div className="p-6 border-b border-[#E5E7EB] bg-white">
         <h2 className="text-lg font-bold mb-1">{labels.title}</h2>
         <p className="text-sm text-[#6B7280] mb-4">{labels.subtitle}</p>
-        <div className="max-w-2xl grid grid-cols-[1fr_1fr_auto] gap-2 items-center">
+        <div className="max-w-2xl grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center">
           <input
             type="text"
             value={newTag}
@@ -123,6 +130,16 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
             placeholder={labels.titleLabel}
             className="px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
           />
+          <label className="flex items-center gap-2 text-sm text-[#6B7280]">
+            <span>Kolor</span>
+            <input
+              type="color"
+              value={newColor}
+              onChange={(e) => setNewColor(e.target.value)}
+              className="w-9 h-9 rounded-lg border border-[#E5E7EB] cursor-pointer"
+              title="Kolor tagu"
+            />
+          </label>
           <button
             type="button"
             onClick={addTag}
@@ -135,13 +152,13 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
         </div>
       </div>
       <div className="flex-1 overflow-y-auto p-6">
-        {tags.length === 0 && !saving ? (
+        {userTags.length === 0 && !saving ? (
           <div className="max-w-md p-8 border-2 border-dashed border-[#E5E7EB] rounded-2xl text-center text-[#6B7280] text-sm">
             {labels.noTags}
           </div>
         ) : (
           <ul className="max-w-2xl space-y-2">
-            {tags.map((item) => (
+            {userTags.map((item) => (
               <li
                 key={item.id}
                 className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl"
@@ -163,6 +180,13 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                       className="flex-1 min-w-0 px-3 py-2 bg-[#F3F4F6] border-none rounded-lg text-sm"
                       placeholder={labels.titleLabel}
                     />
+                    <input
+                      type="color"
+                      value={editColor}
+                      onChange={(e) => setEditColor(e.target.value)}
+                      className="w-8 h-8 rounded border border-[#E5E7EB] cursor-pointer"
+                      title="Kolor"
+                    />
                     <button
                       type="button"
                       onClick={() => saveEdit(item.id)}
@@ -181,6 +205,11 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                   </>
                 ) : (
                   <>
+                    <div
+                      className="w-4 h-4 rounded flex-shrink-0"
+                      style={{ backgroundColor: item.color || CALENDAR_COLORS[0] }}
+                      title="Kolor tagu"
+                    />
                     <span className="font-medium text-sm text-[#1A1A1A]">#{item.tag}</span>
                     <span className="flex-1 min-w-0 text-sm text-[#6B7280] truncate">
                       {item.title || "—"}

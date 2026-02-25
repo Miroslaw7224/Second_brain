@@ -303,7 +303,7 @@ async function startServer() {
 
   app.post("/api/tags", authMiddleware, async (req, res) => {
     const userId = req.uid!;
-    const { tag, title } = req.body;
+    const { tag, title, color } = req.body;
     if (!tag || typeof tag !== "string" || !tag.trim()) {
       return res.status(400).json({ error: "tag required" });
     }
@@ -311,6 +311,7 @@ async function startServer() {
       const created = await tagService.createUserTag(userId, {
         tag: tag.trim(),
         title: typeof title === "string" ? title.trim() : "",
+        color: typeof color === "string" ? color.trim() || undefined : undefined,
       });
       res.json(created);
     } catch (err) {
@@ -321,11 +322,12 @@ async function startServer() {
   app.put("/api/tags/:id", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     const { id } = req.params;
-    const { tag, title } = req.body;
+    const { tag, title, color } = req.body;
     try {
       await tagService.updateUserTag(userId, id, {
         tag: typeof tag === "string" ? tag.trim() : undefined,
         title: typeof title === "string" ? title.trim() : undefined,
+        color: color !== undefined ? (typeof color === "string" ? color.trim() || null : null) : undefined,
       });
       res.json({ success: true });
     } catch (err) {

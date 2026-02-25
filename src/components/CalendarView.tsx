@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import { Plus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { CalendarEventForm, type CalendarEventFormData } from "./CalendarEventForm";
 import { CALENDAR_COLORS, formatDuration } from "./calendarConstants";
-import { clsx } from "clsx";
 import type { UserTag } from "./TagsSection";
 
 export interface CalendarEvent {
@@ -118,8 +117,14 @@ export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewP
   const userTagNames = userTags.map((u) => u.tag).filter(Boolean);
   const allTags = Array.from(new Set([...eventTags, ...userTagNames]));
   const tagTitles: Record<string, string> = {};
+  const tagColors: Record<string, string> = {};
+  let colorIndex = 0;
   for (const u of userTags) {
-    if (u.tag && u.title) tagTitles[u.tag] = u.title;
+    if (u.tag) {
+      if (u.title) tagTitles[u.tag] = u.title;
+      tagColors[u.tag] = u.color || CALENDAR_COLORS[colorIndex % CALENDAR_COLORS.length];
+      colorIndex++;
+    }
   }
 
   const handlePrevMonth = () => {
@@ -336,14 +341,14 @@ export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewP
                       duration_minutes: editingEvent.duration_minutes,
                       title: editingEvent.title,
                       tags: editingEvent.tags,
-                      color: editingEvent.color,
                     }
                   : addDate
-                    ? { date: addDate, start_minutes: 9 * 60, duration_minutes: 60, title: "", tags: [], color: CALENDAR_COLORS[0] }
+                    ? { date: addDate, start_minutes: 9 * 60, duration_minutes: 60, title: "", tags: [] }
                     : undefined
               }
               existingTags={allTags}
               tagTitles={tagTitles}
+              tagColors={tagColors}
               onSubmit={handleSave}
               onCancel={() => { setModalOpen(false); setEditingEvent(null); setAddDate(null); }}
               submitLabel={editingEvent ? ((t.calendarSave as string) ?? "Save") : ((t.calendarAddEntry as string) ?? "Add")}

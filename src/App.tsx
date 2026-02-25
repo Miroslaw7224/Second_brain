@@ -125,6 +125,7 @@ const translations = {
     activityFrom: "From",
     activityTo: "To",
     activityNoEntries: "No entries in the selected period.",
+    activityNoTags: "No tags in the selected period.",
     activityTitle: "My Work",
     tasksAdd: "Add",
     tasksNewPlaceholder: "New task...",
@@ -192,6 +193,7 @@ const translations = {
     activityFrom: "Od",
     activityTo: "Do",
     activityNoEntries: "Brak wpisów w wybranym okresie.",
+    activityNoTags: "Brak tagów w wybranym okresie.",
     activityTitle: "Moja Praca",
     tasksAdd: "Dodaj",
     tasksNewPlaceholder: "Nowe zadanie...",
@@ -842,7 +844,7 @@ export default function App() {
             planningTab === 'calendar' ? (
               <CalendarView apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
             ) : planningTab === 'activity' ? (
-              <ActivityLog apiFetch={apiFetch} lang={lang} t={t} />
+              <ActivityLog apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
             ) : planningTab === 'tags' ? (
               <TagsSection apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} onTagsChange={fetchTags} />
             ) : (

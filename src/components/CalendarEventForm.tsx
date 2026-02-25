@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CALENDAR_COLORS, DURATION_OPTIONS, formatDuration } from "./calendarConstants";
-import { clsx } from "clsx";
 
 export interface CalendarEventFormData {
   date: string;
@@ -16,6 +15,8 @@ interface CalendarEventFormProps {
   existingTags?: string[];
   /** When user picks a tag, set event title to this if defined */
   tagTitles?: Record<string, string>;
+  /** Map tag name → color; event color is derived from the first tag with a color on submit. */
+  tagColors?: Record<string, string>;
   onSubmit: (data: CalendarEventFormData) => void;
   onCancel: () => void;
   submitLabel?: string;
@@ -25,6 +26,7 @@ export function CalendarEventForm({
   initial,
   existingTags = [],
   tagTitles = {},
+  tagColors = {},
   onSubmit,
   onCancel,
   submitLabel = "Add",
@@ -35,9 +37,15 @@ export function CalendarEventForm({
   const [title, setTitle] = useState(initial?.title ?? "");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>(initial?.tags ?? []);
-  const [color, setColor] = useState(initial?.color ?? CALENDAR_COLORS[0]);
   const [tagInputFocused, setTagInputFocused] = useState(false);
   const tagContainerRef = useRef<HTMLDivElement>(null);
+
+  const getColorForTag = (tag: string): string | undefined => {
+    if (tagColors[tag]) return tagColors[tag];
+    const lower = tag.toLowerCase();
+    const key = Object.keys(tagColors).find((k) => k.toLowerCase() === lower);
+    return key ? tagColors[key] : undefined;
+  };
 
   useEffect(() => {
     if (!initial?.date && !date) {
@@ -61,6 +69,8 @@ export function CalendarEventForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !title.trim()) return;
+    const firstTagWithColor = tags.find((t) => getColorForTag(t));
+    const color = firstTagWithColor ? getColorForTag(firstTagWithColor)! : CALENDAR_COLORS[0];
     onSubmit({
       date,
       start_minutes: startMinutes,
@@ -189,23 +199,6 @@ export function CalendarEventForm({
               </div>
             )}
           </div>
-        </div>
-      </div>
-      <div>
-        <label className="block text-xs font-bold text-[#4B5563] uppercase mb-2">Color</label>
-        <div className="flex flex-wrap gap-2">
-          {CALENDAR_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => setColor(c)}
-              className={clsx(
-                "w-8 h-8 rounded-lg border-2 transition-all",
-                color === c ? "border-black scale-110" : "border-transparent hover:border-[#9CA3AF]"
-              )}
-              style={{ backgroundColor: c }}
-            />
-          ))}
         </div>
       </div>
       <div className="flex gap-2 justify-end pt-2">

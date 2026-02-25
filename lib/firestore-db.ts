@@ -418,6 +418,7 @@ export type UserTagRecord = {
   id: string;
   tag: string;
   title: string;
+  color?: string;
   created_at?: string;
   createdAt?: Timestamp;
 };
@@ -434,6 +435,7 @@ export async function getUserTags(userId: string): Promise<UserTagRecord[]> {
       id: d.id,
       tag: (data.tag ?? "").trim().replace(/^#/, "") || "",
       title: (data.title ?? "").trim() || "",
+      color: typeof data.color === "string" && data.color ? data.color : undefined,
       created_at: data.createdAt?.toDate?.()?.toISOString?.(),
       createdAt: data.createdAt,
     };
@@ -442,21 +444,21 @@ export async function getUserTags(userId: string): Promise<UserTagRecord[]> {
 
 export async function createUserTag(
   userId: string,
-  data: { tag: string; title: string }
+  data: { tag: string; title: string; color?: string }
 ): Promise<UserTagRecord> {
   const tag = (data.tag ?? "").trim().replace(/^#/, "") || "";
   const title = (data.title ?? "").trim() || "";
-  const ref = await userTagsCol(userId).add({
-    tag,
-    title,
-    createdAt: FieldValue.serverTimestamp(),
-  });
+  const color = typeof data.color === "string" && data.color.trim() ? data.color.trim() : undefined;
+  const payload: Record<string, unknown> = { tag, title, createdAt: FieldValue.serverTimestamp() };
+  if (color) payload.color = color;
+  const ref = await userTagsCol(userId).add(payload);
   const doc = await ref.get();
   const d = doc.data()!;
   return {
     id: ref.id,
     tag: d.tag ?? "",
     title: d.title ?? "",
+    color: typeof d.color === "string" && d.color ? d.color : undefined,
     created_at: d.createdAt?.toDate?.()?.toISOString?.(),
     createdAt: d.createdAt,
   };
@@ -465,11 +467,12 @@ export async function createUserTag(
 export async function updateUserTag(
   userId: string,
   tagId: string,
-  data: { tag?: string; title?: string }
+  data: { tag?: string; title?: string; color?: string | null }
 ): Promise<void> {
   const update: Record<string, unknown> = {};
   if (data.tag !== undefined) update.tag = (data.tag ?? "").trim().replace(/^#/, "") || "";
   if (data.title !== undefined) update.title = (data.title ?? "").trim() || "";
+  if (data.color !== undefined) update.color = typeof data.color === "string" && data.color.trim() ? data.color.trim() : null;
   if (Object.keys(update).length > 0) {
     await userTagsCol(userId).doc(tagId).update(update);
   }
