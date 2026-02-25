@@ -198,6 +198,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewP
     }
   };
 
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   const cellWidth = 80;
   const rowHeight = 44;
   const dayLabelWidth = 80;
@@ -267,14 +268,15 @@ export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewP
               const dayEvents = events.filter((e) => e.date === day.date);
               const lanes = assignLanes(dayEvents);
               const overlapCounts = getOverlapCounts(dayEvents);
+              const isToday = day.date === todayStr;
               return (
                 <div
                   key={day.date}
-                  className="flex border-b border-[#E5E7EB] bg-white relative"
+                  className={`flex border-b border-[#E5E7EB] relative ${isToday ? "bg-[#EFF6FF] ring-1 ring-inset ring-[#3B82F6]" : "bg-white"}`}
                   style={{ height: rowHeight }}
                 >
                   <div
-                    className="flex-shrink-0 border-r border-[#E5E7EB] flex items-center px-2 text-sm font-medium bg-[#F9FAFB] sticky left-0 z-10"
+                    className={`flex-shrink-0 border-r border-[#E5E7EB] flex items-center px-2 text-sm font-medium sticky left-0 z-10 ${isToday ? "bg-[#DBEAFE] font-semibold text-[#1D4ED8]" : "bg-[#F9FAFB]"}`}
                     style={{ width: dayLabelWidth }}
                   >
                     {day.day} {DAY_NAMES[lang][day.dayOfWeek]}

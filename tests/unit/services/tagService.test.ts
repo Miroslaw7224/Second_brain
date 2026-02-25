@@ -59,6 +59,14 @@ describe("tagService", () => {
         createUserTag("user-1", { tag: "x", title: "y" })
       ).rejects.toThrow("Create failed");
     });
+
+    it("given data with color, when createUserTag is called, then passes color to firestore", async () => {
+      mockCreateUserTag.mockResolvedValue({ id: "tag1", tag: "work", title: "Work", color: "#FF0000" });
+
+      await createUserTag("user-1", { tag: "work", title: "Work", color: "#FF0000" });
+
+      expect(mockCreateUserTag).toHaveBeenCalledWith("user-1", { tag: "work", title: "Work", color: "#FF0000" });
+    });
   });
 
   describe("updateUserTag", () => {
@@ -76,6 +84,22 @@ describe("tagService", () => {
       await expect(
         updateUserTag("user-1", "tag1", { tag: "x" })
       ).rejects.toThrow("Update failed");
+    });
+
+    it("given data with color, when updateUserTag is called, then passes color to firestore", async () => {
+      mockUpdateUserTag.mockResolvedValue(undefined);
+
+      await updateUserTag("user-1", "tag1", { color: "#00FF00" });
+
+      expect(mockUpdateUserTag).toHaveBeenCalledWith("user-1", "tag1", { color: "#00FF00" });
+    });
+
+    it("given color null, when updateUserTag is called, then passes color null to firestore", async () => {
+      mockUpdateUserTag.mockResolvedValue(undefined);
+
+      await updateUserTag("user-1", "tag1", { color: null });
+
+      expect(mockUpdateUserTag).toHaveBeenCalledWith("user-1", "tag1", { color: null });
     });
   });
 

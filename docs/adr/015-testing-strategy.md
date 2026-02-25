@@ -82,6 +82,16 @@ Nie usuwamy testu ani nie zmieniamy asercji, żeby test przechodził. Oznaczamy 
 
 W testach jednostkowych **nie** używamy prawdziwego Firestore ani Gemini API. Serwisy testujemy z mockami; dane wejściowe i oczekiwane wyjścia — deterministyczne (fixtures z `tests/fixtures/`). Testy integracyjne „na żywo” — tylko za flagą (np. `RUN_INTEGRATION_TESTS=1`) i w osobnym jobie CI.
 
+### 7a. Testowa baza dla testów integracyjnych
+
+Testy jednostkowe nie łączą się z żadną bazą (tylko mocki `lib/firestore-db.js`). Testy integracyjne używają **dedykowanej** bazy testowej — **nie** produkcyjnego Firestore.
+
+**Zaakceptowane podejście: emulator Firestore w Dockerze.** Przy uruchomieniu testów integracyjnych ustawiamy `FIRESTORE_EMULATOR_HOST=localhost:8080`. Emulator uruchamiany w kontenerze Docker (`docker-compose-test.yml`); na hoście wymagany tylko Docker. Opcjonalnie: `FIREBASE_PROJECT_ID` lub `GCLOUD_PROJECT` na projekt demo (np. `demo-secondbrain`). Tryb „emulator only” w `lib/firebase-admin.ts` (inicjalizacja bez credentials, gdy ustawiony `FIRESTORE_EMULATOR_HOST`). W CI: job uruchamia emulator w Dockerze, ustawia `FIRESTORE_EMULATOR_HOST`, potem wywołuje testy z `RUN_INTEGRATION_TESTS=1`. Szczegóły: [tests/integration/README.md](../../tests/integration/README.md), [ADR-016](016-firestore-emulator-docker.md).
+
+### 7b. Coverage (pokrycie)
+
+Pokrycie zbierane przez Vitest z providerem **v8** (`vitest run --coverage` lub skrypt `test:coverage`). Zakres: `coverage.include` dla `services/**/*.ts`, aby raport obejmował warstwę serwisów. **Coverage threshold** (opcjonalnie): minimalne progi dla `services/**/*.ts` (statements, lines, functions, branches) w `vitest.config.ts`, aby CI sygnalizował spadki; wartości ustalone na podstawie aktualnego wyniku. Raport w katalogu `coverage/` (w `.gitignore`). Skrypt w `package.json`: `npm run test:coverage`. Zależność: `@vitest/coverage-v8`.
+
 ### 8. Testy smoke (opcjonalnie)
 
 Smoke = zdrowie infrastruktury, nie logika biznesowa. Nie wchodzą w `npm test`. Uruchomienie: `npm run test:smoke` lub `RUN_SMOKE=1 npm test`. W CI — osobny job za flagą RUN_SMOKE=1. Testy integracyjne pozostają za RUN_INTEGRATION_TESTS=1.
@@ -98,6 +108,8 @@ Gdy treść promptu do Gemini zależy od inputu użytkownika — warto mieć tes
 | Krytyczne     | environment: 'node' w vitest.config.ts           |
 | Wysokie       | Struktura katalogów tests/, fixtures, DoD       |
 | Średnie       | GWT + describe per metoda, filozofia mocków, it.fails |
+| Średnie       | Testowa baza dla testów integracyjnych (emulator Firestore) |
+| Średnie       | Coverage i opcjonalnie coverageThreshold dla services/ |
 | Niskie        | Testy smoke, testy prompt injection (security)  |
 
 ## Rozważane alternatywy
@@ -125,4 +137,4 @@ Gdy treść promptu do Gemini zależy od inputu użytkownika — warto mieć tes
 
 ## Stan aplikacji (luty 2026)
 
-Wdrożone. Vitest w `devDependencies`, skrypty `test`, `test:run`, `test:integration`. Konfiguracja: `vitest.config.ts` (environment: node, clearMocks, resetMocks, passWithNoTests, exclude: tests/integration). Struktura: `tests/unit/services/`, `tests/unit/lib/`, `tests/fixtures/`, `tests/integration/services/`, placeholdery: `tests/e2e/`, `tests/security/`, `tests/smoke/`. Testy jednostkowe: ragService, documentService, noteService, taskService, planService, tagService, calendarService, lib/errors. Testy integracyjne za flagą `RUN_INTEGRATION_TESTS=1` i skryptem `test:integration`; dokumentacja w `tests/integration/README.md`.
+Wdrożone. Vitest w `devDependencies`, skrypty `test`, `test:run`, `test:coverage`, `test:integration`. Konfiguracja: `vitest.config.ts` (environment: node, clearMocks, resetMocks, passWithNoTests, exclude: tests/integration; coverage: provider v8, include: services/**/*.ts, opcjonalnie thresholds dla services/). Zależność `@vitest/coverage-v8`. Struktura: `tests/unit/services/`, `tests/unit/lib/`, `tests/fixtures/`, `tests/integration/services/`, placeholdery: `tests/e2e/`, `tests/security/`, `tests/smoke/`. Testy jednostkowe: ragService, documentService, noteService, taskService, planService, tagService, calendarService, lib/errors. Testy integracyjne za flagą `RUN_INTEGRATION_TESTS=1` i skryptem `test:integration`; dokumentacja w `tests/integration/README.md`. **Testowa baza:** testy integracyjne przeciw emulatorowi Firestore w Dockerze (`docker-compose-test.yml`); `lib/firebase-admin.ts` obsługuje `FIRESTORE_EMULATOR_HOST` (tryb emulator-only bez credentials). **Coverage:** `npm run test:coverage`, raport w `coverage/` (gitignore).

@@ -8,4 +8,17 @@ export default defineConfig({
     passWithNoTests: true,
     exclude: ["**/node_modules/**", "**/dist/**", "**/tests/integration/**"],
   },
+  coverage: {
+    provider: "v8",
+    include: ["services/**/*.ts"],
+    reportsDirectory: "./coverage",
+    thresholds: {
+      "services/**/*.ts": {
+        statements: 60,
+        lines: 60,
+        functions: 50,
+        branches: 40,
+      },
+    },
+  },
 });
