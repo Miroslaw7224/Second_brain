@@ -140,19 +140,19 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
           <p className="text-[#9CA3AF] font-medium">{labels.noEntries}</p>
         ) : (
           <>
-            <ul className="flex-1 min-w-0 space-y-3 overflow-auto pr-2">
+            <ul className="flex-[2_2_0%] min-w-0 space-y-1.5 overflow-auto pr-2">
               {events.map((ev) => (
                 <li
                   key={ev.id}
-                  className="flex items-center gap-4 p-4 bg-white border border-[#E5E7EB] rounded-xl"
+                  className="flex items-center gap-3 py-2 px-3 bg-white border border-[#E5E7EB] rounded-xl"
                 >
                   <div
-                    className="w-2 h-10 rounded flex-shrink-0"
+                    className="w-2 h-5 rounded flex-shrink-0"
                     style={{ backgroundColor: ev.color }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm">{ev.title}</p>
-                    <p className="text-[10px] text-[#9CA3AF] uppercase font-bold mt-0.5">
+                    <p className="font-medium text-sm leading-tight">{ev.title}</p>
+                    <p className="text-[10px] text-[#9CA3AF] uppercase font-bold mt-0.5 leading-tight">
                       {ev.date} · {formatTime(ev.start_minutes)} · {formatDuration(ev.duration_minutes)}
                       {ev.tags.length > 0 && ` · ${ev.tags.map((tag) => `#${tag}`).join(" ")}`}
                     </p>
@@ -160,43 +160,57 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                 </li>
               ))}
             </ul>
-            <div className="flex-1 min-w-0 flex flex-col bg-white border border-[#E5E7EB] rounded-xl p-4">
+            <div className="flex-[3_3_0%] min-w-0 flex flex-col bg-white border border-[#E5E7EB] rounded-xl p-4">
               {tagHours.length === 0 ? (
                 <p className="text-[#9CA3AF] font-medium text-sm">{labels.noTags}</p>
               ) : (
-                <ResponsiveContainer width="100%" height={Math.max(140, tagHours.length * 28)}>
-                  <BarChart
-                    data={tagHours}
-                    layout="vertical"
-                    margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis
-                      type="number"
-                      domain={[0, maxHours]}
-                      ticks={xAxisTicks}
-                      stroke="#6B7280"
-                      fontSize={12}
-                    />
-                    <YAxis
-                      type="category"
-                      dataKey="tag"
-                      tickFormatter={(v) => `#${v}`}
-                      width={100}
-                      stroke="#6B7280"
-                      fontSize={12}
-                    />
-                    <Tooltip
-                      formatter={(value: number) => [`${value} h`, "Godziny"]}
-                      labelFormatter={(label) => `#${label}`}
-                    />
-                    <Bar dataKey="hours" radius={[0, 4, 4, 0]} barSize={24}>
-                      {tagHours.map((entry) => (
-                        <Cell key={entry.tag} fill={tagToColor.get(entry.tag) ?? "#3B82F6"} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <>
+                  <ResponsiveContainer width="100%" height={Math.max(140, tagHours.length * 28)}>
+                    <BarChart
+                      data={tagHours}
+                      layout="vertical"
+                      margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <XAxis
+                        type="number"
+                        domain={[0, maxHours]}
+                        ticks={xAxisTicks}
+                        stroke="#6B7280"
+                        fontSize={12}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="tag"
+                        tickFormatter={(v) => `#${v}`}
+                        width={100}
+                        stroke="#6B7280"
+                        fontSize={12}
+                      />
+                      <Tooltip
+                        formatter={(value: number) => [`${value} h`, "Godziny"]}
+                        labelFormatter={(label) => `#${label}`}
+                      />
+                      <Bar dataKey="hours" radius={[0, 4, 4, 0]} barSize={24}>
+                        {tagHours.map((entry) => (
+                          <Cell key={entry.tag} fill={tagToColor.get(entry.tag) ?? "#3B82F6"} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 pt-4 border-t border-[#E5E7EB] flex flex-wrap gap-x-6 gap-y-2">
+                    {tagHours.map(({ tag, hours }) => (
+                      <div key={tag} className="flex items-center gap-2 text-sm">
+                        <span
+                          className="w-2 h-2 rounded-full flex-shrink-0"
+                          style={{ backgroundColor: tagToColor.get(tag) ?? "#3B82F6" }}
+                        />
+                        <span className="font-medium text-[#374151]">#{tag}</span>
+                        <span className="text-[#6B7280]">{hours} h</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </>

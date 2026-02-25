@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Check, Circle } from "lucide-react";
-import { clsx } from "clsx";
 
 export interface Task {
   id: string;
@@ -117,81 +116,126 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
             placeholder={labels.addPlaceholder}
-            className="flex-1 px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+            className="flex-1 px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black"
           />
           <button
             onClick={addTask}
-            className="flex items-center gap-2 px-4 py-3 bg-black text-white rounded-xl text-sm font-semibold"
+            className="flex items-center gap-2 px-4 py-3 bg-black text-white rounded-xl text-base font-semibold"
           >
             <Plus className="w-4 h-4" />
             {(t.tasksAdd as string) ?? "Add"}
           </button>
         </div>
       </div>
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-6 flex flex-col min-h-0">
         {loading ? (
-          <div className="text-[#6B7280]">Loading…</div>
+          <div className="text-[#6B7280] text-base">Loading…</div>
         ) : tasks.length === 0 ? (
-          <p className="text-[#9CA3AF] font-medium">{labels.noTasks}</p>
+          <p className="text-[#9CA3AF] font-medium text-base">{labels.noTasks}</p>
         ) : (
-          <ul className="space-y-2 max-w-2xl">
-            {tasks.map((task) => (
-              <li
-                key={task.id}
-                className={clsx(
-                  "flex items-center gap-3 p-4 bg-white border border-[#E5E7EB] rounded-xl",
-                  task.status === "done" && "opacity-75"
-                )}
-              >
-                <button
-                  type="button"
-                  onClick={() => updateStatus(task.id, task.status === "done" ? "todo" : "done")}
-                  className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
-                >
-                  {task.status === "done" ? (
-                    <Check className="w-5 h-5 text-emerald-500" />
-                  ) : (
-                    <Circle className="w-5 h-5 text-[#9CA3AF]" />
-                  )}
-                </button>
-                {editingId === task.id ? (
-                  <input
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    onBlur={() => updateTitle(task.id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") updateTitle(task.id);
-                      if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
-                    }}
-                    className="flex-1 px-2 py-1 border border-[#E5E7EB] rounded text-sm"
-                    autoFocus
-                  />
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                    className={clsx(
-                      "flex-1 text-left text-sm font-medium",
-                      task.status === "done" && "line-through text-[#9CA3AF]"
-                    )}
-                  >
-                    {task.title}
-                  </button>
-                )}
-                <span className="text-[10px] text-[#9CA3AF] uppercase font-bold">
-                  {task.status === "todo" ? labels.todo : task.status === "in_progress" ? labels.inProgress : labels.done}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => deleteTask(task.id)}
-                  className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </li>
-            ))}
-          </ul>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-w-0 w-full content-start">
+            <div className="flex flex-col min-w-0 flex-1">
+              <h3 className="text-sm font-bold text-[#6B7280] uppercase tracking-wider mb-3">{labels.todo}</h3>
+              <ul className="space-y-2 flex-1">
+                {tasks
+                  .filter((task) => task.status !== "done")
+                  .map((task) => (
+                    <li
+                      key={task.id}
+                      className="flex items-center gap-3 p-4 bg-white border border-[#E5E7EB] rounded-xl"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(task.id, "done")}
+                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
+                        title={labels.done}
+                      >
+                        <Circle className="w-5 h-5 text-[#9CA3AF]" />
+                      </button>
+                      {editingId === task.id ? (
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => updateTitle(task.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") updateTitle(task.id);
+                            if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
+                          }}
+                          className="flex-1 px-2 py-1 border border-[#E5E7EB] rounded text-base min-w-0"
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
+                          className="flex-1 text-left text-base font-medium min-w-0 truncate"
+                        >
+                          {task.title}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => deleteTask(task.id)}
+                        className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+            <div className="flex flex-col min-w-0 flex-1">
+              <ul className="space-y-2 flex-1">
+                {tasks
+                  .filter((task) => task.status === "done")
+                  .map((task) => (
+                    <li
+                      key={task.id}
+                      className="flex items-center gap-3 p-4 bg-white border border-[#E5E7EB] rounded-xl opacity-90"
+                    >
+                      <button
+                        type="button"
+                        onClick={() => updateStatus(task.id, "todo")}
+                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
+                        title={labels.todo}
+                      >
+                        <Check className="w-5 h-5 text-emerald-500" />
+                      </button>
+                      {editingId === task.id ? (
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => updateTitle(task.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") updateTitle(task.id);
+                            if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
+                          }}
+                          className="flex-1 px-2 py-1 border border-[#E5E7EB] rounded text-base min-w-0"
+                          autoFocus
+                        />
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
+                          className="flex-1 text-left text-base font-medium min-w-0 truncate line-through text-[#9CA3AF]"
+                        >
+                          {task.title}
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => deleteTask(task.id)}
+                        className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          </div>
         )}
       </div>
     </div>
