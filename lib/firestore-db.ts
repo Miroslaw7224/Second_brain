@@ -30,6 +30,19 @@ export type ChunkRecord = {
   noteTitle?: string;
 };
 
+export interface NoteResourceRecord {
+  id: string;
+  noteId?: string; // opcjonalne – zasoby są na poziomie użytkownika, nie notatki
+  userId: string;
+  description: string;
+  url: string;
+  title: string;
+  thumbnailUrl?: string;
+  tags: string[];
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
+}
+
 export type CalendarEventRecord = {
   id: string;
   date: string; // YYYY-MM-DD (date-only, user's day)
@@ -52,6 +65,14 @@ function documentsCol(userId: string) {
 
 function notesCol(userId: string) {
   return db().collection(COLLECTION_USERS).doc(String(userId)).collection("notes");
+}
+
+export function resourcesCol(userId: string, noteId: string) {
+  return notesCol(userId).doc(noteId).collection("resources");
+}
+
+function userResourcesCol(userId: string) {
+  return db().collection(COLLECTION_USERS).doc(String(userId)).collection("resources");
 }
 
 function chunksCol(userId: string) {
@@ -181,6 +202,113 @@ export async function deleteChunksByNote(userId: string, noteId: string): Promis
 export async function deleteDocument(userId: string, docId: string): Promise<void> {
   await deleteChunksByDocument(userId, docId);
   await documentsCol(userId).doc(docId).delete();
+}
+
+// --- Zasoby użytkownika (kolekcja na poziomie użytkownika, niezależna od notatek) ---
+
+export async function addResourceToFirestore(
+  userId: string,
+  data: Omit<NoteResourceRecord, "id" | "createdAt" | "updatedAt">
+): Promise<NoteResourceRecord> {
+  const col = userResourcesCol(userId);
+  const ref = await col.add({
+    userId,
+    description: data.description,
+    url: data.url,
+    title: data.title,
+    tags: data.tags ?? [],
+    ...(data.noteId != null && { noteId: data.noteId }),
+    ...(data.thumbnailUrl != null && { thumbnailUrl: data.thumbnailUrl }),
+    createdAt: FieldValue.serverTimestamp(),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+  const doc = await ref.get();
+  const d = doc.data()!;
+  return {
+    id: ref.id,
+    noteId: d.noteId,
+    userId: d.userId ?? userId,
+    description: d.description ?? "",
+    url: d.url ?? "",
+    title: d.title ?? "",
+    thumbnailUrl: d.thumbnailUrl,
+    tags: Array.isArray(d.tags) ? d.tags : [],
+    createdAt: d.createdAt,
+    updatedAt: d.updatedAt,
+  };
+}
+
+export async function getResourcesFromFirestore(
+  userId: string
+): Promise<NoteResourceRecord[]> {
+  const snap = await userResourcesCol(userId).orderBy("createdAt", "desc").get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      noteId: data.noteId,
+      userId: data.userId ?? userId,
+      description: data.description ?? "",
+      url: data.url ?? "",
+      title: data.title ?? "",
+      thumbnailUrl: data.thumbnailUrl,
+      tags: Array.isArray(data.tags) ? data.tags : [],
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    };
+  });
+}
+
+export async function deleteResourceFromFirestore(
+  userId: string,
+  resourceId: string
+): Promise<void> {
+  await userResourcesCol(userId).doc(resourceId).delete();
+}
+
+export async function updateResourceInFirestore(
+  userId: string,
+  resourceId: string,
+  data: { title?: string; tags?: string[] }
+): Promise<void> {
+  const updateData: Record<string, unknown> = {
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  if (data.title !== undefined) updateData.title = data.title.trim();
+  if (data.tags !== undefined) updateData.tags = Array.isArray(data.tags) ? data.tags : [];
+  await userResourcesCol(userId).doc(resourceId).update(updateData);
+}
+
+// --- Legacy: subkolekcja notatki (nie używane przy nowym API; zostawione na ewentualną migrację) ---
+
+export async function getResourcesByNoteFromFirestore(
+  userId: string,
+  noteId: string
+): Promise<NoteResourceRecord[]> {
+  const snap = await resourcesCol(userId, noteId).orderBy("createdAt", "desc").get();
+  return snap.docs.map((d) => {
+    const data = d.data();
+    return {
+      id: d.id,
+      noteId: data.noteId ?? noteId,
+      userId: data.userId ?? userId,
+      description: data.description ?? "",
+      url: data.url ?? "",
+      title: data.title ?? "",
+      thumbnailUrl: data.thumbnailUrl,
+      tags: Array.isArray(data.tags) ? data.tags : [],
+      createdAt: data.createdAt,
+      updatedAt: data.updatedAt,
+    };
+  });
+}
+
+export async function _deleteResourceFromNoteFirestore(
+  userId: string,
+  noteId: string,
+  resourceId: string
+): Promise<void> {
+  await resourcesCol(userId, noteId).doc(resourceId).delete();
 }
 
 export type ChunkWithSource = {

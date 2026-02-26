@@ -20,7 +20,8 @@ import {
   Calendar,
   Briefcase,
   ListTodo,
-  Tag
+  Tag,
+  Link
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -31,6 +32,7 @@ import { CalendarView } from './components/CalendarView';
 import { TasksSection } from './components/TasksSection';
 import { ActivityLog } from './components/ActivityLog';
 import { TagsSection, type UserTag } from './components/TagsSection';
+import { ResourceSection } from './components/ResourceSection';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -134,6 +136,28 @@ const translations = {
     tasksInProgress: "In progress",
     tasksDone: "Done",
     planAskPlaceholder: "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
+    resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
+    resourceUrlPlaceholder: "URL",
+    resourceTagsPlaceholder: "Tags (comma-separated, optional)",
+    addResource: "Add resource",
+    resourceCopied: "Copied!",
+    resourceTitleUnavailable: "(title unavailable)",
+    resourceDeleteConfirm: "Delete this resource?",
+    resourceNoResources: "No resources yet. Add your first link.",
+    resourceSaveNoteFirst: "Save the note first to add resources.",
+    resourceBlockFormatLabel: "Or paste in block format:",
+    resourceBlockFormatPlaceholder: "Opis: Short description.\nURL: https://example.com\nTagi: tag1, tag2",
+    resourceBlockFormatHint: "Multiple resources: start each new block on a new line with \"Opis:\" or \"Description:\".",
+    resourceAddFromBlock: "Add from pasted block",
+    resourceBlockFormatError: "Could not parse. Required: URL: and Opis: (or Description:).",
+    resourceFilterByTags: "Filter by tags",
+    resourceClearFilters: "Clear filters",
+    resourceNoMatchingTags: "No resources match the selected tags.",
+    resourceAddedOne: "Added 1 resource",
+    resourceAddedCount: "Added {n} resources",
+    resourceEditTags: "Edit tags",
+    tabContent: "Content",
+    tabResources: "Resources",
     prompts: [
       "What were the terms for the Acme project?",
       "Summarize my latest meeting notes",
@@ -202,6 +226,28 @@ const translations = {
     tasksInProgress: "W toku",
     tasksDone: "Zrobione",
     planAskPlaceholder: "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
+    resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
+    resourceUrlPlaceholder: "URL",
+    resourceTagsPlaceholder: "Tagi (oddzielone przecinkiem, opcjonalnie)",
+    addResource: "Dodaj zasób",
+    resourceCopied: "Skopiowano!",
+    resourceTitleUnavailable: "(tytuł niedostępny)",
+    resourceDeleteConfirm: "Usunąć ten zasób?",
+    resourceNoResources: "Brak zasobów. Dodaj pierwszy link.",
+    resourceSaveNoteFirst: "Zapisz notatkę, aby dodać zasoby.",
+    resourceBlockFormatLabel: "Lub wklej w formacie blokowym:",
+    resourceBlockFormatPlaceholder: "Opis: Krótki opis zasobu.\nURL: https://example.com\nTagi: tag1, tag2",
+    resourceBlockFormatHint: "Wiele zasobów: każdy kolejny blok zacznij w nowej linii od „Opis:” lub „Description:”.",
+    resourceAddFromBlock: "Dodaj z wklejonego",
+    resourceBlockFormatError: "Nie udało się rozpoznać. Wymagane: URL: oraz Opis: (lub Description:).",
+    resourceFilterByTags: "Filtruj po tagach",
+    resourceClearFilters: "Wyczyść filtry",
+    resourceNoMatchingTags: "Brak zasobów z wybranymi tagami.",
+    resourceAddedOne: "Dodano 1 zasób",
+    resourceAddedCount: "Dodano {n} zasobów",
+    resourceEditTags: "Edytuj tagi",
+    tabContent: "Treść",
+    tabResources: "Zasoby",
     prompts: [
       "Jakie były warunki projektu Acme?",
       "Podsumuj moje ostatnie notatki ze spotkania",
@@ -231,7 +277,7 @@ export default function App() {
   const [authError, setAuthError] = useState('');
   
   const [appMode, setAppMode] = useState<'wiedza' | 'planowanie'>('wiedza');
-  const [activeTab, setActiveTab] = useState<'chat' | 'notes'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'notes' | 'resources'>('chat');
   const [planningTab, setPlanningTab] = useState<'calendar' | 'activity' | 'tasks' | 'tags'>('calendar');
   const [documents, setDocuments] = useState<Document[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -682,7 +728,42 @@ export default function App() {
           </div>
           )}
           {appMode === 'wiedza' && (
-          <div>
+          <div className="space-y-4">
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => setActiveTab('chat')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
+                  activeTab === 'chat' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]"
+                )}
+              >
+                <MessageSquare className="w-5 h-5 flex-shrink-0" />
+                <span>{t.chatTab}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('notes')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
+                  activeTab === 'notes' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]"
+                )}
+              >
+                <FileText className="w-5 h-5 flex-shrink-0" />
+                <span>{t.notesTab}</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('resources')}
+                className={cn(
+                  "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
+                  activeTab === 'resources' ? "bg-black text-white border-black" : "bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]"
+                )}
+              >
+                <Link className="w-5 h-5 flex-shrink-0" />
+                <span>{(t.tabResources as string) ?? 'Zasoby'}</span>
+              </button>
+            </div>
             <div className="flex items-center justify-between mb-4 px-2">
               <h2 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest">{t.knowledge}</h2>
               <button 
@@ -796,28 +877,6 @@ export default function App() {
                 {t.modePlanowanie}
               </button>
             </div>
-            {appMode === 'wiedza' && (
-            <div className="flex bg-[#F3F4F6] p-1 rounded-xl ml-2">
-              <button 
-                onClick={() => setActiveTab('chat')}
-                className={cn(
-                  "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all",
-                  activeTab === 'chat' ? "bg-white shadow-sm text-black" : "text-[#6B7280] hover:text-black"
-                )}
-              >
-                {t.chatTab}
-              </button>
-              <button 
-                onClick={() => setActiveTab('notes')}
-                className={cn(
-                  "px-4 py-1.5 rounded-lg text-sm font-semibold transition-all",
-                  activeTab === 'notes' ? "bg-white shadow-sm text-black" : "text-[#6B7280] hover:text-black"
-                )}
-              >
-                {t.notesTab}
-              </button>
-            </div>
-            )}
             <div className="flex items-center gap-2 ml-2">
               <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
               <span className="text-sm font-semibold">{t.brainActive}</span>
@@ -939,6 +998,10 @@ export default function App() {
                 </div>
               )}
             </div>
+          ) : activeTab === 'resources' ? (
+            <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+              <ResourceSection apiFetch={apiFetch} t={t} />
+            </div>
           ) : (
             <div className="flex-1 flex overflow-hidden">
               <div className="w-64 border-r border-[#E5E7EB] bg-white overflow-y-auto p-4 space-y-2">
@@ -974,7 +1037,7 @@ export default function App() {
                 {selectedNote ? (
                   <div className="max-w-2xl mx-auto space-y-6">
                     <div className="flex items-center justify-between">
-                      <input 
+                      <input
                         type="text"
                         value={selectedNote.title}
                         onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
@@ -983,14 +1046,14 @@ export default function App() {
                       />
                       <div className="flex items-center gap-2">
                         {selectedNote.id !== '' && (
-                          <button 
+                          <button
                             onClick={() => handleDeleteNote(selectedNote.id)}
                             className="p-2 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
                           >
                             <Trash2 className="w-5 h-5" />
                           </button>
                         )}
-                        <button 
+                        <button
                           onClick={handleSaveNote}
                           className="px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
                         >
@@ -998,7 +1061,7 @@ export default function App() {
                         </button>
                       </div>
                     </div>
-                    <textarea 
+                    <textarea
                       value={selectedNote.content}
                       onChange={(e) => setSelectedNote({ ...selectedNote, content: e.target.value })}
                       placeholder={t.noteContentPlaceholder}

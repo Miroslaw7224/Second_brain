@@ -10,6 +10,7 @@ import * as ragService from "./services/ragService.js";
 import * as calendarService from "./services/calendarService.js";
 import * as documentService from "./services/documentService.js";
 import * as noteService from "./services/noteService.js";
+import * as resourceService from "./services/resourceService.js";
 import * as tagService from "./services/tagService.js";
 import * as taskService from "./services/taskService.js";
 
@@ -113,6 +114,65 @@ async function startServer() {
     const userId = req.uid!;
     try {
       await noteService.deleteNote(userId, id);
+      res.json({ success: true });
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  });
+
+  app.get("/api/resources", authMiddleware, async (req, res) => {
+    try {
+      const userId = req.uid!;
+      const resources = await resourceService.getResources(userId);
+      res.json(resources);
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  });
+
+  app.post("/api/resources", authMiddleware, async (req, res) => {
+    try {
+      const userId = req.uid!;
+      const { description, url, tags } = req.body;
+      if (!description || typeof description !== "string" || !url || typeof url !== "string") {
+        res.status(400).json({ error: "description and url are required" });
+        return;
+      }
+      const resource = await resourceService.addResource(userId, {
+        description: description.trim(),
+        url: url.trim(),
+        tags: Array.isArray(tags) ? tags : tags != null ? [String(tags)] : undefined,
+      });
+      res.status(201).json(resource);
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  });
+
+  app.delete("/api/resources/:resourceId", authMiddleware, async (req, res) => {
+    try {
+      const { resourceId } = req.params;
+      const userId = req.uid!;
+      await resourceService.deleteResource(userId, resourceId);
+      res.status(204).send();
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  });
+
+  app.put("/api/resources/:resourceId", authMiddleware, async (req, res) => {
+    try {
+      const { resourceId } = req.params;
+      const userId = req.uid!;
+      const { title, tags } = req.body;
+      if (title === undefined && tags === undefined) {
+        res.status(400).json({ error: "title or tags is required" });
+        return;
+      }
+      const data: { title?: string; tags?: string[] } = {};
+      if (title !== undefined) data.title = typeof title === "string" ? title.trim() : String(title).trim();
+      if (tags !== undefined) data.tags = Array.isArray(tags) ? tags : [String(tags)];
+      await resourceService.updateResource(userId, resourceId, data);
       res.json({ success: true });
     } catch (err) {
       handleServiceError(err, res);

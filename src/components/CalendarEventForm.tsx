@@ -81,7 +81,7 @@ export function CalendarEventForm({
     });
   };
 
-  const hourOptions = Array.from({ length: 24 }, (_, i) => i * 60);
+  const hourOptions = Array.from({ length: 96 }, (_, i) => i * 15); // 0–23:45 co 15 min
   const tagInputNormalized = tagInput.trim().replace(/^#/, "").toLowerCase();
   const filteredExistingTags = existingTags.filter((t) => {
     if (tags.includes(t)) return false;
