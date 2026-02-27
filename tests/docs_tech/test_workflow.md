@@ -45,4 +45,18 @@ Bez zmiennej `RUN_INTEGRATION_TESTS=1` testy wymagające Firestore/Gemini są po
 
 ---
 
+## Testy E2E (Playwright)
+
+Testy w przeglądarce Chromium — strona główna, ekran logowania. Serwer dev uruchamiany automatycznie na porcie **3100** (lub używany już działający).
+
+| Cel | Komenda |
+|-----|--------|
+| Uruchom testy E2E | `npm run test:e2e` |
+| Tryb UI (debug) | `npm run test:e2e:ui` |
+| Instalacja Chromium (jednorazowo) | `npx playwright install chromium` |
+
+Konfiguracja: `playwright.config.ts`. Raport HTML po przebiegu (np. `playwright-report/`). Zob. [ADR-015](../../docs/adr/015-testing-strategy.md) sekcja 3 (Testy E2E).
+
+---
+
 Szczegóły: [tests/integration/README.md](../integration/README.md), [ADR-015](../../docs/adr/015-testing-strategy.md), [ADR-016](../../docs/adr/016-firestore-emulator-docker.md).

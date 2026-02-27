@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   Brain, 
   Plus, 
@@ -135,6 +135,8 @@ const translations = {
     tasksTodo: "To do",
     tasksInProgress: "In progress",
     tasksDone: "Done",
+    tasksMoveUp: "Move up",
+    tasksMoveDown: "Move down",
     planAskPlaceholder: "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
     resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
     resourceUrlPlaceholder: "URL",
@@ -225,6 +227,8 @@ const translations = {
     tasksTodo: "Do zrobienia",
     tasksInProgress: "W toku",
     tasksDone: "Zrobione",
+    tasksMoveUp: "W górę",
+    tasksMoveDown: "W dół",
     planAskPlaceholder: "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
     resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
     resourceUrlPlaceholder: "URL",
@@ -380,7 +384,7 @@ export default function App() {
     }
   };
 
-  const apiFetch = async (url: string, options: RequestInit = {}) => {
+  const apiFetch = useCallback(async (url: string, options: RequestInit = {}) => {
     const auth = getFirebaseAuth();
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
@@ -391,7 +395,7 @@ export default function App() {
       Authorization: `Bearer ${token}`,
     };
     return fetch(url, { ...options, headers });
-  };
+  }, []);
 
   const fetchDocuments = async () => {
     try {

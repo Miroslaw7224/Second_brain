@@ -1,7 +1,7 @@
 import * as firestoreDb from "../lib/firestore-db.js";
 import { generateContent } from "../lib/gemini.js";
 
-const RAG_PLAN_MODEL = "gemini-2.0-flash";
+const RAG_PLAN_MODEL = "gemini-2.5-flash";
 
 const SYSTEM_INSTRUCTION_PL = `Jesteś asystentem planowania. Masz listę wpisów kalendarza użytkownika (data, godzina, czas w min, tytuł, tagi).
 Zadania:

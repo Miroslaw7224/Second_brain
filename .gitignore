@@ -12,3 +12,9 @@ firebase-service-account.json
 .cursor/
 # SQLite DB (local data; do not commit)
 brain.db
+
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+blob-report/

@@ -27,9 +27,14 @@ export async function updateTask(
     status: TaskRecord["status"];
     due_date: string | null;
     priority: number | null;
+    order: number;
   }>
 ) {
   return firestoreDb.updateTask(userId, id, data);
+}
+
+export async function reorderTasks(userId: string, taskIds: string[]) {
+  return firestoreDb.reorderTasks(userId, taskIds);
 }
 
 export async function deleteTask(userId: string, id: string) {

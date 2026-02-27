@@ -21,6 +21,18 @@ function handleServiceError(err: unknown, res: express.Response): void {
     res.status(err.statusCode).json({ error: err.message });
     return;
   }
+  const status = err && typeof err === "object" && "status" in err ? (err as { status: number }).status : undefined;
+  if (status === 429) {
+    const msg =
+      err instanceof Error ? err.message : "API rate limit exceeded.";
+    const retryMatch = typeof msg === "string" ? msg.match(/retry in (\d+(?:\.\d+)?)s/i) : null;
+    const retrySec = retryMatch ? Math.ceil(parseFloat(retryMatch[1])) : 60;
+    res.status(429).json({
+      error: "Przekroczono limit zapytań do AI. Spróbuj ponownie za chwilę.",
+      retryAfterSeconds: retrySec,
+    });
+    return;
+  }
   console.error(err);
   res.status(500).json({ error: err instanceof Error ? err.message : "Internal server error" });
 }
@@ -324,7 +336,7 @@ async function startServer() {
   app.put("/api/tasks/:id", authMiddleware, async (req, res) => {
     const userId = req.uid!;
     const { id } = req.params;
-    const { title, description, status, due_date, priority } = req.body;
+    const { title, description, status, due_date, priority, order } = req.body;
     try {
       await taskService.updateTask(userId, id, {
         title,
@@ -332,7 +344,22 @@ async function startServer() {
         status,
         due_date,
         priority,
+        order,
       });
+      res.json({ success: true });
+    } catch (err) {
+      handleServiceError(err, res);
+    }
+  });
+
+  app.put("/api/tasks/reorder", authMiddleware, async (req, res) => {
+    const userId = req.uid!;
+    const { taskIds } = req.body;
+    if (!Array.isArray(taskIds) || taskIds.some((x: unknown) => typeof x !== "string")) {
+      return res.status(400).json({ error: "taskIds must be an array of strings" });
+    }
+    try {
+      await taskService.reorderTasks(userId, taskIds);
       res.json({ success: true });
     } catch (err) {
       handleServiceError(err, res);

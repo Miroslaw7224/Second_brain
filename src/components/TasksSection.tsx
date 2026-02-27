@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Check, Circle } from "lucide-react";
+import { Plus, Trash2, Check, Circle, ChevronUp, ChevronDown } from "lucide-react";
 
 export interface Task {
   id: string;
@@ -8,6 +8,7 @@ export interface Task {
   status: "todo" | "in_progress" | "done";
   due_date: string | null;
   priority: number | null;
+  order?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -98,12 +99,38 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
     }
   };
 
+  const orderedIds = tasks.map((t) => t.id);
+
+  const moveTask = async (taskId: string, direction: "up" | "down") => {
+    const i = orderedIds.indexOf(taskId);
+    if (i < 0) return;
+    const j = direction === "up" ? i - 1 : i + 1;
+    if (j < 0 || j >= orderedIds.length) return;
+    const next = [...orderedIds];
+    [next[i], next[j]] = [next[j], next[i]];
+    try {
+      await apiFetch("/api/tasks/reorder", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ taskIds: next }),
+      });
+      setTasks((prev) => {
+        const byId = new Map(prev.map((t) => [t.id, t]));
+        return next.map((id) => byId.get(id)!).filter(Boolean);
+      });
+    } catch (err) {
+      console.error("Reorder failed", err);
+    }
+  };
+
   const labels = {
     addPlaceholder: (t.tasksNewPlaceholder as string) ?? "New task...",
     todo: (t.tasksTodo as string) ?? "To do",
     inProgress: (t.tasksInProgress as string) ?? "In progress",
     done: (t.tasksDone as string) ?? "Done",
     noTasks: (t.tasksNoTasks as string) ?? "No tasks. Add your first.",
+    moveUp: (t.tasksMoveUp as string) ?? "Move up",
+    moveDown: (t.tasksMoveDown as string) ?? "Move down",
   };
 
   return (
@@ -136,21 +163,45 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-w-0 w-full content-start">
             <div className="flex flex-col min-w-0 flex-1">
               <h3 className="text-sm font-bold text-[#6B7280] uppercase tracking-wider mb-3">{labels.todo}</h3>
-              <ul className="space-y-2 flex-1">
+              <ul className="space-y-0.5 flex-1">
                 {tasks
                   .filter((task) => task.status !== "done")
-                  .map((task) => (
+                  .map((task) => {
+                    const idx = orderedIds.indexOf(task.id);
+                    const canMoveUp = idx > 0;
+                    const canMoveDown = idx >= 0 && idx < orderedIds.length - 1;
+                    return (
                     <li
                       key={task.id}
-                      className="flex items-center gap-3 p-4 bg-white border border-[#E5E7EB] rounded-xl"
+                      className="flex items-center gap-1.5 py-1 px-2 bg-white border border-[#E5E7EB] rounded-lg"
                     >
+                      <div className="flex flex-col flex-shrink-0 gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => moveTask(task.id, "up")}
+                          disabled={!canMoveUp}
+                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={labels.moveUp}
+                        >
+                          <ChevronUp className="w-3.5 h-3.5 text-[#6B7280]" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveTask(task.id, "down")}
+                          disabled={!canMoveDown}
+                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={labels.moveDown}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280]" />
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => updateStatus(task.id, "done")}
                         className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
                         title={labels.done}
                       >
-                        <Circle className="w-5 h-5 text-[#9CA3AF]" />
+                        <Circle className="w-4 h-4 text-[#9CA3AF]" />
                       </button>
                       {editingId === task.id ? (
                         <input
@@ -162,14 +213,14 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                             if (e.key === "Enter") updateTitle(task.id);
                             if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
                           }}
-                          className="flex-1 px-2 py-1 border border-[#E5E7EB] rounded text-base min-w-0"
+                          className="flex-1 px-2 py-0.5 border border-[#E5E7EB] rounded text-sm min-w-0"
                           autoFocus
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-base font-medium min-w-0 truncate"
+                          className="flex-1 text-left text-sm font-medium min-w-0 truncate"
                         >
                           {task.title}
                         </button>
@@ -179,28 +230,53 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                         onClick={() => deleteTask(task.id)}
                         className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
               </ul>
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <ul className="space-y-2 flex-1">
+              <ul className="space-y-0.5 flex-1">
                 {tasks
                   .filter((task) => task.status === "done")
-                  .map((task) => (
+                  .map((task) => {
+                    const idx = orderedIds.indexOf(task.id);
+                    const canMoveUp = idx > 0;
+                    const canMoveDown = idx >= 0 && idx < orderedIds.length - 1;
+                    return (
                     <li
                       key={task.id}
-                      className="flex items-center gap-3 p-4 bg-white border border-[#E5E7EB] rounded-xl opacity-90"
+                      className="flex items-center gap-1.5 py-1 px-2 bg-white border border-[#E5E7EB] rounded-lg opacity-90"
                     >
+                      <div className="flex flex-col flex-shrink-0 gap-0.5">
+                        <button
+                          type="button"
+                          onClick={() => moveTask(task.id, "up")}
+                          disabled={!canMoveUp}
+                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={labels.moveUp}
+                        >
+                          <ChevronUp className="w-3.5 h-3.5 text-[#6B7280]" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveTask(task.id, "down")}
+                          disabled={!canMoveDown}
+                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          title={labels.moveDown}
+                        >
+                          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280]" />
+                        </button>
+                      </div>
                       <button
                         type="button"
                         onClick={() => updateStatus(task.id, "todo")}
                         className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
                         title={labels.todo}
                       >
-                        <Check className="w-5 h-5 text-emerald-500" />
+                        <Check className="w-4 h-4 text-emerald-500" />
                       </button>
                       {editingId === task.id ? (
                         <input
@@ -212,14 +288,14 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                             if (e.key === "Enter") updateTitle(task.id);
                             if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
                           }}
-                          className="flex-1 px-2 py-1 border border-[#E5E7EB] rounded text-base min-w-0"
+                          className="flex-1 px-2 py-0.5 border border-[#E5E7EB] rounded text-sm min-w-0"
                           autoFocus
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-base font-medium min-w-0 truncate line-through text-[#9CA3AF]"
+                          className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[#9CA3AF]"
                         >
                           {task.title}
                         </button>
@@ -229,10 +305,11 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                         onClick={() => deleteTask(task.id)}
                         className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-3.5 h-3.5" />
                       </button>
                     </li>
-                  ))}
+                    );
+                  })}
               </ul>
             </div>
           </div>

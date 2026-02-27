@@ -467,6 +467,7 @@ export type TaskRecord = {
   status: "todo" | "in_progress" | "done";
   due_date: string | null;
   priority: number | null;
+  order?: number;
   created_at?: string;
   updated_at?: string;
   createdAt?: Timestamp;
@@ -479,7 +480,7 @@ function tasksCol(userId: string) {
 
 export async function getTasks(userId: string): Promise<TaskRecord[]> {
   const snap = await tasksCol(userId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((d) => {
+  const list = snap.docs.map((d) => {
     const data = d.data();
     return {
       id: d.id,
@@ -488,12 +489,22 @@ export async function getTasks(userId: string): Promise<TaskRecord[]> {
       status: (data.status as TaskRecord["status"]) ?? "todo",
       due_date: data.due_date ?? null,
       priority: data.priority ?? null,
+      order: typeof data.order === "number" ? data.order : undefined,
       created_at: data.createdAt?.toDate?.()?.toISOString?.(),
       updated_at: data.updatedAt?.toDate?.()?.toISOString?.(),
       createdAt: data.createdAt,
       updatedAt: data.updatedAt,
     };
   });
+  list.sort((a, b) => {
+    const oA = a.order ?? 999999;
+    const oB = b.order ?? 999999;
+    if (oA !== oB) return oA - oB;
+    const tA = a.createdAt?.toMillis?.() ?? 0;
+    const tB = b.createdAt?.toMillis?.() ?? 0;
+    return tB - tA;
+  });
+  return list;
 }
 
 export async function createTask(
@@ -506,6 +517,7 @@ export async function createTask(
     status: data.status ?? "todo",
     due_date: data.due_date ?? null,
     priority: data.priority ?? null,
+    order: 0,
     createdAt: FieldValue.serverTimestamp(),
     updatedAt: FieldValue.serverTimestamp(),
   });
@@ -518,6 +530,7 @@ export async function createTask(
     status: (d.status as TaskRecord["status"]) ?? "todo",
     due_date: d.due_date ?? null,
     priority: d.priority ?? null,
+    order: typeof d.order === "number" ? d.order : 0,
     created_at: d.createdAt?.toDate?.()?.toISOString?.(),
     updated_at: d.updatedAt?.toDate?.()?.toISOString?.(),
     createdAt: d.createdAt,
@@ -528,12 +541,26 @@ export async function createTask(
 export async function updateTask(
   userId: string,
   taskId: string,
-  data: Partial<{ title: string; description: string; status: TaskRecord["status"]; due_date: string | null; priority: number | null }>
+  data: Partial<{ title: string; description: string; status: TaskRecord["status"]; due_date: string | null; priority: number | null; order: number }>
 ): Promise<void> {
-  await tasksCol(userId).doc(taskId).update({
-    ...data,
-    updatedAt: FieldValue.serverTimestamp(),
+  const update: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
+  if (data.title !== undefined) update.title = data.title;
+  if (data.description !== undefined) update.description = data.description;
+  if (data.status !== undefined) update.status = data.status;
+  if (data.due_date !== undefined) update.due_date = data.due_date;
+  if (data.priority !== undefined) update.priority = data.priority;
+  if (data.order !== undefined) update.order = data.order;
+  await tasksCol(userId).doc(taskId).update(update);
+}
+
+export async function reorderTasks(userId: string, taskIds: string[]): Promise<void> {
+  if (taskIds.length === 0) return;
+  const col = tasksCol(userId);
+  const batch = db().batch();
+  taskIds.forEach((id, index) => {
+    batch.update(col.doc(id), { order: index, updatedAt: FieldValue.serverTimestamp() });
   });
+  await batch.commit();
 }
 
 export async function deleteTask(userId: string, taskId: string): Promise<void> {

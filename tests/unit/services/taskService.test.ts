@@ -4,18 +4,21 @@ import {
   createTask,
   updateTask,
   deleteTask,
+  reorderTasks,
 } from "../../../services/taskService.js";
 
 const mockGetTasks = vi.hoisted(() => vi.fn());
 const mockCreateTask = vi.hoisted(() => vi.fn());
 const mockUpdateTask = vi.hoisted(() => vi.fn());
 const mockDeleteTask = vi.hoisted(() => vi.fn());
+const mockReorderTasks = vi.hoisted(() => vi.fn());
 
 vi.mock("../../../lib/firestore-db.js", () => ({
   getTasks: (...args: unknown[]) => mockGetTasks(...args),
   createTask: (...args: unknown[]) => mockCreateTask(...args),
   updateTask: (...args: unknown[]) => mockUpdateTask(...args),
   deleteTask: (...args: unknown[]) => mockDeleteTask(...args),
+  reorderTasks: (...args: unknown[]) => mockReorderTasks(...args),
 }));
 
 describe("taskService", () => {
@@ -24,6 +27,7 @@ describe("taskService", () => {
     mockCreateTask.mockReset();
     mockUpdateTask.mockReset();
     mockDeleteTask.mockReset();
+    mockReorderTasks.mockReset();
   });
 
   describe("getTasks", () => {
@@ -98,6 +102,22 @@ describe("taskService", () => {
       mockDeleteTask.mockRejectedValue(new Error("Delete failed"));
 
       await expect(deleteTask("user-1", "t1")).rejects.toThrow("Delete failed");
+    });
+  });
+
+  describe("reorderTasks", () => {
+    it("given taskIds, when reorderTasks is called, then delegates to firestore", async () => {
+      mockReorderTasks.mockResolvedValue(undefined);
+
+      await reorderTasks("user-1", ["t1", "t2", "t3"]);
+
+      expect(mockReorderTasks).toHaveBeenCalledWith("user-1", ["t1", "t2", "t3"]);
+    });
+
+    it("given reorderTasks throws, when reorderTasks is called, then propagates the error", async () => {
+      mockReorderTasks.mockRejectedValue(new Error("Reorder failed"));
+
+      await expect(reorderTasks("user-1", ["t1"])).rejects.toThrow("Reorder failed");
     });
   });
 });
