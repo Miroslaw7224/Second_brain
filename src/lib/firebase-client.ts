@@ -1,26 +1,34 @@
-import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { getAuth, type Auth } from "firebase/auth";
+import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
+import { getAuth, type Auth } from 'firebase/auth';
 
-const env = (import.meta as unknown as { env: Record<string, string | undefined> }).env;
 const firebaseConfig = {
-  apiKey: env.VITE_FIREBASE_API_KEY,
-  authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
-  storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: env.VITE_FIREBASE_APP_ID,
-  measurementId: env.VITE_FIREBASE_MEASUREMENT_ID,
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
 };
 
-let app: FirebaseApp;
-let auth: Auth;
+function ensureFirebaseConfig(): void {
+  if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
+    throw new Error(
+      'Firebase client config missing. In Next.js set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN in .env (see .env.example). Restart the dev server after changing .env.',
+    );
+  }
+}
+
+let app: FirebaseApp | undefined;
+let auth: Auth | undefined;
 
 export function getFirebaseAuth(): Auth {
-  if (typeof auth !== "undefined") return auth;
-  app = getApps().length ? getApps()[0] as FirebaseApp : initializeApp(firebaseConfig);
+  if (auth) return auth;
+  ensureFirebaseConfig();
+  app = getApps().length ? (getApps()[0] as FirebaseApp) : initializeApp(firebaseConfig);
   auth = getAuth(app);
   return auth;
 }
 
 export function isFirebaseConfigured(): boolean {
-  return !!(env.VITE_FIREBASE_API_KEY && env.VITE_FIREBASE_AUTH_DOMAIN);
+  return !!(firebaseConfig.apiKey && firebaseConfig.authDomain);
 }

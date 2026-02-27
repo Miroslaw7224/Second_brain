@@ -1,6 +1,10 @@
 # ADR-005: Gemini text-embedding-004 do wektoryzacji
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-011 (Architektura RAG — sekcja „Embeddingi na przyszłość”). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 

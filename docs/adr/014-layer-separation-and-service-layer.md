@@ -40,7 +40,7 @@ Infrastructure (Firestore, Storage, Gemini, Stripe)
 | UI | `app/`, `components/` | `app/page.tsx`, `app/chat/page.tsx`, `components/ChatPanel.tsx` |
 | Route Handlers | `app/api/` | `app/api/chat/route.ts`, `app/api/documents/route.ts` |
 | Services | `services/` | `services/ragService.ts`, `services/documentService.ts`, `services/subscriptionService.ts` |
-| Infrastructure | `lib/` | `lib/firestore.ts`, `lib/gemini.ts`, `lib/stripe.ts`, `lib/storage.ts` |
+| Infrastructure | `lib/` | `lib/firestore-db.ts`, `lib/gemini.ts`, `lib/stripe.ts`, `lib/storage.ts` |
 
 Dopuszczalne: `lib/` może zawierać też współdzielone narzędzia (utils, typy), przy czym klienty zewnętrznych systemów (Firestore, Gemini, Stripe) są w `lib/` i to one są wywoływane wyłącznie z `services/`.
 
@@ -64,13 +64,13 @@ Ustalamy jedną strategię, żeby uniknąć mieszanki throw / return w całym st
 
 **Warstwa Repository (opcjonalna):**
 
-Nie wymuszamy jej od dnia jeden. Warto ją rozważyć, gdy zapytań Firestore przybędzie lub gdy testowanie serwisów mockami stanie się uciążliwe. Cienka warstwa Repository między `services/` a `lib/`: serwis wywołuje np. `documentRepository.getByUser(userId)`, repozytorium wie, jak to wyciągnąć z Firestore i operuje na `lib/firestore`. Ułatwia testowanie (mock repozytorium) i skupia zapytania Firestore w jednym miejscu. Decyzja o wprowadzeniu — gdy pojawi się realna potrzeba.
+Nie wymuszamy jej od dnia jeden. Warto ją rozważyć, gdy zapytań Firestore przybędzie lub gdy testowanie serwisów mockami stanie się uciążliwe. Cienka warstwa Repository między `services/` a `lib/`: serwis wywołuje np. `documentRepository.getByUser(userId)`, repozytorium wie, jak to wyciągnąć z Firestore i operuje na `lib/firestore-db`. Ułatwia testowanie (mock repozytorium) i skupia zapytania Firestore w jednym miejscu. Decyzja o wprowadzeniu — gdy pojawi się realna potrzeba.
 
 ## Rozważane alternatywy
 
 - **Bez Service Layer:** logika w Route Handlers — szybsze na start, ale grube handlery i testowanie przez HTTP; odrzucone.
 - **UI może wywoływać Firestore w Server Components:** „bo to serwer i wygodnie" — prowadzi do rozproszenia logiki i braku jednego miejsca do testów; odrzucone.
-- **Brak mapowania na foldery:** pozostawienie granic tylko „w głowie" — mniejsza actionable; odrzucone na rzecz jawnego podziału na `app/`, `app/api/`, `services/`, `lib/`. W stacku Express odpowiednikiem Route Handlers są trasy w `server.ts`.
+- **Brak mapowania na foldery:** pozostawienie granic tylko „w głowie" — mniejsza actionable; odrzucone na rzecz jawnego podziału na `app/`, `app/api/`, `services/`, `lib/`. Obecnie używamy Next.js Route Handlers w `app/api/` (brak Express).
 
 ## Konsekwencje
 
@@ -84,6 +84,6 @@ Nie wymuszamy jej od dnia jeden. Warto ją rozważyć, gdy zapytań Firestore pr
 - Więcej plików i jednego poziomu indirekcji — akceptowalne za czytelność i testy.
 - Trzeba dyscyplinować się, żeby nie „skrócić" przez wywołanie Firestore/Gemini z komponentu — ADR służy właśnie jako przypomnienie.
 
-## Stan aplikacji (luty 2026)
+## Stan aplikacji (po migracji)
 
-Wdrożone. **Trasy Express** w `server.ts`: `/api/auth/me`, `/api/documents`, `/api/notes`, `/api/chat`, `/api/plan`, `/api/calendar`, `/api/tasks`, `/api/tags`, upload. **Serwisy:** ragService, documentService, noteService, taskService, planService, calendarService, tagService. **lib/:** firestore-db, gemini, errors, firebase-admin. Błędy: `DomainError` w `lib/errors.ts`, mapowanie w `handleServiceError` (statusCode → HTTP, body z `error`).
+Wdrożone. **Route Handlers** w `app/api/`: `/api/auth/me`, `/api/documents`, `/api/notes`, `/api/chat`, `/api/plan/ask`, `/api/calendar/events`, `/api/tasks`, `/api/tags`, `/api/upload`, `/api/resources`. **Serwisy:** ragService, documentService, noteService, resourceService, taskService, planService, calendarService, tagService. **lib/:** firestore-db, gemini, errors, firebase-admin, getAuth, apiError. Błędy: `DomainError` w `lib/errors.ts`, mapowanie w `handleServiceError` w `lib/apiError.ts`.

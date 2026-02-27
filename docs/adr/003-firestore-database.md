@@ -26,7 +26,15 @@ users/{userId}/notes/{noteId}     → notatki użytkownika
 users/{userId}/chunks/{chunkId}   → chunk + (opcjonalnie) wektor embeddingu
 ```
 
-Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu, automatyczne skalowanie. Elastyczność NoSQL pozwala na zmiany struktury bez migracji. Wyszukiwanie kontekstu dla RAG jest realizowane w Express (obecny stack: Vite + Express), bez dedykowanego vector store na MVP.
+Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu, automatyczne skalowanie. Elastyczność NoSQL pozwala na zmiany struktury bez migracji. Wyszukiwanie kontekstu dla RAG jest realizowane w Next.js (Route Handlers w `app/api/`), bez dedykowanego vector store na MVP.
+
+### Firebase Storage (pliki użytkownika — na przyszłość)
+
+Przy przechowywaniu plików użytkowników (na MVP dokumenty tekstowe, w przyszłości PDF/Word) wybieramy **Firebase Storage** w tym samym ekosystemie co Auth i Firestore. Upload przez Firebase Client SDK — bez własnego presigned URL. Reguły bezpieczeństwa oparte na `request.auth.uid`. Na MVP limit 10MB per plik i 3 pliki jednocześnie wystarczający. Alternatywy odrzucone: Supabase Storage (inny stack), AWS S3, Cloudflare R2 (dodatkowy serwis, brak natywnej integracji z Firebase Auth).
+
+**Stan:** Firebase Storage nie jest wdrożony. Upload dokumentów odbywa się przez Route Handler `app/api/upload`; treść zapisywana w Firestore (documents + chunks). Decyzja pozostaje aktualna przy dodawaniu przechowywania binarnych plików.
+
+**Zastąpiony ADR:** treść ADR-004 (Firebase Storage) wchłonięta jako podsekcja niniejszego ADR-003.
 
 ## Rozważane alternatywy
 
@@ -48,4 +56,4 @@ Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu,
 
 ## Stan aplikacji (luty 2026)
 
-Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Express + `lib/firestore-db.ts`. Kolekcje: `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`, `users/{uid}/calendar_events`, `users/{uid}/tasks`, `users/{uid}/user_tags`. Migracja z SQLite: `scripts/migrate-sqlite-to-firestore.ts`.
+Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Next.js Route Handlers w `app/api/` + `lib/firestore-db.ts`. Kolekcje: `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`, `users/{uid}/calendar_events`, `users/{uid}/tasks`, `users/{uid}/user_tags`. Migracja z SQLite: `scripts/migrate-sqlite-to-firestore.ts`.

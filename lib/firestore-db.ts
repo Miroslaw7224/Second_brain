@@ -1,4 +1,4 @@
-import { getFirestore } from "./firebase-admin.js";
+import { getFirestore } from "@/lib/firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
 
 const COLLECTION_USERS = "users";
@@ -84,34 +84,47 @@ function calendarEventsCol(userId: string) {
 }
 
 export async function getDocuments(userId: string): Promise<DocumentRecord[]> {
-  const snap = await documentsCol(userId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((d) => {
+  const snap = await documentsCol(userId).get();
+  const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt;
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
     return {
       id: d.id,
       name: data.name ?? "",
       content: data.content ?? "",
       type: data.type ?? "",
       created_at: createdAt?.toDate?.()?.toISOString?.(),
-      createdAt,
+      createdAt: createdAt ?? undefined,
     };
   });
+  list.sort((a, b) => {
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tB - tA;
+  });
+  return list;
 }
 
 export async function getNotes(userId: string): Promise<NoteRecord[]> {
-  const snap = await notesCol(userId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((d) => {
+  const snap = await notesCol(userId).get();
+  const list = snap.docs.map((d) => {
     const data = d.data();
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
     return {
       id: d.id,
       title: data.title ?? "",
       content: data.content ?? "",
-      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
-      createdAt: data.createdAt,
+      created_at: createdAt?.toDate?.()?.toISOString?.(),
+      createdAt,
       updatedAt: data.updatedAt,
     };
   });
+  list.sort((a, b) => {
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tB - tA;
+  });
+  return list;
 }
 
 export async function createNote(
@@ -241,9 +254,10 @@ export async function addResourceToFirestore(
 export async function getResourcesFromFirestore(
   userId: string
 ): Promise<NoteResourceRecord[]> {
-  const snap = await userResourcesCol(userId).orderBy("createdAt", "desc").get();
-  return snap.docs.map((d) => {
+  const snap = await userResourcesCol(userId).get();
+  const list = snap.docs.map((d) => {
     const data = d.data();
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
     return {
       id: d.id,
       noteId: data.noteId,
@@ -253,10 +267,16 @@ export async function getResourcesFromFirestore(
       title: data.title ?? "",
       thumbnailUrl: data.thumbnailUrl,
       tags: Array.isArray(data.tags) ? data.tags : [],
-      createdAt: data.createdAt,
+      createdAt: (data.createdAt ?? createdAt) as Timestamp,
       updatedAt: data.updatedAt,
     };
   });
+  list.sort((a, b) => {
+    const tA = a.createdAt?.toMillis?.() ?? (a.createdAt && typeof (a.createdAt as unknown as { toDate?: () => Date }).toDate === "function" ? (a.createdAt as unknown as { toDate: () => Date }).toDate().getTime() : 0);
+    const tB = b.createdAt?.toMillis?.() ?? (b.createdAt && typeof (b.createdAt as unknown as { toDate?: () => Date }).toDate === "function" ? (b.createdAt as unknown as { toDate: () => Date }).toDate().getTime() : 0);
+    return tB - tA;
+  });
+  return list;
 }
 
 export async function deleteResourceFromFirestore(
@@ -369,9 +389,10 @@ export async function getCalendarEvents(
   userId: string,
   options?: { startDate?: string; endDate?: string }
 ): Promise<CalendarEventRecord[]> {
-  const snap = await calendarEventsCol(userId).orderBy("date", "asc").get();
+  const snap = await calendarEventsCol(userId).get();
   let list = snap.docs.map((d) => {
     const data = d.data();
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
     return {
       id: d.id,
       date: data.date ?? "",
@@ -380,8 +401,8 @@ export async function getCalendarEvents(
       title: data.title ?? "",
       tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : []),
       color: data.color ?? "#3B82F6",
-      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
-      createdAt: data.createdAt,
+      created_at: createdAt?.toDate?.()?.toISOString?.(),
+      createdAt: data.createdAt ?? createdAt,
     };
   });
   if (options?.startDate) {
@@ -479,9 +500,10 @@ function tasksCol(userId: string) {
 }
 
 export async function getTasks(userId: string): Promise<TaskRecord[]> {
-  const snap = await tasksCol(userId).orderBy("createdAt", "desc").get();
+  const snap = await tasksCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at), toMillis: () => new Date(data.created_at).getTime() } : data.created_at) : null);
     return {
       id: d.id,
       title: data.title ?? "",
@@ -490,9 +512,9 @@ export async function getTasks(userId: string): Promise<TaskRecord[]> {
       due_date: data.due_date ?? null,
       priority: data.priority ?? null,
       order: typeof data.order === "number" ? data.order : undefined,
-      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
+      created_at: createdAt?.toDate?.()?.toISOString?.(),
       updated_at: data.updatedAt?.toDate?.()?.toISOString?.(),
-      createdAt: data.createdAt,
+      createdAt: data.createdAt ?? createdAt,
       updatedAt: data.updatedAt,
     };
   });
@@ -500,8 +522,8 @@ export async function getTasks(userId: string): Promise<TaskRecord[]> {
     const oA = a.order ?? 999999;
     const oB = b.order ?? 999999;
     if (oA !== oB) return oA - oB;
-    const tA = a.createdAt?.toMillis?.() ?? 0;
-    const tB = b.createdAt?.toMillis?.() ?? 0;
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
     return tB - tA;
   });
   return list;
@@ -583,18 +605,25 @@ function userTagsCol(userId: string) {
 }
 
 export async function getUserTags(userId: string): Promise<UserTagRecord[]> {
-  const snap = await userTagsCol(userId).orderBy("createdAt", "asc").get();
-  return snap.docs.map((d) => {
+  const snap = await userTagsCol(userId).get();
+  const list = snap.docs.map((d) => {
     const data = d.data();
+    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
     return {
       id: d.id,
       tag: (data.tag ?? "").trim().replace(/^#/, "") || "",
       title: (data.title ?? "").trim() || "",
       color: typeof data.color === "string" && data.color ? data.color : undefined,
-      created_at: data.createdAt?.toDate?.()?.toISOString?.(),
-      createdAt: data.createdAt,
+      created_at: createdAt?.toDate?.()?.toISOString?.(),
+      createdAt: data.createdAt ?? createdAt,
     };
   });
+  list.sort((a, b) => {
+    const tA = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const tB = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return tA - tB;
+  });
+  return list;
 }
 
 export async function createUserTag(

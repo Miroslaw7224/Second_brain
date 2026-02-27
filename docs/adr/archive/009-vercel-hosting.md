@@ -1,6 +1,10 @@
 # ADR-009: Vercel jako platforma hostingu
 
-## Status
+**Status: Zaakceptowany (po migracji).** Aplikacja została zmigrowana z Vite + Express na Next.js 14 (App Router). Hosting na Vercel jest aktualny i zalecany. Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 
@@ -35,4 +39,4 @@ Wybieramy **Vercel** jako platformę hostingu dla Next.js. Zero konfiguracji —
 
 ## Stan aplikacji (luty 2026)
 
-Aplikacja to Vite + Express, nie Next.js — hosting poza Vercel (np. Railway, Render, VPS). Vercel pozostaje docelową opcją przy ewentualnej migracji na Next.js (ADR-001).
+Aplikacja to Next.js 14 z App Router — hosting na Vercel jest naturalną opcją. Zob. ADR-013 (stan po migracji).

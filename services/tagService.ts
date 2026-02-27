@@ -1,4 +1,4 @@
-import * as firestoreDb from "../lib/firestore-db.js";
+import * as firestoreDb from "@/lib/firestore-db";
 
 export async function getUserTags(userId: string) {
   return firestoreDb.getUserTags(userId);

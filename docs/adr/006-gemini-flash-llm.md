@@ -36,4 +36,4 @@ Spójność z Gemini text-embedding-004 — jeden dostawca API (Google).
 
 ## Stan aplikacji (luty 2026)
 
-Gemini używany w Express przez `lib/gemini.ts` (ragService, planService). Modele w kodzie: np. gemini-3-flash-preview (RAG), gemini-2.0-flash (plan). Odpowiedzi zwracane w całości (brak Next.js Streaming API).
+Gemini używany w Next.js przez `lib/gemini.ts` (ragService, planService). Modele w kodzie: np. gemini-3-flash-preview (RAG), gemini-2.0-flash (plan). Odpowiedzi zwracane w całości (brak Next.js Streaming API).

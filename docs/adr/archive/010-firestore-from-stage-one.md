@@ -1,6 +1,10 @@
 # ADR-010: Firebase Firestore od Etapu 1 (no-code)
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-013 (Strategia dwuetapowa — podsekcja „Firestore od Etapu 1”). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 

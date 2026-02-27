@@ -1,6 +1,10 @@
 # ADR-001: Next.js 14 z App Router jako fullstack framework
 
-## Status
+**Status: Zastosowany (migracja zrealizowana).** Stack to Next.js 14 z App Router. API: Route Handlers w `app/api/`. Hosting: Vercel (docelowo). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 
@@ -34,6 +38,6 @@ App Router upraszcza routing, a server components redukują ilość JS wysyłane
 - App Router ma stromą krzywą uczenia dla osób znających tylko Pages Router
 - SSR może komplikować real-time UI czatu — rozwiązanie: Streaming Response z Gemini API
 
-## Stan aplikacji (luty 2026)
+## Stan aplikacji (po migracji)
 
-Aktualny stack to **Vite + React (SPA) + Express** (serwer w `server.ts`), nie Next.js. API: auth, documents, notes, chat (RAG), plan, calendar, tasks, tags, upload — trasy Express. Hosting dowolny (np. Railway, Render), nie Vercel. ADR-001 pozostaje zapisem docelowej opcji (Next.js); ewentualna migracja na Next.js w przyszłości.
+Aktualny stack to **Next.js 14 z App Router**. API: Route Handlers w `app/api/` (auth/me, documents, notes, resources, upload, chat, plan/ask, calendar/events, tasks, tags). Chronione trasy: route group `(protected)` z guardem w `app/(protected)/layout.tsx`, strona logowania `/auth/login`. Hosting docelowo Vercel.

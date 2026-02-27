@@ -4,7 +4,7 @@ import {
   deleteResourceFromFirestore,
   updateResourceInFirestore,
   type NoteResourceRecord,
-} from "../lib/firestore-db.js";
+} from "@/lib/firestore-db";
 
 // -----------------------------------------------
 // CRUD (zasoby na poziomie użytkownika, niezależne od notatek)

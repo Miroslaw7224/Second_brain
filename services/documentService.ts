@@ -1,4 +1,4 @@
-import * as firestoreDb from "../lib/firestore-db.js";
+import * as firestoreDb from "@/lib/firestore-db";
 
 export async function listDocuments(userId: string) {
   return firestoreDb.getDocuments(userId);

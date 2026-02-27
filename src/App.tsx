@@ -28,11 +28,12 @@ import ReactMarkdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { getFirebaseAuth } from './lib/firebase-client';
-import { CalendarView } from './components/CalendarView';
-import { TasksSection } from './components/TasksSection';
-import { ActivityLog } from './components/ActivityLog';
-import { TagsSection, type UserTag } from './components/TagsSection';
-import { ResourceSection } from './components/ResourceSection';
+import { CalendarView } from '@/src/components/CalendarView';
+import { TasksSection } from '@/src/components/TasksSection';
+import { ActivityLog } from '@/src/components/ActivityLog';
+import { TagsSection, type UserTag } from '@/src/components/TagsSection';
+import { ResourceSection } from '@/src/components/ResourceSection';
+import { translations } from '@/src/translations';
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -74,193 +75,6 @@ interface Message {
   sources?: string[];
 }
 
-const translations = {
-  en: {
-    title: "Second Brain",
-    subtitle: "Freelancer Edition",
-    knowledge: "Your Knowledge",
-    noDocs: "No documents yet",
-    proPlan: "PRO PLAN",
-    docsLimit: "50 documents limit",
-    brainActive: "Brain Active",
-    searchPlaceholder: "Search your brain...",
-    welcomeTitle: "How can I help you today?",
-    welcomeSubtitle: "Ask anything about your uploaded documents, projects, or client agreements.",
-    inputPlaceholder: "Ask your brain...",
-    disclaimer: "AI can make mistakes. Verify important information.",
-    notesTab: "Notes",
-    chatTab: "Chat",
-    newNote: "New note",
-    saveNote: "Save",
-    deleteNote: "Delete",
-    noteTitlePlaceholder: "Note title...",
-    noteContentPlaceholder: "Start writing...",
-    signInGoogle: "Sign in with Google",
-    placeholderNotice: "Coming soon",
-    email: "Email",
-    password: "Password",
-    login: "Login",
-    register: "Register",
-    logout: "Logout",
-    noAccount: "Don't have an account?",
-    hasAccount: "Already have an account?",
-    continueGuest: "Continue as Guest",
-    modeWiedza: "Knowledge",
-    modePlanowanie: "Planning",
-    tabCalendar: "Calendar",
-    tabActivity: "My Work",
-    tabTasks: "Tasks",
-    tabTags: "Tags",
-    tagsTitle: "Tag list",
-    tagsSubtitle: "Assign a default title to each tag. When you pick a tag in a calendar entry, the title will be filled in.",
-    tagsTagLabel: "Tag",
-    tagsTitleLabel: "Default title",
-    tagsAdd: "Add tag",
-    tagsNoTags: "No tags yet. Add your first tag and its default title.",
-    calendarAddEntry: "Add entry",
-    calendarEditEntry: "Edit entry",
-    calendarNewEntry: "New entry",
-    calendarDeleteEntry: "Delete entry",
-    calendarDay: "Day",
-    calendarSave: "Save",
-    calendarCancel: "Cancel",
-    activityFrom: "From",
-    activityTo: "To",
-    activityNoEntries: "No entries in the selected period.",
-    activityNoTags: "No tags in the selected period.",
-    activityTitle: "My Work",
-    tasksAdd: "Add",
-    tasksNewPlaceholder: "New task...",
-    tasksNoTasks: "No tasks. Add your first.",
-    tasksTodo: "To do",
-    tasksInProgress: "In progress",
-    tasksDone: "Done",
-    tasksMoveUp: "Move up",
-    tasksMoveDown: "Move down",
-    planAskPlaceholder: "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
-    resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
-    resourceUrlPlaceholder: "URL",
-    resourceTagsPlaceholder: "Tags (comma-separated, optional)",
-    addResource: "Add resource",
-    resourceCopied: "Copied!",
-    resourceTitleUnavailable: "(title unavailable)",
-    resourceDeleteConfirm: "Delete this resource?",
-    resourceNoResources: "No resources yet. Add your first link.",
-    resourceSaveNoteFirst: "Save the note first to add resources.",
-    resourceBlockFormatLabel: "Or paste in block format:",
-    resourceBlockFormatPlaceholder: "Opis: Short description.\nURL: https://example.com\nTagi: tag1, tag2",
-    resourceBlockFormatHint: "Multiple resources: start each new block on a new line with \"Opis:\" or \"Description:\".",
-    resourceAddFromBlock: "Add from pasted block",
-    resourceBlockFormatError: "Could not parse. Required: URL: and Opis: (or Description:).",
-    resourceFilterByTags: "Filter by tags",
-    resourceClearFilters: "Clear filters",
-    resourceNoMatchingTags: "No resources match the selected tags.",
-    resourceAddedOne: "Added 1 resource",
-    resourceAddedCount: "Added {n} resources",
-    resourceEditTags: "Edit tags",
-    tabContent: "Content",
-    tabResources: "Resources",
-    prompts: [
-      "What were the terms for the Acme project?",
-      "Summarize my latest meeting notes",
-      "How much did I quote for logo design?",
-      "Find the deadline for the website launch"
-    ]
-  },
-  pl: {
-    title: "Drugi Mózg",
-    subtitle: "Edycja Freelancera",
-    knowledge: "Twoja Wiedza",
-    noDocs: "Brak dokumentów",
-    proPlan: "PLAN PRO",
-    docsLimit: "Limit 50 dokumentów",
-    brainActive: "Mózg Aktywny",
-    searchPlaceholder: "Przeszukaj swój mózg...",
-    welcomeTitle: "W czym mogę Ci dzisiaj pomóc?",
-    welcomeSubtitle: "Zapytaj o cokolwiek z Twoich dokumentów, projektów lub umów.",
-    inputPlaceholder: "Zapytaj swój mózg...",
-    disclaimer: "AI może popełniać błędy. Weryfikuj ważne informacje.",
-    notesTab: "Notatki",
-    chatTab: "Czat",
-    newNote: "Nowa notatka",
-    saveNote: "Zapisz",
-    deleteNote: "Usuń",
-    noteTitlePlaceholder: "Tytuł notatki...",
-    noteContentPlaceholder: "Zacznij pisać...",
-    signInGoogle: "Zaloguj przez Google",
-    placeholderNotice: "Funkcja wkrótce dostępna",
-    email: "Email",
-    password: "Hasło",
-    login: "Zaloguj się",
-    register: "Zarejestruj się",
-    logout: "Wyloguj",
-    noAccount: "Nie masz konta?",
-    hasAccount: "Masz już konto?",
-    continueGuest: "Kontynuuj jako Gość",
-    modeWiedza: "Wiedza",
-    modePlanowanie: "Planowanie",
-    tabCalendar: "Kalendarz",
-    tabActivity: "Moja Praca",
-    tabTasks: "Zadania",
-    tabTags: "Tagi",
-    tagsTitle: "Lista tagów",
-    tagsSubtitle: "Przypisz do każdego tagu domyślny tytuł. Przy wyborze tagu we wpisie kalendarza tytuł zostanie uzupełniony.",
-    tagsTagLabel: "Tag",
-    tagsTitleLabel: "Domyślny tytuł",
-    tagsAdd: "Dodaj tag",
-    tagsNoTags: "Brak tagów. Dodaj pierwszy tag i przypisz mu domyślny tytuł.",
-    calendarAddEntry: "Dodaj wpis",
-    calendarEditEntry: "Edytuj wpis",
-    calendarNewEntry: "Nowy wpis",
-    calendarDeleteEntry: "Usuń wpis",
-    calendarDay: "Dzień",
-    calendarSave: "Zapisz",
-    calendarCancel: "Anuluj",
-    activityFrom: "Od",
-    activityTo: "Do",
-    activityNoEntries: "Brak wpisów w wybranym okresie.",
-    activityNoTags: "Brak tagów w wybranym okresie.",
-    activityTitle: "Moja Praca",
-    tasksAdd: "Dodaj",
-    tasksNewPlaceholder: "Nowe zadanie...",
-    tasksNoTasks: "Brak zadań. Dodaj pierwsze.",
-    tasksTodo: "Do zrobienia",
-    tasksInProgress: "W toku",
-    tasksDone: "Zrobione",
-    tasksMoveUp: "W górę",
-    tasksMoveDown: "W dół",
-    planAskPlaceholder: "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
-    resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
-    resourceUrlPlaceholder: "URL",
-    resourceTagsPlaceholder: "Tagi (oddzielone przecinkiem, opcjonalnie)",
-    addResource: "Dodaj zasób",
-    resourceCopied: "Skopiowano!",
-    resourceTitleUnavailable: "(tytuł niedostępny)",
-    resourceDeleteConfirm: "Usunąć ten zasób?",
-    resourceNoResources: "Brak zasobów. Dodaj pierwszy link.",
-    resourceSaveNoteFirst: "Zapisz notatkę, aby dodać zasoby.",
-    resourceBlockFormatLabel: "Lub wklej w formacie blokowym:",
-    resourceBlockFormatPlaceholder: "Opis: Krótki opis zasobu.\nURL: https://example.com\nTagi: tag1, tag2",
-    resourceBlockFormatHint: "Wiele zasobów: każdy kolejny blok zacznij w nowej linii od „Opis:” lub „Description:”.",
-    resourceAddFromBlock: "Dodaj z wklejonego",
-    resourceBlockFormatError: "Nie udało się rozpoznać. Wymagane: URL: oraz Opis: (lub Description:).",
-    resourceFilterByTags: "Filtruj po tagach",
-    resourceClearFilters: "Wyczyść filtry",
-    resourceNoMatchingTags: "Brak zasobów z wybranymi tagami.",
-    resourceAddedOne: "Dodano 1 zasób",
-    resourceAddedCount: "Dodano {n} zasobów",
-    resourceEditTags: "Edytuj tagi",
-    tabContent: "Treść",
-    tabResources: "Zasoby",
-    prompts: [
-      "Jakie były warunki projektu Acme?",
-      "Podsumuj moje ostatnie notatki ze spotkania",
-      "Ile wyceniłem projekt logo?",
-      "Znajdź termin uruchomienia strony"
-    ]
-  }
-};
-
 function firebaseUserToAppUser(fbUser: { uid: string; email: string | null; displayName: string | null }): User {
   return {
     id: fbUser.uid,
@@ -269,7 +83,12 @@ function firebaseUserToAppUser(fbUser: { uid: string; email: string | null; disp
   };
 }
 
-export default function App() {
+interface AppProps {
+  /** When true, skip login screen (used under protected layout). */
+  authenticated?: boolean;
+}
+
+export default function App({ authenticated = false }: AppProps = {}) {
   const [lang, setLang] = useState<'en' | 'pl'>('pl');
   const t = translations[lang];
   const [user, setUser] = useState<User | null>(null);
@@ -401,9 +220,10 @@ export default function App() {
     try {
       const res = await apiFetch('/api/documents');
       const data = await res.json();
-      setDocuments(data);
+      setDocuments(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch documents', err);
+      setDocuments([]);
     }
   };
 
@@ -411,9 +231,10 @@ export default function App() {
     try {
       const res = await apiFetch('/api/notes');
       const data = await res.json();
-      setNotes(data);
+      setNotes(Array.isArray(data) ? data : []);
     } catch (err) {
       console.error('Failed to fetch notes', err);
+      setNotes([]);
     }
   };
 
@@ -537,7 +358,7 @@ export default function App() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading && !authenticated) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
         <Loader2 className="w-10 h-10 text-black animate-spin" />
@@ -545,7 +366,7 @@ export default function App() {
     );
   }
 
-  if (!user) {
+  if (!authenticated && !user) {
     return (
       <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-6">
         <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-black/5 border border-[#E5E7EB] overflow-hidden">
@@ -824,10 +645,10 @@ export default function App() {
         <div className="p-4 border-t border-[#F3F4F6] space-y-4">
           <div className="flex items-center gap-3 p-3 bg-[#F9FAFB] rounded-xl">
             <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center text-[10px] font-bold text-white">
-              {user.name.substring(0, 2).toUpperCase()}
+              {(user?.name ?? user?.email ?? 'U').substring(0, 2).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold truncate">{user.name}</p>
+              <p className="text-sm font-bold truncate">{user?.name || user?.email || 'User'}</p>
               <button 
                 onClick={handleLogout}
                 className="text-[10px] font-bold text-[#9CA3AF] hover:text-black uppercase tracking-wider"

@@ -1,5 +1,5 @@
-import * as firestoreDb from "../lib/firestore-db.js";
-import { generateContent } from "../lib/gemini.js";
+import * as firestoreDb from "@/lib/firestore-db";
+import { generateContent } from "@/lib/gemini";
 
 const RAG_PLAN_MODEL = "gemini-2.5-flash";
 

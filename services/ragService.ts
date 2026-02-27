@@ -1,6 +1,6 @@
-import * as firestoreDb from "../lib/firestore-db.js";
-import { generateContent } from "../lib/gemini.js";
-import * as resourceService from "./resourceService.js";
+import * as firestoreDb from "@/lib/firestore-db";
+import { generateContent } from "@/lib/gemini";
+import * as resourceService from "@/services/resourceService";
 
 // TODO: lepsza ekstrakcja słów kluczowych (obecna heurystyka słabo działa po polsku)
 function extractKeywords(message: string): string[] {

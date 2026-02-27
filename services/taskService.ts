@@ -1,5 +1,5 @@
-import type { TaskRecord } from "../lib/firestore-db.js";
-import * as firestoreDb from "../lib/firestore-db.js";
+import type { TaskRecord } from "@/lib/firestore-db";
+import * as firestoreDb from "@/lib/firestore-db";
 
 export async function getTasks(userId: string) {
   return firestoreDb.getTasks(userId);

@@ -1,20 +1,29 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# Second Brain (Freelancer Edition)
 
-# Run and deploy your AI Studio app
+Aplikacja do zarządzania wiedzą i planowaniem z wykorzystaniem AI (RAG, planowanie). Stack: Next.js 14 (App Router), Firebase (Auth, Firestore), Gemini.
 
-This contains everything you need to run your app locally.
+## Uruchomienie lokalne
 
-View your app in AI Studio: https://ai.studio/apps/ca7f6ce3-5d02-4b30-b337-a9c6a4e31b6a
+**Wymagania:** Node.js 18+
 
-## Run Locally
+1. Zainstaluj zależności: `npm install --legacy-peer-deps`
+2. Skopiuj [.env.example](.env.example) do `.env` i uzupełnij:
+   - `GEMINI_API_KEY` — klucz API Gemini
+   - `NEXT_PUBLIC_FIREBASE_*` — konfiguracja Firebase (klient)
+   - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY` — Firebase Admin (serwer)
+3. Uruchom: `npm run dev` — aplikacja pod adresem http://localhost:3100
+4. Build: `npm run build`; produkcja: `npm start`
 
-**Prerequisites:**  Node.js
+## Skrypty
 
+- `npm run dev` — serwer deweloperski Next.js
+- `npm run build` — build produkcyjny
+- `npm start` — uruchomienie zbudowanej aplikacji
+- `npm run lint` — lint (Next.js)
+- `npm run test` — testy jednostkowe (Vitest)
+- `npm run test:e2e` — testy E2E (Playwright)
+- `npm run migrate:sqlite-to-firestore` — migracja SQLite → Firestore (skrypt)
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Hosting
+
+Docelowo Vercel (`vercel link` + deploy). Zmienne środowiskowe ustaw w panelu Vercel zgodnie z `.env.example`.

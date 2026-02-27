@@ -16,7 +16,7 @@ Wprowadzamy strategię testów opartą o **Vitest** i **testy jednostkowe warstw
 
 ### 1. Runner i konfiguracja
 
-- **Vitest** — runner testów (projekt używa Vite i ESM; Vitest działa bez dodatkowej konfiguracji).
+- **Vitest** — runner testów (projekt używa Next.js i ESM; Vitest działa z konfiguracją w vitest.config.ts).
 - W **vitest.config.ts** jawnie: **environment: 'node'** dla części serwerowej. Dla testów komponentów React w przyszłości — osobna konfiguracja z **environment: 'jsdom'**.
 - **Izolacja mocków (krytyczne):** w `vitest.config.ts` ustawić `test: { clearMocks: true, resetMocks: true }`. Bez tego testy mogą się wzajemnie psuć.
 
@@ -56,7 +56,7 @@ E2E nie zastępują testów jednostkowych; testują „od góry" (UI), podczas g
 
 - **Priorytet 1 — Service Layer:** testy w `tests/unit/services/` z mockami modułów z `lib/`.
 - **Priorytet 2 — Logika czysta i narzędzia:** w `tests/unit/lib/` — bez mocków.
-- **Priorytet 3 (opcjonalnie):** Cienkie testy tras Express (401 bez tokena, mapowanie błędów).
+- **Priorytet 3 (opcjonalnie):** Cienkie testy Route Handlers Next.js (401 bez tokena, mapowanie błędów).
 
 **Definition of Done:** Każdy nowy publiczny method w `services/` wymaga minimum: jednego testu happy path i jednego testu błędu domenowego (DomainError).
 

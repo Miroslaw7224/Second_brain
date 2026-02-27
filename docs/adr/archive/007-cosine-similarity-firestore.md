@@ -1,6 +1,10 @@
 # ADR-007: Cosine similarity w Firestore zamiast dedykowanego vector store
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-011 (Architektura RAG — sekcja „Strategia retrieval”). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 

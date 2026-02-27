@@ -1,6 +1,10 @@
 # ADR-008: Firebase Cloud Functions dla automatyzacji
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-017 (Plany na Etap 2 — Cloud Functions i Stripe). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 
@@ -42,4 +46,4 @@ Przypadki użycia:
 
 ## Stan aplikacji (luty 2026)
 
-Cloud Functions nie są wdrożone. Backend to Express (`server.ts`). Automatyzacje (emaile powitalne, onboarding, webhook Stripe) pozostają w planach na Etap 2.
+Cloud Functions nie są wdrożone. Backend to Next.js Route Handlers w `app/api/`. Automatyzacje (emaile powitalne, onboarding, webhook Stripe) pozostają w planach na Etap 2.

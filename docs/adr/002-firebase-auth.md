@@ -34,4 +34,4 @@ Wybieramy **Firebase Auth** jako system autentykacji. Email + Google OAuth, bez 
 
 ## Stan aplikacji (luty 2026)
 
-Wdrożone: Firebase Auth (email+hasło, Google, logowanie anonimowe). Frontend: `firebase/auth` (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `signInWithPopup`, `signInAnonymously`), `onAuthStateChanged`, nagłówek `Authorization: Bearer <idToken>`. Backend: middleware weryfikacji tokena (`verifyIdToken` w `server.ts`), `req.uid` dla tras API. Reguły Firestore: `users/{userId}/**` z `request.auth.uid == userId`.
+Wdrożone: Firebase Auth (email+hasło, Google, logowanie anonimowe). Frontend: `firebase/auth` (`signInWithEmailAndPassword`, `createUserWithEmailAndPassword`, `signInWithPopup`, `signInAnonymously`), `onAuthStateChanged`, nagłówek `Authorization: Bearer <idToken>`. Backend: weryfikacja tokena w każdym Route Handlerze przez `getAuthUserId(request)` (`lib/getAuth.ts` wywołuje `verifyIdToken` z `lib/firebase-admin.ts`); trasy API w `app/api/`. Reguły Firestore: `users/{userId}/**` z `request.auth.uid == userId`.

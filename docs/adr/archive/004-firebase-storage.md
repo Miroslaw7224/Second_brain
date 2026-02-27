@@ -1,6 +1,10 @@
 # ADR-004: Firebase Storage dla plików użytkownika
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-003 (Firestore jako główna baza — podsekcja „Firebase Storage”). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 

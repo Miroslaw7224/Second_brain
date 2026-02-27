@@ -1,6 +1,10 @@
 # ADR-012: Stripe dla płatności
 
-## Status
+**Status: Zarchiwizowany.** Treść wchłonięta do ADR-017 (Plany na Etap 2 — Cloud Functions i Stripe). Oryginalna treść poniżej.
+
+---
+
+## Status (oryginalny)
 
 Zaakceptowany
 
