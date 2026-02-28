@@ -37,6 +37,13 @@ Wybieramy **Vercel** jako platformę hostingu dla Next.js. Zero konfiguracji —
 - Vercel Hobby ma limity (100GB bandwidth, brak team features) — przy wzroście upgrade do Pro ($20/msc)
 - Serverless cold start — nieistotne dla rzadkich requestów na MVP
 
+## Wdrożenie Vercel (luty 2026)
+
+- **Vercel CLI** — zainstalowany w projekcie jako `devDependency` (`vercel`). W `package.json` skrypty: `npm run vercel` (deploy preview), `npm run vercel:prod` (deploy na produkcję).
+- **Deploy** — `vercel` uruchamia deploy do preview; `vercel --prod` do produkcji. Projekt można połączyć z repozytorium Git (GitHub itd.) dla automatycznych deployów przy pushu; możliwy jest też deploy wyłącznie z CLI bez linkowania do repo.
+- **Firebase Auth** — domena aplikacji na Vercel (np. `*.vercel.app` lub domena własna) musi być dodana w Firebase Console → Authentication → Settings → **Authorized domains**. Bez tego logowanie (np. Google) zwraca błąd `auth/unauthorized-domain`.
+- **Zmienne środowiskowe** — w Vercel (Project → Settings → Environment Variables) ustawia się te same zmienne co lokalnie (np. konfiguracja Firebase, klucze API), osobno dla preview i produkcji.
+
 ## Stan aplikacji (luty 2026)
 
-Aplikacja to Next.js 14 z App Router — hosting na Vercel jest naturalną opcją. Zob. ADR-013 (stan po migracji).
+Aplikacja to Next.js 14 z App Router — hosting na Vercel jest naturalną opcją. Zob. ADR-013 (stan po migracji). Wdrożenie: Vercel CLI w projekcie, skrypty `vercel` / `vercel:prod`; domena Vercel dodana do Firebase Authorized domains; zmienne środowiskowe ustawione w Vercel Dashboard.

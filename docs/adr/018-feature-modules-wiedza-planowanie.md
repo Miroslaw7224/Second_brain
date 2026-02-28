@@ -23,10 +23,14 @@ Dane współdzielone (user, apiFetch, lang, t, tagi) przekazujemy propsami lub k
 
 | Moduł | Lokalizacja | Zawartość |
 |-------|-------------|-----------|
-| Wiedza | `src/features/wiedza/` | `WiedzaView.tsx` — cały content trybu Wiedza (sidebar wiedzy, chat, notatki, zasoby, lista dokumentów). `components/` — np. ChatPanel, NotesList, ResourceSection (przeniesiony), lista dokumentów jako komponent. Stan: activeTab, documents, notes, messages, input, selectedNote itd. w WiedzaView lub w kontekście/hooku `useWiedza`. |
+| Wiedza | `src/features/wiedza/` | `WiedzaView.tsx` — cały content trybu Wiedza (sidebar wiedzy, chat, notatki z edytorem TipTap w `NoteEditor`, zasoby, lista dokumentów). `components/` — np. ChatPanel, NotesList, NoteEditor, ResourceSection (przeniesiony), lista dokumentów jako komponent. Stan: activeTab, documents, notes, messages, input, selectedNote itd. w WiedzaView lub w kontekście/hooku `useWiedza`. |
 | Planowanie | `src/features/planowanie/` | `PlanowanieView.tsx` — content trybu Planowanie (sidebar z zakładkami, CalendarView / ActivityLog / TasksSection / TagsSection, pasek Plan AI). `components/` — opcjonalnie CalendarView, ActivityLog, TasksSection, TagsSection (albo pozostają w `src/components`, jeśli używane wyłącznie tutaj). Stan: planningTab, planAskInput, planAskResponse, planAskLoading w PlanowanieView lub hooku `usePlanowanie`. |
 
 Backend bez zmian: Next.js Route Handlers w `app/api/` + services (ragService, planService itd.) zgodnie z ADR-014.
+
+**Edytor notatek (TipTap)**
+
+Notatki w trybie Wiedza korzystają z komponentu **NoteEditor** (`src/components/NoteEditor.tsx`) opartego o **TipTap** (v3). Używane rozszerzenia: StarterKit, Underline, TextAlign, TextStyle, Color, FontFamily oraz własna rozszerzenie FontSize. Treść zapisywana jest w formacie TipTap (HTML/JSON) przez istniejące API notatek; persystencja w Firestore bez zmian. Decyzja o TipTap dotyczy wyłącznie warstwy UI w module Wiedza (zgodnie z ADR-014).
 
 **Zalety podziału:**
 
@@ -64,4 +68,4 @@ Backend bez zmian: Next.js Route Handlers w `app/api/` + services (ragService, p
 
 ## Stan aplikacji (luty 2026)
 
-Decyzja zaakceptowana. Refaktor do `src/features/wiedza` i `src/features/planowanie` do wykonania. Obecnie całość UI obu trybów pozostaje w `App.tsx`; po wdrożeniu ADR-018 App.tsx ograniczy się do layoutu, auth i renderu `<WiedzaView />` / `<PlanowanieView />`.
+Decyzja zaakceptowana. Refaktor do `src/features/wiedza` i `src/features/planowanie` do wykonania. Obecnie całość UI obu trybów pozostaje w `App.tsx`; po wdrożeniu ADR-018 App.tsx ograniczy się do layoutu, auth i renderu `<WiedzaView />` / `<PlanowanieView />`. Edytor notatek (TipTap) jest wdrożony w `src/components/NoteEditor.tsx` i używany w widoku notatek w trybie Wiedza.
