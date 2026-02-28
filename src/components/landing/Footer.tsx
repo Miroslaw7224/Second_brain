@@ -10,16 +10,16 @@ export default function Footer() {
           Second Brain · Freelancer Edition
         </p>
         <nav className="flex flex-wrap items-center justify-center gap-6 text-sm">
-          <Link href="/regulamin" className="text-[var(--text2)] hover:text-[var(--text)]">
+          <Link href="/regulamin" className="text-[var(--footer-link)] hover:text-[var(--text)]">
             Regulamin
           </Link>
-          <Link href="/politika-prywatnosci" className="text-[var(--text2)] hover:text-[var(--text)]">
+          <Link href="/politika-prywatnosci" className="text-[var(--footer-link)] hover:text-[var(--text)]">
             Polityka prywatności
           </Link>
-          <Link href="/cookies" className="text-[var(--text2)] hover:text-[var(--text)]">
+          <Link href="/cookies" className="text-[var(--footer-link)] hover:text-[var(--text)]">
             Cookies
           </Link>
-          <Link href="mailto:miro.job7224@gmail.com" className="text-[var(--text2)] hover:text-[var(--text)]">
+          <Link href="mailto:miro.job7224@gmail.com" className="text-[var(--footer-link)] hover:text-[var(--text)]">
             Kontakt
           </Link>
         </nav>

@@ -21,6 +21,7 @@
   --text:      #f0eee8;
   --text2:     rgba(240,238,232,0.55);
   --text3:     rgba(240,238,232,0.28);
+  --footer-link: var(--text2);
   --accent:    #7c6dff;
   --accent2:   #a395ff;
   --accent-bg: rgba(124,109,255,0.1);
@@ -44,6 +45,7 @@
   --text:      #111110;
   --text2:     rgba(17,17,16,0.55);
   --text3:     rgba(17,17,16,0.3);
+  --footer-link: rgba(17,17,16,0.82);
   --accent:    #5b4fff;
   --accent2:   #4338ca;
   --accent-bg: rgba(91,79,255,0.06);

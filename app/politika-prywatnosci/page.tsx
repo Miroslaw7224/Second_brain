@@ -7,12 +7,12 @@ import { ArrowLeft } from "lucide-react";
 
 export default function PolitykaPrywatnosciPage() {
   return (
-    <div className="min-h-screen bg-[var(--bg)]">
+    <div className="min-h-screen bg-[var(--bg)] flex flex-col">
       <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[color-mix(in_srgb,var(--bg)_80%,transparent)] backdrop-blur supports-[backdrop-filter]:bg-[color-mix(in_srgb,var(--surface)_80%,transparent)]">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 sm:px-8 lg:px-12 xl:px-16">
           <Link
             href="/"
-            className="flex items-center gap-2 text-sm font-medium text-[var(--text2)] hover:text-[var(--text)] transition"
+            className="flex items-center gap-2 text-sm font-medium text-[var(--footer-link)] hover:text-[var(--text)] transition"
           >
             <ArrowLeft className="w-4 h-4" />
             Strona główna
@@ -28,7 +28,7 @@ export default function PolitykaPrywatnosciPage() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-3xl px-6 py-12 sm:px-8 lg:px-12">
+      <main className="mx-auto max-w-3xl px-6 py-12 sm:px-8 lg:px-12 flex-1">
         <h1 className="text-3xl font-bold text-[var(--text)] mb-2">
           Polityka prywatności
         </h1>
@@ -36,7 +36,7 @@ export default function PolitykaPrywatnosciPage() {
           Ostatnia aktualizacja: luty 2025
         </p>
 
-        <div className="prose prose-invert max-w-none space-y-8 text-[var(--text2)] text-sm leading-relaxed [&_strong]:text-[var(--text)] [&_a]:text-[var(--accent)] [&_a]:underline [&_a]:underline-offset-2">
+        <div className="prose prose-invert max-w-none space-y-8 text-[var(--footer-link)] text-sm leading-relaxed [&_strong]:text-[var(--text)] [&_a]:text-[var(--accent)] [&_a]:underline [&_a]:underline-offset-2">
           <section>
             <h2 className="text-lg font-semibold text-[var(--text)] mb-3">
               1. Administrator danych
