@@ -32,7 +32,9 @@ export function CalendarEventForm({
   submitLabel = "Add",
 }: CalendarEventFormProps) {
   const [date, setDate] = useState(initial?.date ?? "");
-  const [startMinutes, setStartMinutes] = useState(initial?.start_minutes ?? 9 * 60);
+  const [startMinutes, setStartMinutes] = useState(
+    initial?.start_minutes != null ? Math.round(initial.start_minutes / 15) * 15 : 9 * 60
+  );
   const [durationMinutes, setDurationMinutes] = useState(initial?.duration_minutes ?? 60);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [tagInput, setTagInput] = useState("");

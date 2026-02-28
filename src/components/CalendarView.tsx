@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, ChevronLeft, ChevronRight, Trash2, Pencil } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Trash2, Pencil, Play, Square } from "lucide-react";
 import { CalendarEventForm, type CalendarEventFormData } from "./CalendarEventForm";
+import { StartSessionModal } from "./StartSessionModal";
 import { CALENDAR_COLORS, formatDuration } from "./calendarConstants";
 import type { UserTag } from "./TagsSection";
+import type { ActiveSession } from "@/src/lib/activeSession";
 
 export interface CalendarEvent {
   id: string;
@@ -78,6 +80,11 @@ interface CalendarViewProps {
   userTags?: UserTag[];
   /** Increment to force refetch of events (e.g. after plan/ask adds events). */
   refreshTrigger?: number;
+  activeSession?: ActiveSession | null;
+  onStartSession?: (payload: { title: string; tags: string[]; color: string }) => void;
+  onEndSession?: () => void | Promise<void>;
+  sessionEndError?: string | null;
+  clearSessionEndError?: () => void;
 }
 
 const MONTH_NAMES: Record<"pl" | "en", string[]> = {
@@ -86,17 +93,41 @@ const MONTH_NAMES: Record<"pl" | "en", string[]> = {
 };
 const DAY_NAMES = { pl: ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"], en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] };
 
-export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger }: CalendarViewProps) {
+export function CalendarView({
+  apiFetch,
+  lang,
+  t,
+  userTags = [],
+  refreshTrigger,
+  activeSession = null,
+  onStartSession,
+  onEndSession,
+  sessionEndError = null,
+  clearSessionEndError,
+}: CalendarViewProps) {
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
+  const [startSessionModalOpen, setStartSessionModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [addDate, setAddDate] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
+
+  const [nowMinutes, setNowMinutes] = useState(() => {
+    const n = new Date();
+    return n.getHours() * 60 + n.getMinutes();
+  });
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const n = new Date();
+      setNowMinutes(n.getHours() * 60 + n.getMinutes());
+    }, 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const monthLabel = MONTH_NAMES[lang][viewMonth];
   const days = getDaysInMonth(viewYear, viewMonth);
@@ -216,6 +247,13 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
   const totalWidth = dayLabelWidth + HOURS * cellWidth;
   const totalHeight = (days.length + 1) * rowHeight;
 
+  const formatSessionTime = (iso: string) => {
+    const d = new Date(iso);
+    return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+  };
+
+  const sessionInProgressLabel = (t.sessionInProgressSince as string)?.replace("{time}", activeSession ? formatSessionTime(activeSession.startedAt) : "") ?? (activeSession ? `Work in progress since ${formatSessionTime(activeSession.startedAt)}` : "");
+
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
       <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
@@ -240,7 +278,31 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
             <span className="text-xs text-[var(--text3)] hidden sm:inline">
               {(t.calendarClickToEdit as string) ?? "Click an event to edit"}
             </span>
-          <button
+            {activeSession ? (
+              <>
+                <span className="text-sm font-medium text-[var(--text2)]">
+                  {sessionInProgressLabel}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onEndSession?.()}
+                  className="flex items-center gap-2 px-4 py-2 border-2 border-[var(--accent)] text-[var(--accent)] bg-transparent rounded-xl text-sm font-semibold hover:bg-[var(--accent-bg)]"
+                >
+                  <Square className="w-4 h-4" />
+                  {(t.sessionEndButton as string) ?? "End work"}
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setStartSessionModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-[var(--bg3)] text-[var(--text)] border border-[var(--border)] rounded-xl text-sm font-semibold hover:bg-[var(--bg2)]"
+              >
+                <Play className="w-4 h-4" />
+                {(t.sessionStartButton as string) ?? "Start work"}
+              </button>
+            )}
+            <button
             onClick={() => { setAddDate(days[0]?.date ?? startDate); setEditingEvent(null); setSaveError(null); setModalOpen(true); }}
             className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold"
           >
@@ -249,6 +311,23 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
           </button>
           </div>
       </div>
+
+      {sessionEndError && (
+        <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/30 flex items-center justify-between gap-2">
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+            {sessionEndError}
+          </p>
+          {clearSessionEndError && (
+            <button
+              type="button"
+              onClick={clearSessionEndError}
+              className="text-xs font-medium text-red-600 dark:text-red-400 hover:underline"
+            >
+              Dismiss
+            </button>
+          )}
+        </div>
+      )}
 
       <div
         className="flex-1 min-w-0 min-h-0 flex flex-col p-4"
@@ -337,6 +416,36 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
                         </div>
                       );
                     })}
+                    {activeSession && day.date === todayStr && (() => {
+                      const started = new Date(activeSession.startedAt);
+                      const sessionStartMinutes = started.getHours() * 60 + started.getMinutes();
+                      const sessionEndMinutes = nowMinutes;
+                      if (sessionEndMinutes <= sessionStartMinutes) return null;
+                      const leftPx = (sessionStartMinutes / 60) * cellWidth;
+                      const widthPx = Math.max(24, ((sessionEndMinutes - sessionStartMinutes) / 60) * cellWidth);
+                      return (
+                        <div
+                          data-event
+                          data-active-session
+                          onClick={(e) => { e.stopPropagation(); onEndSession?.(); }}
+                          className="absolute rounded overflow-hidden cursor-pointer border-2 border-dashed border-white/80 shadow-sm flex items-center gap-1 group hover:ring-2 hover:ring-white/80 z-10"
+                          style={{
+                            left: leftPx,
+                            width: widthPx,
+                            top: "2%",
+                            height: "96%",
+                            backgroundColor: activeSession.color,
+                            opacity: 0.85,
+                          }}
+                          title={`${activeSession.title} · ${(t.sessionInProgressSince as string)?.replace("{time}", `${String(started.getHours()).padStart(2, "0")}:${String(started.getMinutes()).padStart(2, "0")}`) ?? "In progress"} – ${(t.sessionEndButton as string) ?? "End work"}`}
+                        >
+                          <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
+                            {activeSession.title}
+                          </span>
+                          <Square className="w-3 h-3 text-white/90 flex-shrink-0 opacity-70 group-hover:opacity-100 mr-1" aria-hidden />
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               );
@@ -390,6 +499,32 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
                 </button>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {startSessionModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--surface)] rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+            <h3 className="text-lg font-bold mb-4">
+              {(t.sessionModalTitle as string) ?? "Start work"}
+            </h3>
+            <StartSessionModal
+              existingTags={allTags}
+              tagTitles={tagTitles}
+              tagColors={tagColors}
+              onSubmit={(payload) => {
+                onStartSession?.(payload);
+                setStartSessionModalOpen(false);
+              }}
+              onCancel={() => setStartSessionModalOpen(false)}
+              submitLabel={(t.sessionSubmitStart as string) ?? "Start work"}
+              cancelLabel={(t.calendarCancel as string) ?? "Cancel"}
+              titleLabel={(t.sessionModalTitleLabel as string) ?? "Title"}
+              tagsLabel={(t.sessionModalTagsLabel as string) ?? "Tags"}
+              tagPlaceholder={(t.sessionModalTagPlaceholder as string) ?? "#tag or pick below"}
+              suggestionsLabel={(t.sessionModalSuggestionsLabel as string) ?? "Suggestions"}
+            />
           </div>
         </div>
       )}

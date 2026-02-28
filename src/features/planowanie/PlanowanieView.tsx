@@ -13,6 +13,12 @@ import { CalendarView } from '@/src/components/CalendarView';
 import { TasksSection } from '@/src/components/TasksSection';
 import { ActivityLog } from '@/src/components/ActivityLog';
 import { TagsSection, type UserTag } from '@/src/components/TagsSection';
+import {
+  getActiveSession,
+  setActiveSession,
+  clearActiveSession,
+  type ActiveSession,
+} from '@/src/lib/activeSession';
 import type { translations } from '@/src/translations';
 
 function cn(...inputs: ClassValue[]) {
@@ -54,6 +60,67 @@ export default function PlanowanieView({
   const [planAskUnknownTags, setPlanAskUnknownTags] = useState<string[]>([]);
   const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [activeSession, setActiveSessionState] = useState<ActiveSession | null>(null);
+  const [sessionEndError, setSessionEndError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setActiveSessionState(null);
+      return;
+    }
+    const stored = getActiveSession(user.id);
+    setActiveSessionState(stored);
+  }, [user?.id]);
+
+  const handleStartSession = useCallback(
+    (payload: { title: string; tags: string[]; color: string }) => {
+      if (!user?.id) return;
+      const session: ActiveSession = {
+        title: payload.title,
+        startedAt: new Date().toISOString(),
+        tags: payload.tags,
+        color: payload.color,
+      };
+      setActiveSessionState(session);
+      setActiveSession(user.id, session);
+    },
+    [user?.id]
+  );
+
+  const handleEndSession = useCallback(async () => {
+    if (!activeSession || !user?.id) return;
+    setSessionEndError(null);
+    const started = new Date(activeSession.startedAt);
+    const now = Date.now();
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const startMinutes = Math.floor((started.getHours() * 60 + started.getMinutes()) / 15) * 15;
+    const durationMinutes = Math.ceil((now - started.getTime()) / (15 * 60 * 1000)) * 15;
+    try {
+      const res = await apiFetch('/api/calendar/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          date: dateStr,
+          start_minutes: startMinutes,
+          duration_minutes: durationMinutes,
+          title: activeSession.title,
+          tags: activeSession.tags,
+          color: activeSession.color,
+        }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      setActiveSessionState(null);
+      clearActiveSession(user.id);
+      setCalendarRefreshKey((k) => k + 1);
+    } catch (err) {
+      console.error('End session failed', err);
+      setSessionEndError(err instanceof Error ? err.message : 'Failed to save');
+    }
+  }, [activeSession, user?.id, apiFetch]);
 
   const fetchTags = useCallback(async () => {
     try {
@@ -104,7 +171,7 @@ export default function PlanowanieView({
       });
       const data = await res.json();
       const assistantContent = data.text || data.error || '';
-      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }].slice(-20));
+      setMessages((prev) => [...prev, { role: 'assistant' as const, content: assistantContent }].slice(-20));
       if (data.unknownTags && Array.isArray(data.unknownTags) && data.unknownTags.length > 0) {
         setPlanAskPendingMessage(msg);
         setPlanAskUnknownTags(data.unknownTags);
@@ -114,7 +181,7 @@ export default function PlanowanieView({
         if (planningTab === 'calendar') setPlanningTab('calendar');
       }
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, something went wrong.' }].slice(-20));
+      setMessages((prev) => [...prev, { role: 'assistant' as const, content: 'Sorry, something went wrong.' }].slice(-20));
     } finally {
       setPlanAskLoading(false);
     }
@@ -139,7 +206,7 @@ export default function PlanowanieView({
       });
       const data = await res.json();
       const assistantContent = data.text || data.error || '';
-      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }].slice(-20));
+      setMessages((prev) => [...prev, { role: 'assistant' as const, content: assistantContent }].slice(-20));
       setPlanAskPendingMessage(null);
       setPlanAskUnknownTags([]);
       if (data.created) {
@@ -148,7 +215,7 @@ export default function PlanowanieView({
       }
     } catch (err) {
       const errorMsg = lang === 'pl' ? 'Nie udało się dodać tagu lub wpisu.' : 'Failed to add tag or entry.';
-      setMessages((prev) => [...prev, { role: 'assistant', content: errorMsg }].slice(-20));
+      setMessages((prev) => [...prev, { role: 'assistant' as const, content: errorMsg }].slice(-20));
     } finally {
       setPlanAskLoading(false);
     }
@@ -246,6 +313,26 @@ export default function PlanowanieView({
         />
 
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
+          {activeSession && planningTab !== 'calendar' && (
+            <div className="flex-shrink-0 px-4 py-2 bg-[var(--accent-bg)] border-b border-[var(--accent)] flex items-center justify-between gap-2">
+              <span className="text-sm font-medium text-[var(--text)]">
+                {(t.sessionInProgressSince as string)?.replace(
+                  '{time}',
+                  new Date(activeSession.startedAt).toLocaleTimeString(lang === 'pl' ? 'pl-PL' : 'en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                ) ?? `Work in progress since ${new Date(activeSession.startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`}
+              </span>
+              <button
+                type="button"
+                onClick={handleEndSession}
+                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:brightness-110"
+              >
+                {t.sessionEndButton as string}
+              </button>
+            </div>
+          )}
           {planningTab === 'calendar' ? (
             <CalendarView
               apiFetch={apiFetch}
@@ -253,6 +340,11 @@ export default function PlanowanieView({
               t={t}
               userTags={userTags}
               refreshTrigger={calendarRefreshKey}
+              activeSession={activeSession}
+              onStartSession={handleStartSession}
+              onEndSession={handleEndSession}
+              sessionEndError={sessionEndError}
+              clearSessionEndError={() => setSessionEndError(null)}
             />
           ) : planningTab === 'activity' ? (
             <ActivityLog apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
