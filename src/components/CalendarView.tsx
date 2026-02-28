@@ -76,6 +76,8 @@ interface CalendarViewProps {
   lang: "en" | "pl";
   t: TranslationDict;
   userTags?: UserTag[];
+  /** Increment to force refetch of events (e.g. after plan/ask adds events). */
+  refreshTrigger?: number;
 }
 
 const MONTH_NAMES: Record<"pl" | "en", string[]> = {
@@ -84,7 +86,7 @@ const MONTH_NAMES: Record<"pl" | "en", string[]> = {
 };
 const DAY_NAMES = { pl: ["Nd", "Pn", "Wt", "Śr", "Cz", "Pt", "So"], en: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] };
 
-export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewProps) {
+export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger }: CalendarViewProps) {
   const now = new Date();
   const [viewYear, setViewYear] = useState(now.getFullYear());
   const [viewMonth, setViewMonth] = useState(now.getMonth());
@@ -111,7 +113,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [] }: CalendarViewP
       .catch(() => { if (!cancelled) setEvents([]); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [startDate, endDate, apiFetch]);
+  }, [startDate, endDate, apiFetch, refreshTrigger]);
 
   const eventTags = Array.from(new Set(events.flatMap((e) => e.tags)));
   const userTagNames = userTags.map((u) => u.tag).filter(Boolean);

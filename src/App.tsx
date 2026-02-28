@@ -21,7 +21,8 @@ import {
   Briefcase,
   ListTodo,
   Tag,
-  Link
+  Link,
+  Pencil
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import ReactMarkdown from 'react-markdown';
@@ -33,6 +34,7 @@ import { TasksSection } from '@/src/components/TasksSection';
 import { ActivityLog } from '@/src/components/ActivityLog';
 import { TagsSection, type UserTag } from '@/src/components/TagsSection';
 import { ResourceSection } from '@/src/components/ResourceSection';
+import { NoteEditor } from '@/src/components/NoteEditor';
 import { translations } from '@/src/translations';
 import {
   signInWithEmailAndPassword,
@@ -106,6 +108,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [userTags, setUserTags] = useState<UserTag[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
+  const [noteEditMode, setNoteEditMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -114,6 +117,9 @@ export default function App({ authenticated = false }: AppProps = {}) {
   const [planAskInput, setPlanAskInput] = useState('');
   const [planAskResponse, setPlanAskResponse] = useState('');
   const [planAskLoading, setPlanAskLoading] = useState(false);
+  const [planAskPendingMessage, setPlanAskPendingMessage] = useState<string | null>(null);
+  const [planAskUnknownTags, setPlanAskUnknownTags] = useState<string[]>([]);
+  const [calendarRefreshKey, setCalendarRefreshKey] = useState(0);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -254,6 +260,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
           const data = await res.json();
           setSelectedNote({ ...data, created_at: data.created_at ?? new Date().toISOString() });
         }
+        setNoteEditMode(false);
       }
     } catch (err) {
       console.error('Failed to save note', err);
@@ -309,6 +316,8 @@ export default function App({ authenticated = false }: AppProps = {}) {
     setPlanAskInput('');
     setPlanAskLoading(true);
     setPlanAskResponse('');
+    setPlanAskPendingMessage(null);
+    setPlanAskUnknownTags([]);
     try {
       const res = await apiFetch('/api/plan/ask', {
         method: 'POST',
@@ -317,11 +326,49 @@ export default function App({ authenticated = false }: AppProps = {}) {
       });
       const data = await res.json();
       setPlanAskResponse(data.text || data.error || '');
-      if (data.created && planningTab === 'calendar') {
-        setPlanningTab('calendar');
+      if (data.unknownTags && Array.isArray(data.unknownTags) && data.unknownTags.length > 0) {
+        setPlanAskPendingMessage(msg);
+        setPlanAskUnknownTags(data.unknownTags);
+      }
+      if (data.created) {
+        setCalendarRefreshKey((k) => k + 1);
+        if (planningTab === 'calendar') setPlanningTab('calendar');
       }
     } catch (err) {
       setPlanAskResponse('Sorry, something went wrong.');
+    } finally {
+      setPlanAskLoading(false);
+    }
+  };
+
+  const handlePlanAskAddTagAndRetry = async () => {
+    if (!planAskPendingMessage || planAskUnknownTags.length === 0 || planAskLoading) return;
+    setPlanAskLoading(true);
+    setPlanAskResponse('');
+    try {
+      for (const tagName of planAskUnknownTags) {
+        await apiFetch('/api/tags', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ tag: tagName.trim(), title: tagName.trim() }),
+        });
+      }
+      await fetchTags();
+      const res = await apiFetch('/api/plan/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: planAskPendingMessage, lang }),
+      });
+      const data = await res.json();
+      setPlanAskResponse(data.text || data.error || '');
+      setPlanAskPendingMessage(null);
+      setPlanAskUnknownTags([]);
+      if (data.created) {
+        setCalendarRefreshKey((k) => k + 1);
+        if (planningTab === 'calendar') setPlanningTab('calendar');
+      }
+    } catch (err) {
+      setPlanAskResponse(lang === 'pl' ? 'Nie udało się dodać tagu lub wpisu.' : 'Failed to add tag or entry.');
     } finally {
       setPlanAskLoading(false);
     }
@@ -726,7 +773,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
           {appMode === 'planowanie' ? (
             planningTab === 'calendar' ? (
-              <CalendarView apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
+              <CalendarView apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} refreshTrigger={calendarRefreshKey} />
             ) : planningTab === 'activity' ? (
               <ActivityLog apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
             ) : planningTab === 'tags' ? (
@@ -831,7 +878,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
             <div className="flex-1 flex overflow-hidden">
               <div className="w-64 border-r border-[#E5E7EB] bg-white overflow-y-auto p-4 space-y-2">
                 <button 
-                  onClick={() => setSelectedNote({ id: '', title: '', content: '', created_at: '' })}
+                  onClick={() => { setSelectedNote({ id: '', title: '', content: '', created_at: '' }); setNoteEditMode(true); }}
                   className="w-full flex items-center gap-2 p-3 bg-black text-white rounded-xl text-sm font-semibold hover:scale-[1.02] transition-all mb-4"
                 >
                   <Plus className="w-4 h-4" />
@@ -840,7 +887,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 {notes.map(note => (
                   <button 
                     key={note.id}
-                    onClick={() => setSelectedNote(note)}
+                    onClick={() => { setSelectedNote(note); setNoteEditMode(false); }}
                     className={cn(
                       "w-full text-left p-3 rounded-xl transition-all border",
                       selectedNote?.id === note.id 
@@ -858,40 +905,86 @@ export default function App({ authenticated = false }: AppProps = {}) {
                   </button>
                 ))}
               </div>
-              <div className="flex-1 bg-white p-8 overflow-y-auto">
+              <div className="flex-1 bg-white p-8 overflow-y-auto min-w-0">
                 {selectedNote ? (
-                  <div className="max-w-2xl mx-auto space-y-6">
-                    <div className="flex items-center justify-between">
-                      <input
-                        type="text"
-                        value={selectedNote.title}
-                        onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
-                        placeholder={t.noteTitlePlaceholder}
-                        className="text-3xl font-bold border-none focus:ring-0 w-full p-0"
-                      />
-                      <div className="flex items-center gap-2">
-                        {selectedNote.id !== '' && (
-                          <button
-                            onClick={() => handleDeleteNote(selectedNote.id)}
-                            className="p-2 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        )}
-                        <button
-                          onClick={handleSaveNote}
-                          className="px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
-                        >
-                          {t.saveNote}
-                        </button>
-                      </div>
-                    </div>
-                    <textarea
-                      value={selectedNote.content}
-                      onChange={(e) => setSelectedNote({ ...selectedNote, content: e.target.value })}
-                      placeholder={t.noteContentPlaceholder}
-                      className="w-full h-[60vh] border-none focus:ring-0 p-0 text-lg leading-relaxed resize-none"
-                    />
+                  <div className="w-full max-w-full space-y-6">
+                    {noteEditMode || selectedNote.id === '' ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <input
+                            type="text"
+                            value={selectedNote.title}
+                            onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
+                            placeholder={t.noteTitlePlaceholder}
+                            className="text-3xl font-bold border-none focus:ring-0 w-full p-0"
+                          />
+                          <div className="flex items-center gap-2">
+                            {selectedNote.id !== '' && (
+                              <>
+                                <button
+                                  onClick={() => setNoteEditMode(false)}
+                                  className="px-4 py-2 border border-[#E5E7EB] rounded-xl text-sm font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all"
+                                >
+                                  {t.noteCancelEdit}
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteNote(selectedNote.id)}
+                                  className="p-2 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
+                                >
+                                  <Trash2 className="w-5 h-5" />
+                                </button>
+                              </>
+                            )}
+                            <button
+                              onClick={handleSaveNote}
+                              className="px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
+                            >
+                              {t.saveNote}
+                            </button>
+                          </div>
+                        </div>
+                        <NoteEditor
+                          key={selectedNote.id || 'new'}
+                          content={selectedNote.content}
+                          onContentChange={(html) => setSelectedNote({ ...selectedNote, content: html })}
+                          placeholder={t.noteContentPlaceholder}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-between gap-4">
+                          <h1 className="text-3xl font-bold text-[#111827] flex-1 min-w-0">
+                            {selectedNote.title || t.noteTitlePlaceholder}
+                          </h1>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <button
+                              onClick={() => setNoteEditMode(true)}
+                              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
+                            >
+                              <Pencil className="w-4 h-4" />
+                              {t.noteEdit}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteNote(selectedNote.id)}
+                              className="p-2 hover:bg-red-50 text-red-400 rounded-lg transition-colors"
+                              title={t.deleteNote}
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+                        <div
+                          className="prose prose-lg max-w-none min-h-[20vh] text-[#374151] leading-relaxed prose-p:my-2 prose-headings:font-bold prose-headings:text-[#111827]"
+                          dangerouslySetInnerHTML={{
+                            __html: selectedNote.content
+                              ? selectedNote.content.trim().startsWith('<')
+                                ? selectedNote.content
+                                : `<p>${selectedNote.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`
+                              : '<p class="text-[#9CA3AF]">' + t.noteContentPlaceholder + '</p>',
+                          }}
+                        />
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center">
@@ -948,6 +1041,22 @@ export default function App({ authenticated = false }: AppProps = {}) {
             <div className="max-w-2xl mx-auto">
               {planAskResponse && (
                 <p className="text-sm text-[#374151] mb-2 px-2 py-1 bg-[#F3F4F6] rounded-lg">{planAskResponse}</p>
+              )}
+              {planAskUnknownTags.length > 0 && (
+                <button
+                  type="button"
+                  onClick={handlePlanAskAddTagAndRetry}
+                  disabled={planAskLoading}
+                  className="mb-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-[#333] disabled:opacity-50"
+                >
+                  {lang === 'pl'
+                    ? planAskUnknownTags.length === 1
+                      ? `Dodaj tag "${planAskUnknownTags[0]}" i wpis`
+                      : `Dodaj tagi i wpis`
+                    : planAskUnknownTags.length === 1
+                      ? `Add tag "${planAskUnknownTags[0]}" and entry`
+                      : `Add tags and entry`}
+                </button>
               )}
               <div className="flex gap-2">
                 <input
