@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import WaitlistForm from "./WaitlistForm";
 
 export default function CTA() {
   return (
@@ -25,6 +26,10 @@ export default function CTA() {
         <p className="mt-6 text-sm text-[var(--text3)]">
           Bez karty. Anuluj kiedy chcesz.
         </p>
+        <p className="mt-8 text-sm text-[var(--text2)]">
+          Chcesz wiedzieć, gdy pojawią się nowe funkcje? Dołącz do listy oczekujących.
+        </p>
+        <WaitlistForm />
         </div>
       </div>
     </section>

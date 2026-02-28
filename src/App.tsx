@@ -14,7 +14,6 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  signInAnonymously,
   signOut,
   onAuthStateChanged,
   updateProfile,
@@ -55,6 +54,39 @@ export default function App({ authenticated = false }: AppProps = {}) {
   const [authError, setAuthError] = useState('');
   const [appMode, setAppMode] = useState<'wiedza' | 'planowanie'>('wiedza');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [checkingWaitlist, setCheckingWaitlist] = useState(false);
+
+  const WAITLIST_ERROR_MSG =
+    'Dostęp tylko dla osób z listy oczekujących. Dołącz do listy na stronie głównej.';
+
+  const checkWaitlistAndProceed = async () => {
+    setCheckingWaitlist(true);
+    try {
+      const auth = getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        setAuthError('Nie udało się pobrać tokenu.');
+        return;
+      }
+      const res = await fetch('/api/waitlist/check', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 403) {
+        await signOut(auth);
+        setAuthError(WAITLIST_ERROR_MSG);
+        return;
+      }
+      if (!res.ok) {
+        setAuthError('Błąd sprawdzania dostępu.');
+        return;
+      }
+      // User stays logged in; onAuthStateChanged already set user, UI will show app
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : 'Błąd połączenia.');
+    } finally {
+      setCheckingWaitlist(false);
+    }
+  };
 
   useEffect(() => {
     const auth = getFirebaseAuth();
@@ -70,9 +102,11 @@ export default function App({ authenticated = false }: AppProps = {}) {
     try {
       const auth = getFirebaseAuth();
       await signInWithPopup(auth, new GoogleAuthProvider());
+      await checkWaitlistAndProceed();
     } catch (err: unknown) {
       console.error('Google login failed', err);
       setAuthError(err instanceof Error ? err.message : 'Google sign-in failed');
+      setCheckingWaitlist(false);
     }
   };
 
@@ -81,6 +115,16 @@ export default function App({ authenticated = false }: AppProps = {}) {
     setAuthError('');
     const auth = getFirebaseAuth();
     try {
+      if (authMode === 'register') {
+        const checkRes = await fetch(
+          `/api/waitlist/check-email?email=${encodeURIComponent(email.trim())}`
+        );
+        const checkData = await checkRes.json().catch(() => ({}));
+        if (!checkRes.ok || checkData.allowed !== true) {
+          setAuthError(WAITLIST_ERROR_MSG);
+          return;
+        }
+      }
       if (authMode === 'login') {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
@@ -89,22 +133,15 @@ export default function App({ authenticated = false }: AppProps = {}) {
           await updateProfile(cred.user, { displayName: name.trim() });
         }
       }
+      await checkWaitlistAndProceed();
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : 'Authentication failed');
+      setCheckingWaitlist(false);
     }
   };
 
   const handleLogout = () => {
     signOut(getFirebaseAuth());
-  };
-
-  const handleGuestLogin = async () => {
-    setAuthError('');
-    try {
-      await signInAnonymously(getFirebaseAuth());
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : 'Guest sign-in failed');
-    }
   };
 
   const apiFetch = useCallback(async (url: string, options: RequestInit = {}) => {
@@ -117,7 +154,13 @@ export default function App({ authenticated = false }: AppProps = {}) {
       ...(options.headers as Record<string, string>),
       Authorization: `Bearer ${token}`,
     };
-    return fetch(url, { ...options, headers });
+    const res = await fetch(url, { ...options, headers });
+    if (res.status === 403) {
+      await signOut(auth);
+      window.location.href = '/auth/login';
+      return res;
+    }
+    return res;
   }, []);
 
   if (authLoading && !authenticated) {
@@ -181,9 +224,10 @@ export default function App({ authenticated = false }: AppProps = {}) {
               {authError && <p className="text-xs text-red-500 font-medium">{authError}</p>}
               <button
                 type="submit"
-                className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all"
+                disabled={checkingWaitlist}
+                className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {authMode === 'login' ? t.login : t.register}
+                {checkingWaitlist ? 'Sprawdzanie dostępu…' : authMode === 'login' ? t.login : t.register}
               </button>
             </form>
 
@@ -198,7 +242,8 @@ export default function App({ authenticated = false }: AppProps = {}) {
 
             <button
               onClick={handleGoogleLogin}
-              className="w-full flex items-center justify-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text2)] hover:bg-[var(--bg2)] transition-all"
+              disabled={checkingWaitlist}
+              className="w-full flex items-center justify-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text2)] hover:bg-[var(--bg2)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path
@@ -219,13 +264,6 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 />
               </svg>
               {t.signInGoogle}
-            </button>
-
-            <button
-              onClick={handleGuestLogin}
-              className="w-full mt-3 py-3 bg-[var(--toggle-bg)] text-[var(--text2)] rounded-xl text-sm font-bold hover:bg-[var(--bg3)] transition-all"
-            >
-              {t.continueGuest}
             </button>
 
             <p className="text-center mt-8 text-sm text-[var(--text2)]">

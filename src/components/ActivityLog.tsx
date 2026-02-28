@@ -160,7 +160,7 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                 </li>
               ))}
             </ul>
-            <div className="flex-[3_3_0%] min-w-0 flex flex-col bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 activity-chart">
+            <div className="flex-[3_3_0%] min-w-0 flex flex-col self-start bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 activity-chart">
               {tagHours.length === 0 ? (
                 <p className="text-[var(--text3)] font-medium text-sm">{labels.noTags}</p>
               ) : (

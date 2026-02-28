@@ -241,6 +241,7 @@ export default function PlanowanieView({
             modePlanowanie: t.modePlanowanie,
             brainActive: t.brainActive,
             searchPlaceholder: t.searchPlaceholder,
+            feedback: t.feedback,
           }}
         />
 

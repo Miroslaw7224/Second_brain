@@ -4,6 +4,8 @@ import { useAuth } from "@/src/lib/auth/useAuth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { getFirebaseAuth } from "@/src/lib/firebase-client";
+import { signOut } from "firebase/auth";
 
 export default function ProtectedLayout({
   children,
@@ -16,6 +18,29 @@ export default function ProtectedLayout({
   useEffect(() => {
     if (loading) return;
     if (!user) router.replace("/auth/login");
+  }, [user, loading, router]);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    const auth = getFirebaseAuth();
+    let cancelled = false;
+    (async () => {
+      try {
+        const token = await auth.currentUser?.getIdToken();
+        if (cancelled || !token) return;
+        const res = await fetch("/api/waitlist/check", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (cancelled) return;
+        if (res.status === 403) {
+          await signOut(auth);
+          router.replace("/auth/login");
+        }
+      } catch {
+        // ignore
+      }
+    })();
+    return () => { cancelled = true; };
   }, [user, loading, router]);
 
   if (loading)

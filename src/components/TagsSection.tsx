@@ -161,7 +161,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
             {userTags.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-3 p-3 bg-white border border-[var(--border)] rounded-xl"
+                className="flex items-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl"
               >
                 {editingId === item.id ? (
                   <>
@@ -225,7 +225,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                     <button
                       type="button"
                       onClick={() => deleteTag(item.id)}
-                      className="p-2 text-red-500 hover:bg-red-50 rounded-lg"
+                      className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

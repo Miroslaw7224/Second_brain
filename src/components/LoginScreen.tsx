@@ -8,7 +8,7 @@ import {
   createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
-  signInAnonymously,
+  signOut,
   updateProfile,
 } from "firebase/auth";
 import { useRouter } from "next/navigation";
@@ -19,7 +19,6 @@ const tEn = {
   email: "Email",
   password: "Password",
   signInGoogle: "Sign in with Google",
-  continueGuest: "Continue as Guest",
   noAccount: "Don't have an account?",
   hasAccount: "Already have an account?",
   name: "Name",
@@ -30,7 +29,6 @@ const tPl = {
   email: "Email",
   password: "Hasło",
   signInGoogle: "Zaloguj przez Google",
-  continueGuest: "Kontynuuj jako Gość",
   noAccount: "Nie masz konta?",
   hasAccount: "Masz już konto?",
   name: "Imię",
@@ -47,17 +45,51 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [authError, setAuthError] = useState("");
+  const [checkingWaitlist, setCheckingWaitlist] = useState(false);
 
   const goDashboard = () => router.replace("/dashboard");
+
+  const WAITLIST_ERROR_MSG =
+    "Dostęp tylko dla osób z listy oczekujących. Dołącz do listy na stronie głównej.";
+
+  const checkWaitlistAndProceed = async () => {
+    setCheckingWaitlist(true);
+    try {
+      const auth = getFirebaseAuth();
+      const token = await auth.currentUser?.getIdToken();
+      if (!token) {
+        setAuthError("Nie udało się pobrać tokenu.");
+        return;
+      }
+      const res = await fetch("/api/waitlist/check", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.status === 403) {
+        await signOut(auth);
+        setAuthError(WAITLIST_ERROR_MSG);
+        return;
+      }
+      if (!res.ok) {
+        setAuthError("Błąd sprawdzania dostępu.");
+        return;
+      }
+      goDashboard();
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : "Błąd połączenia.");
+    } finally {
+      setCheckingWaitlist(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setAuthError("");
     try {
       const auth = getFirebaseAuth();
       await signInWithPopup(auth, new GoogleAuthProvider());
-      goDashboard();
+      await checkWaitlistAndProceed();
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : "Google sign-in failed");
+      setCheckingWaitlist(false);
     }
   };
 
@@ -66,6 +98,16 @@ export default function LoginScreen() {
     setAuthError("");
     const auth = getFirebaseAuth();
     try {
+      if (authMode === "register") {
+        const checkRes = await fetch(
+          `/api/waitlist/check-email?email=${encodeURIComponent(email.trim())}`
+        );
+        const checkData = await checkRes.json().catch(() => ({}));
+        if (!checkRes.ok || checkData.allowed !== true) {
+          setAuthError(WAITLIST_ERROR_MSG);
+          return;
+        }
+      }
       if (authMode === "login") {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
@@ -74,19 +116,10 @@ export default function LoginScreen() {
           await updateProfile(cred.user, { displayName: name.trim() });
         }
       }
-      goDashboard();
+      await checkWaitlistAndProceed();
     } catch (err: unknown) {
       setAuthError(err instanceof Error ? err.message : "Authentication failed");
-    }
-  };
-
-  const handleGuestLogin = async () => {
-    setAuthError("");
-    try {
-      await signInAnonymously(getFirebaseAuth());
-      goDashboard();
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : "Guest sign-in failed");
+      setCheckingWaitlist(false);
     }
   };
 
@@ -161,9 +194,10 @@ export default function LoginScreen() {
             )}
             <button
               type="submit"
-              className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all"
+              disabled={checkingWaitlist}
+              className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {authMode === "login" ? t.login : t.register}
+              {checkingWaitlist ? "Sprawdzanie dostępu…" : authMode === "login" ? t.login : t.register}
             </button>
           </form>
 
@@ -179,7 +213,8 @@ export default function LoginScreen() {
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text2)] hover:bg-[var(--bg2)] transition-all"
+            disabled={checkingWaitlist}
+            className="w-full flex items-center justify-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text2)] hover:bg-[var(--bg2)] transition-all disabled:opacity-60 disabled:cursor-not-allowed"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -200,14 +235,6 @@ export default function LoginScreen() {
               />
             </svg>
             {t.signInGoogle}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleGuestLogin}
-            className="w-full mt-3 py-3 bg-[var(--toggle-bg)] text-[var(--text2)] rounded-xl text-sm font-bold hover:bg-[var(--bg3)] transition-all"
-          >
-            {t.continueGuest}
           </button>
 
           <p className="text-center mt-8 text-sm text-[var(--text2)]">

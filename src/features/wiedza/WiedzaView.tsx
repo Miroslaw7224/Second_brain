@@ -326,6 +326,7 @@ export default function WiedzaView({
             modePlanowanie: t.modePlanowanie,
             brainActive: t.brainActive,
             searchPlaceholder: t.searchPlaceholder,
+            feedback: t.feedback,
           }}
         />
 
