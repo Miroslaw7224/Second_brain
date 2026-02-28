@@ -2,9 +2,66 @@ import * as firestoreDb from "@/lib/firestore-db";
 import { generateContent } from "@/lib/gemini";
 import * as resourceService from "@/services/resourceService";
 
-// TODO: lepsza ekstrakcja słów kluczowych (obecna heurystyka słabo działa po polsku)
-function extractKeywords(message: string): string[] {
-  return message.split(" ").filter((w) => w.length > 3);
+const STOP_WORDS_EN = new Set([
+  "are", "but", "for", "had", "has", "her", "his", "how", "its", "may", "new", "now", "old", "our", "out",
+  "see", "the", "was", "way", "who", "all", "and", "any", "can", "did", "get", "has", "him", "let", "put",
+  "say", "she", "too", "use", "that", "with", "have", "this", "will", "your", "from", "they", "been", "were",
+  "what", "when", "which", "their", "would", "there", "could", "other", "about", "into", "than", "them",
+  "these", "some", "make", "like", "just", "more", "also", "very", "only", "after", "before", "being",
+  "both", "each", "over", "such", "then", "where", "while", "during", "until", "again", "because",
+]);
+
+const STOP_WORDS_PL = new Set([
+  "nie", "że", "to", "jest", "się", "jak", "dla", "ale", "czy", "gdy", "już", "też", "tylko", "jeszcze",
+  "który", "która", "którzy", "których", "czym", "gdzie", "kiedy", "więc", "albo", "jednak", "aby", "żeby",
+  "tak", "taki", "taka", "takie", "jakie", "była", "było", "będzie", "mają", "miał", "można", "trzeba", "powinien",
+  "może", "być", "będą", "byli", "były", "jego", "jej", "ich", "nim", "nią", "nim", "nich", "temu", "tego",
+  "tej", "tym", "sam", "sama", "samo", "sami", "same", "także", "zawsze", "często", "nigdy", "wtedy",
+  "dlaczego", "ponieważ", "chociaż", "mimo", "przez", "przed", "poza", "bez", "nad", "pod", "przy", "około",
+]);
+
+const MIN_TOKEN_LENGTH = 3;
+
+/** Końcówki polskie do odcięcia (od najdłuższych), dla stemmera zapytania (Faza 2a). Bez "ię"/"ią" (dają np. projekcię→projekc). */
+const PL_SUFFIXES = [
+  "ami", "ach", "ów", "em", "om", "ie", "ia", "iu",
+  "u", "y",
+]
+  .sort((a, b) => b.length - a.length);
+
+/**
+ * Heurystyczny stemmer PL: odcina typowe końcówki fleksyjne.
+ * Używany tylko po stronie zapytania (Faza 2a); dla "projekt"/"projekcie"/"projektu" stem jest podciągiem, więc includes() w chunkach zadziała.
+ */
+function stemPl(word: string): string {
+  if (word.length <= MIN_TOKEN_LENGTH) return word;
+  let w = word;
+  for (const suf of PL_SUFFIXES) {
+    if (suf.length >= w.length) continue;
+    if (w.endsWith(suf) && w.length - suf.length >= MIN_TOKEN_LENGTH) {
+      w = w.slice(0, -suf.length);
+      break;
+    }
+  }
+  return w;
+}
+
+/**
+ * Ekstrakcja słów kluczowych z zapytania użytkownika.
+ * Tokenizacja po białych znakach, normalizacja (lowercase, usunięcie interpunkcji z brzegów),
+ * próg długości >= 3, odfiltrowanie stop words PL/EN wg parametru lang.
+ * Dla lang === "pl" tokeny są stemowane (Faza 2a), żeby "projekt" dopasował "projekcie" w treści chunków.
+ */
+export function extractKeywords(message: string, lang?: string): string[] {
+  const stopWords = lang === "pl" ? STOP_WORDS_PL : STOP_WORDS_EN;
+  let tokens = message
+    .split(/\s+/)
+    .map((t) => t.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "").toLowerCase())
+    .filter((t) => t.length >= MIN_TOKEN_LENGTH && !stopWords.has(t));
+  if (lang === "pl") {
+    tokens = tokens.map((t) => stemPl(t));
+  }
+  return [...new Set(tokens)];
 }
 
 export async function query(
@@ -12,7 +69,7 @@ export async function query(
   params: { message: string; lang?: string }
 ): Promise<{ text: string; sources: string[] }> {
   const { message, lang = "en" } = params;
-  const keywords = extractKeywords(message);
+  const keywords = extractKeywords(message, lang);
   const relevantChunks = await firestoreDb.getChunksForSearch(userId, keywords, 5);
   const matchingResources = await resourceService.searchResources(userId, keywords);
 

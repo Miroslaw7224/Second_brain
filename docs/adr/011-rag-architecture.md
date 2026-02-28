@@ -70,6 +70,6 @@ Gdy wdrożymy similarity search na wektorach:
 
 ## Stan aplikacji (luty 2026)
 
-Pipeline RAG wdrożony w `services/ragService.ts` (wywoływany z Next.js Route Handlers). **Retrieval:** wyszukiwanie po słowach kluczowych w treści chunków, bez embeddingów. Chunking: paragrafy (split po podwójnej newline). Odpowiedź zawiera `text` i `sources` (źródła). Planowanie z kontekstem kalendarza w `planService.ask`. Decyzje o embeddingach (text-embedding-004) i cosine similarity / vector store pozostają aktualne przy ewentualnym wdrożeniu.
+Pipeline RAG wdrożony w `services/ragService.ts` (wywoływany z Next.js Route Handlers). **Retrieval:** wyszukiwanie po słowach kluczowych w treści chunków, bez embeddingów. Ekstrakcja słów kluczowych: tokenizacja po białych znakach, normalizacja (lowercase, usunięcie interpunkcji z brzegów), próg długości ≥ 3, stop words PL/EN wg parametru `lang`. **Faza 2a (stemming zapytania):** dla `lang === "pl"` tokeny są stemowane heurystycznie (odcięcie końcówek PL); stem tylko po stronie zapytania — bez zmian w Firestore. Chunking: paragrafy (split po podwójnej newline). Odpowiedź zawiera `text` i `sources` (źródła). Planowanie z kontekstem kalendarza w `planService.ask`. Decyzje o embeddingach (text-embedding-004) i cosine similarity / vector store pozostają aktualne przy ewentualnym wdrożeniu.
 
 **Zastąpione ADR-y:** treść ADR-005 (Gemini embedding) i ADR-007 (cosine similarity) wchłonięta do niniejszego ADR-011.

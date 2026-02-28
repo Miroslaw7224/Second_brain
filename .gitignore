@@ -9,6 +9,9 @@ coverage/
 !.env.example
 firebase-service-account.json
 
+# TypeScript
+tsconfig.tsbuildinfo
+
 # Local / IDE
 .cursor/
 # SQLite DB (local data; do not commit)

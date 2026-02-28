@@ -2,7 +2,7 @@
 
 ## Status
 
-Zaakceptowany
+Zaakceptowany, **wdrożony** (luty 2026)
 
 ## Kontekst
 
@@ -68,4 +68,11 @@ Notatki w trybie Wiedza korzystają z komponentu **NoteEditor** (`src/components
 
 ## Stan aplikacji (luty 2026)
 
-Decyzja zaakceptowana. Refaktor do `src/features/wiedza` i `src/features/planowanie` do wykonania. Obecnie całość UI obu trybów pozostaje w `App.tsx`; po wdrożeniu ADR-018 App.tsx ograniczy się do layoutu, auth i renderu `<WiedzaView />` / `<PlanowanieView />`. Edytor notatek (TipTap) jest wdrożony w `src/components/NoteEditor.tsx` i używany w widoku notatek w trybie Wiedza.
+Refaktor wdrożony.
+
+- **App.tsx** (~278 linii) — tylko layout: auth (loading, ekran logowania, handlery), stan `appMode`, `isSidebarOpen`, `lang`, `user`, `apiFetch`, `handleLogout` oraz warunkowy render `appMode === 'wiedza' ? <WiedzaView ... /> : <PlanowanieView ... />`.
+- **src/features/wiedza/** — `WiedzaView.tsx` (sidebar z zakładkami Chat/Notatki/Zasoby, lista dokumentów, upload; main: chat, notatki z NoteEditor, ResourceSection), `index.ts` (re-eksport).
+- **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar z zakładkami Kalendarz/Aktywność/Zadania/Tagi; main: CalendarView, ActivityLog, TasksSection, TagsSection, pasek Plan AI), `index.ts` (re-eksport).
+- **src/components/layout/** — `AppSidebar.tsx` (wspólna ramka sidebara: logo, lang, children, UserCard, ProPlanBar), `AppHeader.tsx` (przełącznik trybów, przycisk sidebara, search, „Brain Active”).
+
+Komponenty CalendarView, ActivityLog, TasksSection, TagsSection, ResourceSection, NoteEditor pozostają w `src/components` i są używane z modułów features. Backend i API bez zmian.
