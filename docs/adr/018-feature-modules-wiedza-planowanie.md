@@ -24,9 +24,13 @@ Dane współdzielone (user, apiFetch, lang, t, tagi) przekazujemy propsami lub k
 | Moduł | Lokalizacja | Zawartość |
 |-------|-------------|-----------|
 | Wiedza | `src/features/wiedza/` | `WiedzaView.tsx` — cały content trybu Wiedza (sidebar wiedzy, chat, notatki z edytorem TipTap w `NoteEditor`, zasoby, lista dokumentów). `components/` — np. ChatPanel, NotesList, NoteEditor, ResourceSection (przeniesiony), lista dokumentów jako komponent. Stan: activeTab, documents, notes, messages, input, selectedNote itd. w WiedzaView lub w kontekście/hooku `useWiedza`. |
-| Planowanie | `src/features/planowanie/` | `PlanowanieView.tsx` — content trybu Planowanie (sidebar z zakładkami, CalendarView / ActivityLog / TasksSection / TagsSection, pasek Plan AI). `components/` — opcjonalnie CalendarView, ActivityLog, TasksSection, TagsSection (albo pozostają w `src/components`, jeśli używane wyłącznie tutaj). Stan: planningTab, planAskInput, planAskResponse, planAskLoading w PlanowanieView lub hooku `usePlanowanie`. |
+| Planowanie | `src/features/planowanie/` | `PlanowanieView.tsx` — content trybu Planowanie (sidebar z zakładkami, CalendarView / ActivityLog / TasksSection / TagsSection, pasek Plan AI). `components/` — opcjonalnie CalendarView, ActivityLog, TasksSection, TagsSection (albo pozostają w `src/components`, jeśli używane wyłącznie tutaj). Stan: planningTab, planAskInput, **messages** (historia konwersacji Plan AI — patrz niżej), planAskLoading w PlanowanieView lub hooku `usePlanowanie`. |
 
 Backend bez zmian: Next.js Route Handlers w `app/api/` + services (ragService, planService itd.) zgodnie z ADR-014.
+
+**Pamięć konwersacji Plan AI (frontend-only)**
+
+Chat Plan AI (pasek pod kalendarzem/aktywnością) potrzebował kontekstu — bez niego każde wywołanie `/api/plan/ask` dostawało tylko bieżącą wiadomość i użytkownik tracił wątek (np. „dodaj to do kalendarza” bez odniesienia do wcześniejszej rozmowy). **Decyzja:** pamięć tylko w stanie React, bez zapisu do Firestore. W PlanowanieView tablica `messages` (pary user/assistant); przy wysłaniu wiadomości przekazujemy do API `history` (ostatnie 9 par, 18 elementów), po odpowiedzi dopisujemy wiadomość asystenta i przycinamy do 20 elementów (10 par). API odczytuje `history` z body i przekazuje do `planService.ask()`; serwis wplata `historyContext` (format „User: …” / „Assistant: …”) do promptu przed „User message: …”. Historia żyje do odświeżenia strony; limit 10 par ogranicza tokeny. Persystencja w Firestore odrzucona na MVP — użytkownik zwykle prowadzi jedno „posiedzenie planowania” na sesję.
 
 **Edytor notatek (TipTap)**
 
@@ -72,7 +76,7 @@ Refaktor wdrożony.
 
 - **App.tsx** (~278 linii) — tylko layout: auth (loading, ekran logowania, handlery), stan `appMode`, `isSidebarOpen`, `lang`, `user`, `apiFetch`, `handleLogout` oraz warunkowy render `appMode === 'wiedza' ? <WiedzaView ... /> : <PlanowanieView ... />`.
 - **src/features/wiedza/** — `WiedzaView.tsx` (sidebar z zakładkami Chat/Notatki/Zasoby, lista dokumentów, upload; main: chat, notatki z NoteEditor, ResourceSection), `index.ts` (re-eksport).
-- **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar z zakładkami Kalendarz/Aktywność/Zadania/Tagi; main: CalendarView, ActivityLog, TasksSection, TagsSection, pasek Plan AI), `index.ts` (re-eksport).
+- **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar z zakładkami Kalendarz/Aktywność/Zadania/Tagi; main: CalendarView, ActivityLog, TasksSection, TagsSection, pasek Plan AI z historią konwersacji w stanie — patrz wyżej „Pamięć konwersacji Plan AI”), `index.ts` (re-eksport).
 - **src/components/layout/** — `AppSidebar.tsx` (wspólna ramka sidebara: logo, lang, children, UserCard, ProPlanBar), `AppHeader.tsx` (przełącznik trybów, przycisk sidebara, search, „Brain Active”).
 
 Komponenty CalendarView, ActivityLog, TasksSection, TagsSection, ResourceSection, NoteEditor pozostają w `src/components` i są używane z modułów features. Backend i API bez zmian.

@@ -99,7 +99,7 @@ function ToolbarButton({
       title={title}
       className={twMerge(
         'p-2 rounded-lg transition-colors',
-        active ? 'bg-black text-white' : 'hover:bg-[#F3F4F6] text-[#374151]',
+        active ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--bg3)] text-[var(--text)]',
         disabled && 'opacity-50 cursor-not-allowed',
         className
       )}
@@ -134,7 +134,7 @@ export function NoteEditor({
     editorProps: {
       attributes: {
         class:
-          'prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[#374151] leading-relaxed',
+          'prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[var(--text)] leading-relaxed',
       },
       handleDOMEvents: {
         paste: (view, event) => {
@@ -167,18 +167,18 @@ export function NoteEditor({
 
   if (!editor) {
     return (
-      <div className={twMerge('min-h-[60vh] bg-white rounded-lg', className)}>
-        <div className="animate-pulse h-8 bg-[#F3F4F6] rounded mb-4 w-1/3" />
-        <div className="animate-pulse h-4 bg-[#F3F4F6] rounded mb-2" />
-        <div className="animate-pulse h-4 bg-[#F3F4F6] rounded mb-2 w-5/6" />
+      <div className={twMerge('min-h-[60vh] bg-[var(--surface)] rounded-lg', className)}>
+        <div className="animate-pulse h-8 bg-[var(--bg3)] rounded mb-4 w-1/3" />
+        <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2" />
+        <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2 w-5/6" />
       </div>
     );
   }
 
   return (
-    <div className={twMerge('border border-[#E5E7EB] rounded-xl overflow-hidden bg-white', className)}>
+    <div className={twMerge('border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface)]', className)}>
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[#E5E7EB] bg-[#F9FAFB]">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[var(--border)] bg-[var(--bg2)]">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive('bold')}
@@ -207,7 +207,7 @@ export function NoteEditor({
         >
           <Strikethrough className="w-4 h-4" />
         </ToolbarButton>
-        <span className="w-px h-6 bg-[#E5E7EB] mx-1" />
+        <span className="w-px h-6 bg-[var(--border)] mx-1" />
         {/* Text alignment */}
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
@@ -237,7 +237,7 @@ export function NoteEditor({
         >
           <AlignJustify className="w-4 h-4" />
         </ToolbarButton>
-        <span className="w-px h-6 bg-[#E5E7EB] mx-1" />
+        <span className="w-px h-6 bg-[var(--border)] mx-1" />
         {/* Font size */}
         <select
           title="Rozmiar czcionki"
@@ -249,7 +249,7 @@ export function NoteEditor({
             if (v) editor.chain().focus().setFontSize(v).run();
             else editor.chain().focus().unsetFontSize().run();
           }}
-          className="h-8 px-2 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#374151] min-w-[4rem]"
+          className="h-8 px-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-sm text-[var(--text)] min-w-[4rem]"
         >
           <option value="">Rozmiar</option>
           {FONT_SIZES.map((size) => (
@@ -267,7 +267,7 @@ export function NoteEditor({
             if (v) editor.chain().focus().setFontFamily(v).run();
             else editor.chain().focus().unsetFontFamily().run();
           }}
-          className="h-8 px-2 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#374151] min-w-[5rem]"
+          className="h-8 px-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-sm text-[var(--text)] min-w-[5rem]"
         >
           {FONT_FAMILIES.map((f) => (
             <option key={f.value || 'default'} value={f.value}>
@@ -275,10 +275,10 @@ export function NoteEditor({
             </option>
           ))}
         </select>
-        <span className="w-px h-6 bg-[#E5E7EB] mx-1" />
+        <span className="w-px h-6 bg-[var(--border)] mx-1" />
         {/* Color */}
         <div className="flex items-center gap-1" title="Kolor">
-          <Palette className="w-4 h-4 text-[#6B7280]" />
+          <Palette className="w-4 h-4 text-[var(--text2)]" />
           <select
             value={(editor.getAttributes('textStyle').color as string) ?? ''}
             onChange={(e) => {
@@ -286,7 +286,7 @@ export function NoteEditor({
               if (v) editor.chain().focus().setColor(v).run();
               else editor.chain().focus().unsetColor().run();
             }}
-            className="h-8 w-20 rounded-lg border border-[#E5E7EB] bg-white text-sm text-[#374151] cursor-pointer"
+            className="h-8 w-20 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-sm text-[var(--text)] cursor-pointer"
           >
             <option value="">Kolor</option>
             {COLORS.map((color) => (

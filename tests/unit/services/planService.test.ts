@@ -4,10 +4,14 @@ import { ask } from "../../../services/planService.js";
 const mockGetCalendarEvents = vi.hoisted(() => vi.fn());
 const mockGenerateContent = vi.hoisted(() => vi.fn());
 const mockCreateCalendarEvent = vi.hoisted(() => vi.fn());
+const mockGetUserTags = vi.hoisted(() => vi.fn());
 
 vi.mock("../../../lib/firestore-db.js", () => ({
   getCalendarEvents: (...args: unknown[]) => mockGetCalendarEvents(...args),
   createCalendarEvent: (...args: unknown[]) => mockCreateCalendarEvent(...args),
+}));
+vi.mock("../../../services/tagService.js", () => ({
+  getUserTags: (...args: unknown[]) => mockGetUserTags(...args),
 }));
 vi.mock("../../../lib/gemini.js", () => ({
   generateContent: (...args: unknown[]) => mockGenerateContent(...args),
@@ -19,6 +23,7 @@ describe("planService", () => {
       mockGetCalendarEvents.mockReset();
       mockGenerateContent.mockReset();
       mockCreateCalendarEvent.mockReset();
+      mockGetUserTags.mockResolvedValue([]);
     });
 
     it("given events and Gemini returns plain text, when ask is called, then returns text (happy path)", async () => {
@@ -50,6 +55,7 @@ describe("planService", () => {
 
     it("given Gemini returns add_events JSON, when ask is called, then creates events and returns created count (en)", async () => {
       mockGetCalendarEvents.mockResolvedValue([]);
+      mockGetUserTags.mockResolvedValue([{ id: "t1", tag: "testy", title: "Testy", color: "#3B82F6" }]);
       const addEventsJson =
         '{"action":"add_events","events":[{"title":"Auth tests","tags":["testy"],"dates":["2025-03-01"],"duration_minutes":60,"start_minutes":540}]}';
       mockGenerateContent.mockResolvedValue(addEventsJson);
@@ -71,6 +77,7 @@ describe("planService", () => {
 
     it("given Gemini returns add_events JSON and lang is pl, when ask is called, then returns Polish reply text", async () => {
       mockGetCalendarEvents.mockResolvedValue([]);
+      mockGetUserTags.mockResolvedValue([{ id: "t1", tag: "tag1", title: "Tag 1", color: "#3B82F6" }]);
       const addEventsJson =
         '{"action":"add_events","events":[{"title":"Testy","tags":["tag1"],"dates":["2025-03-02"],"duration_minutes":60,"start_minutes":540}]}';
       mockGenerateContent.mockResolvedValue(addEventsJson);
@@ -87,6 +94,27 @@ describe("planService", () => {
         tags: ["tag1"],
         color: "#3B82F6",
       });
+    });
+
+    it("given history is passed, when ask is called, then generateContent receives contents with conversation history and current message", async () => {
+      mockGetCalendarEvents.mockResolvedValue([]);
+      mockGenerateContent.mockResolvedValue("Reply to second.");
+
+      await ask("user-1", {
+        message: "second",
+        history: [
+          { role: "user", content: "first" },
+          { role: "assistant", content: "ok" },
+        ],
+        lang: "en",
+      });
+
+      expect(mockGenerateContent).toHaveBeenCalledTimes(1);
+      const contents = mockGenerateContent.mock.calls[0][0].contents;
+      expect(contents).toContain("Conversation history:");
+      expect(contents).toContain("User: first");
+      expect(contents).toContain("Assistant: ok");
+      expect(contents).toContain("User message: second");
     });
   });
 });

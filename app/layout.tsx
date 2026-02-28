@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { ThemeScript } from "@/src/components/theme/ThemeScript";
+import { ThemeProvider } from "@/src/components/theme/ThemeProvider";
 
 export const metadata: Metadata = {
   title: "Second Brain · Freelancer Edition",
@@ -12,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pl">
+    <html lang="pl" suppressHydrationWarning>
       <head>
         <meta
           key="coop"
@@ -20,7 +22,10 @@ export default function RootLayout({
           content="same-origin-allow-popups"
         />
       </head>
-      <body>{children}</body>
+      <body>
+        <ThemeScript />
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }

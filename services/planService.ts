@@ -22,9 +22,13 @@ Tasks:
 
 export async function ask(
   userId: string,
-  params: { message: string; lang?: string }
+  params: {
+    message: string;
+    lang?: string;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+  }
 ): Promise<{ text: string; created?: number; unknownTags?: string[] }> {
-  const { message, lang = "en" } = params;
+  const { message, lang = "en", history = [] } = params;
   const now = new Date();
   const past = new Date(now);
   past.setDate(past.getDate() - 60);
@@ -51,10 +55,20 @@ export async function ask(
       ? `\nUser's existing tags (use exact spelling from this list): ${existingTagList.join(", ")}`
       : "";
 
+  const historyContext = history
+    .slice(-18)
+    .map((m) => `${m.role === "user" ? "User" : "Assistant"}: ${m.content}`)
+    .join("\n");
+
+  const contents =
+    `User calendar events:\n${eventsContext}${tagsContext}` +
+    (historyContext ? `\n\nConversation history:\n${historyContext}\n\n` : "\n\n") +
+    `User message: ${message}`;
+
   const systemInstruction = lang === "pl" ? SYSTEM_INSTRUCTION_PL : SYSTEM_INSTRUCTION_EN;
   const text = await generateContent({
     model: RAG_PLAN_MODEL,
-    contents: `User calendar events:\n${eventsContext}${tagsContext}\n\nUser message: ${message}`,
+    contents,
     systemInstruction,
   });
 

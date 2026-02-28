@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -6,8 +6,85 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
+/* ── Theme tokens (variant4) ── */
+:root {
+  --transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+[data-theme="dark"] {
+  --bg:        #0d0d0f;
+  --bg2:       #131316;
+  --bg3:       #1a1a1f;
+  --surface:   #1e1e24;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #f0eee8;
+  --text2:     rgba(240,238,232,0.55);
+  --text3:     rgba(240,238,232,0.28);
+  --accent:    #7c6dff;
+  --accent2:   #a395ff;
+  --accent-bg: rgba(124,109,255,0.1);
+  --accent-border: rgba(124,109,255,0.25);
+  --glow:      rgba(124,109,255,0.15);
+  --green:     #34d399;
+  --toggle-bg: rgba(255,255,255,0.06);
+  --toggle-icon-color: rgba(240,238,232,0.6);
+  --shadow:    0 40px 100px rgba(0,0,0,0.5);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.3);
+  --noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+}
+
+[data-theme="light"] {
+  --bg:        #fafaf8;
+  --bg2:       #f4f3f0;
+  --bg3:       #eeecea;
+  --surface:   #ffffff;
+  --border:    rgba(0,0,0,0.07);
+  --border2:   rgba(0,0,0,0.12);
+  --text:      #111110;
+  --text2:     rgba(17,17,16,0.55);
+  --text3:     rgba(17,17,16,0.3);
+  --accent:    #5b4fff;
+  --accent2:   #4338ca;
+  --accent-bg: rgba(91,79,255,0.06);
+  --accent-border: rgba(91,79,255,0.2);
+  --glow:      rgba(91,79,255,0.08);
+  --green:     #059669;
+  --toggle-bg: rgba(0,0,0,0.05);
+  --toggle-icon-color: rgba(17,17,16,0.5);
+  --shadow:    0 40px 100px rgba(0,0,0,0.1);
+  --shadow-sm: 0 4px 16px rgba(0,0,0,0.06);
+  --noise: none;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 300;
+  overflow-x: hidden;
+  transition: background var(--transition), color var(--transition);
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--noise);
+  opacity: 1;
+  transition: opacity var(--transition);
+}
+
 .markdown-body {
   @apply text-sm leading-relaxed;
+  color: var(--text);
 }
 
 .markdown-body p {
@@ -24,5 +101,27 @@
 }
 
 .markdown-body code {
-  @apply bg-[#F3F4F6] px-1 rounded text-xs font-mono;
+  background: var(--bg3);
+  @apply px-1 rounded text-xs font-mono;
+}
+
+/* Wykres „Moja praca” – kontrast osi i siatki */
+.activity-chart .recharts-cartesian-grid line {
+  stroke: var(--border);
+}
+.activity-chart .recharts-text {
+  fill: var(--text2);
+}
+.activity-chart .recharts-xAxis .recharts-text,
+.activity-chart .recharts-yAxis .recharts-text {
+  fill: var(--text2);
+}
+.activity-chart .recharts-line-curve,
+.activity-chart .recharts-axis-line {
+  stroke: var(--border);
+}
+.activity-chart .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text);
 }

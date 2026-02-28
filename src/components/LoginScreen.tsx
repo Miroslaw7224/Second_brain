@@ -91,68 +91,68 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl shadow-black/5 border border-[#E5E7EB] overflow-hidden">
+    <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-[var(--surface)] rounded-3xl shadow-[var(--shadow)] border border-[var(--border)] overflow-hidden">
         <div className="p-8">
           <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 bg-black rounded-xl flex items-center justify-center">
+            <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center">
               <Brain className="text-white w-6 h-6" />
             </div>
             <div className="flex-1">
-              <h1 className="font-bold text-lg tracking-tight">Second Brain</h1>
-              <p className="text-xs text-[#6B7280] font-medium uppercase tracking-wider">
+              <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">Second Brain</h1>
+              <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">
                 Freelancer Edition
               </p>
             </div>
             <button
               type="button"
               onClick={() => setLang(lang === "en" ? "pl" : "en")}
-              className="px-2 py-1 bg-[#F3F4F6] rounded text-[10px] font-bold hover:bg-[#E5E7EB] transition-colors"
+              className="px-2 py-1 bg-[var(--toggle-bg)] rounded text-[10px] font-bold hover:bg-[var(--bg3)] transition-colors text-[var(--text2)]"
             >
               {lang === "en" ? "PL" : "EN"}
             </button>
           </div>
 
-          <h2 className="text-2xl font-bold mb-6">
+          <h2 className="text-2xl font-bold mb-6 text-[var(--text)]">
             {authMode === "login" ? t.login : t.register}
           </h2>
 
           <form onSubmit={handleAuth} className="space-y-4">
             {authMode === "register" && (
               <div>
-                <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">
+                <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
                   {t.name}
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className="w-full px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black transition-all"
+                  className="w-full px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--accent)] transition-all"
                   required
                 />
               </div>
             )}
             <div>
-              <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">
+              <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
                 {t.email}
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black transition-all"
+                className="w-full px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--accent)] transition-all"
                 required
               />
             </div>
             <div>
-              <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">
+              <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
                 {t.password}
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black transition-all"
+                className="w-full px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-sm text-[var(--text)] focus:ring-2 focus:ring-[var(--accent)] transition-all"
                 required
               />
             </div>
@@ -161,7 +161,7 @@ export default function LoginScreen() {
             )}
             <button
               type="submit"
-              className="w-full py-3 bg-black text-white rounded-xl font-bold hover:scale-[1.02] transition-all"
+              className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all"
             >
               {authMode === "login" ? t.login : t.register}
             </button>
@@ -169,17 +169,17 @@ export default function LoginScreen() {
 
           <div className="relative my-8">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#E5E7EB]" />
+              <div className="w-full border-t border-[var(--border)]" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-[#9CA3AF] font-bold">Or</span>
+              <span className="bg-[var(--surface)] px-2 text-[var(--text3)] font-bold">Or</span>
             </div>
           </div>
 
           <button
             type="button"
             onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl text-sm font-semibold text-[#4B5563] hover:bg-[#F9FAFB] transition-all"
+            className="w-full flex items-center justify-center gap-3 p-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text2)] hover:bg-[var(--bg2)] transition-all"
           >
             <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
@@ -205,19 +205,19 @@ export default function LoginScreen() {
           <button
             type="button"
             onClick={handleGuestLogin}
-            className="w-full mt-3 py-3 bg-[#F3F4F6] text-[#4B5563] rounded-xl text-sm font-bold hover:bg-[#E5E7EB] transition-all"
+            className="w-full mt-3 py-3 bg-[var(--toggle-bg)] text-[var(--text2)] rounded-xl text-sm font-bold hover:bg-[var(--bg3)] transition-all"
           >
             {t.continueGuest}
           </button>
 
-          <p className="text-center mt-8 text-sm text-[#6B7280]">
+          <p className="text-center mt-8 text-sm text-[var(--text2)]">
             {authMode === "login" ? t.noAccount : t.hasAccount}{" "}
             <button
               type="button"
               onClick={() =>
                 setAuthMode(authMode === "login" ? "register" : "login")
               }
-              className="font-bold text-black hover:underline"
+              className="font-bold text-[var(--text)] hover:underline"
             >
               {authMode === "login" ? t.register : t.login}
             </button>

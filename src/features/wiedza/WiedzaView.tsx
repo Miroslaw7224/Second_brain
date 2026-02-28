@@ -225,8 +225,8 @@ export default function WiedzaView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold',
                 activeTab === 'chat'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]'
               )}
             >
               <MessageSquare className="w-5 h-5 flex-shrink-0" />
@@ -238,8 +238,8 @@ export default function WiedzaView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold',
                 activeTab === 'notes'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]'
               )}
             >
               <FileText className="w-5 h-5 flex-shrink-0" />
@@ -251,8 +251,8 @@ export default function WiedzaView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold',
                 activeTab === 'resources'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6] text-[#374151]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]'
               )}
             >
               <Link className="w-5 h-5 flex-shrink-0" />
@@ -260,11 +260,11 @@ export default function WiedzaView({
             </button>
           </div>
           <div className="flex items-center justify-between mb-4 px-2">
-            <h2 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest">{t.knowledge}</h2>
+            <h2 className="text-xs font-semibold text-[var(--text3)] uppercase tracking-widest">{t.knowledge}</h2>
             <button
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-              className="p-1.5 hover:bg-[#F3F4F6] rounded-lg transition-colors text-[#4B5563]"
+              className="p-1.5 hover:bg-[var(--bg3)] rounded-lg transition-colors text-[var(--text)]"
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             </button>
@@ -278,23 +278,23 @@ export default function WiedzaView({
           </div>
           <div className="space-y-1">
             {documents.length === 0 ? (
-              <div className="px-4 py-8 text-center border-2 border-dashed border-[#F3F4F6] rounded-2xl">
-                <FileText className="w-8 h-8 text-[#D1D5DB] mx-auto mb-2" />
-                <p className="text-sm text-[#9CA3AF]">{t.noDocs}</p>
+              <div className="px-4 py-8 text-center border-2 border-dashed border-[var(--border)] rounded-2xl">
+                <FileText className="w-8 h-8 text-[var(--text3)] mx-auto mb-2" />
+                <p className="text-sm text-[var(--text3)]">{t.noDocs}</p>
               </div>
             ) : (
               documents.map((doc) => (
                 <div
                   key={doc.id}
-                  className="group flex items-center justify-between p-3 hover:bg-[#F9FAFB] rounded-xl transition-all cursor-pointer border border-transparent hover:border-[#F3F4F6]"
+                  className="group flex items-center justify-between p-3 hover:bg-[var(--bg2)] rounded-xl transition-all cursor-pointer border border-transparent hover:border-[var(--bg3)]"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 bg-[#F3F4F6] rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-[#4B5563]" />
+                    <div className="w-8 h-8 bg-[var(--bg3)] rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-4 h-4 text-[var(--text)]" />
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-medium truncate">{doc.name}</p>
-                      <p className="text-[10px] text-[#9CA3AF] uppercase font-bold">
+                      <p className="text-[10px] text-[var(--text3)] uppercase font-bold">
                         {new Date(doc.created_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -331,20 +331,20 @@ export default function WiedzaView({
 
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
           {activeTab === 'chat' ? (
-            <div className="flex-1 overflow-y-auto p-6 space-y-8">
+            <div className="flex-1 overflow-y-auto p-6 space-y-8 bg-[var(--bg)]">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center max-w-2xl mx-auto text-center">
-                  <div className="w-20 h-20 bg-black rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-black/10">
+                  <div className="w-20 h-20 bg-[var(--accent)] rounded-[2.5rem] flex items-center justify-center mb-8 shadow-2xl shadow-black/10">
                     <Brain className="text-white w-10 h-10" />
                   </div>
                   <h2 className="text-4xl font-bold tracking-tight mb-4">{t.welcomeTitle}</h2>
-                  <p className="text-[#6B7280] text-lg mb-12">{t.welcomeSubtitle}</p>
+                  <p className="text-[var(--text2)] text-lg mb-12">{t.welcomeSubtitle}</p>
                   <div className="grid grid-cols-2 gap-4 w-full">
                     {t.prompts.map((prompt, i) => (
                       <button
                         key={i}
                         onClick={() => setInput(prompt)}
-                        className="p-4 text-left bg-white border border-[#E5E7EB] rounded-2xl hover:border-black hover:shadow-sm transition-all text-sm font-medium"
+                        className="p-4 text-left bg-[var(--surface)] border border-[var(--border)] rounded-2xl hover:border-[var(--accent)] hover:shadow-sm transition-all text-sm font-medium"
                       >
                         {prompt}
                       </button>
@@ -363,7 +363,7 @@ export default function WiedzaView({
                       <div
                         className={cn(
                           'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
-                          msg.role === 'user' ? 'bg-black' : 'bg-[#F3F4F6]'
+                          msg.role === 'user' ? 'bg-[var(--accent)]' : 'bg-[var(--bg3)]'
                         )}
                       >
                         {msg.role === 'user' ? (
@@ -382,8 +382,8 @@ export default function WiedzaView({
                           className={cn(
                             'p-4 rounded-2xl text-sm leading-relaxed',
                             msg.role === 'user'
-                              ? 'bg-black text-white'
-                              : 'bg-white border border-[#E5E7EB] text-[#1A1A1A]'
+                              ? 'bg-[var(--accent)] text-white'
+                              : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]'
                           )}
                         >
                           <div className="markdown-body">
@@ -395,7 +395,7 @@ export default function WiedzaView({
                             {msg.sources.map((source, si) => (
                               <div
                                 key={si}
-                                className="flex items-center gap-1.5 px-2 py-1 bg-[#F3F4F6] rounded-md text-[10px] font-bold text-[#6B7280] uppercase tracking-wider"
+                                className="flex items-center gap-1.5 px-2 py-1 bg-[var(--bg3)] rounded-md text-[10px] font-bold text-[var(--text2)] uppercase tracking-wider"
                               >
                                 <FileText className="w-3 h-3" />
                                 {source}
@@ -408,14 +408,14 @@ export default function WiedzaView({
                   ))}
                   {isLoading && (
                     <div className="flex gap-4">
-                      <div className="w-8 h-8 rounded-lg bg-[#F3F4F6] flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--bg3)] flex items-center justify-center">
                         <Loader2 className="w-4 h-4 text-black animate-spin" />
                       </div>
-                      <div className="bg-white border border-[#E5E7EB] p-4 rounded-2xl">
+                      <div className="bg-[var(--surface)] border border-[var(--border)] p-4 rounded-2xl">
                         <div className="flex gap-1">
-                          <div className="w-1.5 h-1.5 bg-[#D1D5DB] rounded-full animate-bounce" />
-                          <div className="w-1.5 h-1.5 bg-[#D1D5DB] rounded-full animate-bounce [animation-delay:0.2s]" />
-                          <div className="w-1.5 h-1.5 bg-[#D1D5DB] rounded-full animate-bounce [animation-delay:0.4s]" />
+                          <div className="w-1.5 h-1.5 bg-[var(--text3)] rounded-full animate-bounce" />
+                          <div className="w-1.5 h-1.5 bg-[var(--text3)] rounded-full animate-bounce [animation-delay:0.2s]" />
+                          <div className="w-1.5 h-1.5 bg-[var(--text3)] rounded-full animate-bounce [animation-delay:0.4s]" />
                         </div>
                       </div>
                     </div>
@@ -425,18 +425,18 @@ export default function WiedzaView({
               )}
             </div>
           ) : activeTab === 'resources' ? (
-            <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
+            <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
               <ResourceSection apiFetch={apiFetch} t={t} />
             </div>
           ) : (
             <div className="flex-1 flex overflow-hidden">
-              <div className="w-64 border-r border-[#E5E7EB] bg-white overflow-y-auto p-4 space-y-2">
+              <div className="w-64 border-r border-[var(--border)] bg-[var(--surface)] overflow-y-auto p-4 space-y-2">
                 <button
                   onClick={() => {
                     setSelectedNote({ id: '', title: '', content: '', created_at: '' });
                     setNoteEditMode(true);
                   }}
-                  className="w-full flex items-center gap-2 p-3 bg-black text-white rounded-xl text-sm font-semibold hover:scale-[1.02] transition-all mb-4"
+                  className="w-full flex items-center gap-2 p-3 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:scale-[1.02] transition-all mb-4"
                 >
                   <Plus className="w-4 h-4" />
                   {t.newNote}
@@ -451,15 +451,15 @@ export default function WiedzaView({
                     className={cn(
                       'w-full text-left p-3 rounded-xl transition-all border',
                       selectedNote?.id === note.id
-                        ? 'bg-black text-white border-black'
-                        : 'bg-white text-black border-transparent hover:bg-[#F3F4F6]'
+                        ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                        : 'bg-[var(--surface)] text-[var(--text)] border-transparent hover:bg-[var(--bg3)]'
                     )}
                   >
                     <p className="text-sm font-bold truncate">{note.title || 'Untitled'}</p>
                     <p
                       className={cn(
                         'text-[10px] uppercase font-bold',
-                        selectedNote?.id === note.id ? 'text-white/60' : 'text-[#9CA3AF]'
+                        selectedNote?.id === note.id ? 'text-white/60' : 'text-[var(--text3)]'
                       )}
                     >
                       {new Date(note.created_at).toLocaleDateString()}
@@ -467,7 +467,7 @@ export default function WiedzaView({
                   </button>
                 ))}
               </div>
-              <div className="flex-1 bg-white p-8 overflow-y-auto min-w-0">
+              <div className="flex-1 bg-[var(--surface)] p-8 overflow-y-auto min-w-0">
                 {selectedNote ? (
                   <div className="w-full max-w-full space-y-6">
                     {noteEditMode || selectedNote.id === '' ? (
@@ -485,7 +485,7 @@ export default function WiedzaView({
                               <>
                                 <button
                                   onClick={() => setNoteEditMode(false)}
-                                  className="px-4 py-2 border border-[#E5E7EB] rounded-xl text-sm font-semibold text-[#374151] hover:bg-[#F9FAFB] transition-all"
+                                  className="px-4 py-2 border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text)] hover:bg-[var(--bg2)] transition-all"
                                 >
                                   {t.noteCancelEdit}
                                 </button>
@@ -499,7 +499,7 @@ export default function WiedzaView({
                             )}
                             <button
                               onClick={handleSaveNote}
-                              className="px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
+                              className="px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
                             >
                               {t.saveNote}
                             </button>
@@ -515,13 +515,13 @@ export default function WiedzaView({
                     ) : (
                       <>
                         <div className="flex items-center justify-between gap-4">
-                          <h1 className="text-3xl font-bold text-[#111827] flex-1 min-w-0">
+                          <h1 className="text-3xl font-bold text-[var(--text)] flex-1 min-w-0">
                             {selectedNote.title || t.noteTitlePlaceholder}
                           </h1>
                           <div className="flex items-center gap-2 flex-shrink-0">
                             <button
                               onClick={() => setNoteEditMode(true)}
-                              className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
+                              className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all"
                             >
                               <Pencil className="w-4 h-4" />
                               {t.noteEdit}
@@ -536,13 +536,13 @@ export default function WiedzaView({
                           </div>
                         </div>
                         <div
-                          className="prose prose-lg max-w-none min-h-[20vh] text-[#374151] leading-relaxed prose-p:my-2 prose-headings:font-bold prose-headings:text-[#111827]"
+                          className="prose prose-lg max-w-none min-h-[20vh] text-[var(--text)] leading-relaxed prose-p:my-2 prose-headings:font-bold prose-headings:text-[var(--text)]"
                           dangerouslySetInnerHTML={{
                             __html: selectedNote.content
                               ? selectedNote.content.trim().startsWith('<')
                                 ? selectedNote.content
                                 : `<p>${selectedNote.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`
-                              : '<p class="text-[#9CA3AF]">' + t.noteContentPlaceholder + '</p>',
+                              : '<p class="text-[var(--text3)]">' + t.noteContentPlaceholder + '</p>',
                           }}
                         />
                       </>
@@ -550,10 +550,10 @@ export default function WiedzaView({
                   </div>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-center">
-                    <div className="w-16 h-16 bg-[#F3F4F6] rounded-2xl flex items-center justify-center mb-4">
-                      <Plus className="w-8 h-8 text-[#9CA3AF]" />
+                    <div className="w-16 h-16 bg-[var(--bg3)] rounded-2xl flex items-center justify-center mb-4">
+                      <Plus className="w-8 h-8 text-[var(--text3)]" />
                     </div>
-                    <p className="text-[#9CA3AF] font-medium">{t.newNote}</p>
+                    <p className="text-[var(--text3)] font-medium">{t.newNote}</p>
                   </div>
                 )}
               </div>
@@ -562,9 +562,9 @@ export default function WiedzaView({
         </div>
 
         {activeTab === 'chat' && (
-          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F8F9FA] via-[#F8F9FA] to-transparent">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[var(--bg)] via-[var(--bg)] to-transparent">
             <div className="max-w-3xl mx-auto relative">
-              <div className="relative flex items-end gap-2 bg-white border border-[#E5E7EB] rounded-[2rem] p-2 shadow-lg shadow-black/5 focus-within:border-black transition-all">
+              <div className="relative flex items-end gap-2 bg-[var(--surface)] border border-[var(--border)] rounded-[2rem] p-2 shadow-lg shadow-black/5 focus-within:border-[var(--accent)] transition-all">
                 <textarea
                   rows={1}
                   value={input}
@@ -583,13 +583,13 @@ export default function WiedzaView({
                   disabled={!input.trim() || isLoading}
                   className={cn(
                     'w-10 h-10 rounded-full flex items-center justify-center transition-all',
-                    input.trim() && !isLoading ? 'bg-black text-white hover:scale-105' : 'bg-[#F3F4F6] text-[#9CA3AF]'
+                    input.trim() && !isLoading ? 'bg-[var(--accent)] text-white hover:scale-105' : 'bg-[var(--bg3)] text-[var(--text3)]'
                   )}
                 >
                   <Send className="w-5 h-5" />
                 </button>
               </div>
-              <p className="text-[10px] text-center mt-3 text-[#9CA3AF] font-medium uppercase tracking-widest">
+              <p className="text-[10px] text-center mt-3 text-[var(--text3)] font-medium uppercase tracking-widest">
                 {t.disclaimer}
               </p>
             </div>

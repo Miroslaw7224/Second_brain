@@ -469,7 +469,13 @@ export async function updateCalendarEvent(
     throw new Error("duration_minutes must be a multiple of 15");
   }
   const ref = calendarEventsCol(userId).doc(eventId);
-  const update: Record<string, unknown> = { ...data };
+  const update: Record<string, unknown> = {};
+  if (data.date !== undefined) update.date = data.date;
+  if (data.start_minutes !== undefined) update.start_minutes = data.start_minutes;
+  if (data.duration_minutes !== undefined) update.duration_minutes = data.duration_minutes;
+  if (data.title !== undefined) update.title = data.title;
+  if (data.tags !== undefined) update.tags = data.tags;
+  if (data.color !== undefined) update.color = data.color;
   if (Object.keys(update).length > 0) {
     await ref.update(update);
   }

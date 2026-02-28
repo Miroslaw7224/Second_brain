@@ -134,8 +134,8 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
-      <div className="p-6 border-b border-[#E5E7EB] bg-white">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)]">
         <div className="max-w-2xl flex gap-2">
           <input
             type="text"
@@ -143,11 +143,11 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTask()}
             placeholder={labels.addPlaceholder}
-            className="flex-1 px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black"
+            className="flex-1 px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
           />
           <button
             onClick={addTask}
-            className="flex items-center gap-2 px-4 py-3 bg-black text-white rounded-xl text-base font-semibold"
+            className="flex items-center gap-2 px-4 py-3 bg-[var(--accent)] text-white rounded-xl text-base font-semibold"
           >
             <Plus className="w-4 h-4" />
             {(t.tasksAdd as string) ?? "Add"}
@@ -156,13 +156,13 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
       </div>
       <div className="flex-1 overflow-auto p-6 flex flex-col min-h-0">
         {loading ? (
-          <div className="text-[#6B7280] text-base">Loading…</div>
+          <div className="text-[var(--text2)] text-base">Loading…</div>
         ) : tasks.length === 0 ? (
-          <p className="text-[#9CA3AF] font-medium text-base">{labels.noTasks}</p>
+          <p className="text-[var(--text3)] font-medium text-base">{labels.noTasks}</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-w-0 w-full content-start">
             <div className="flex flex-col min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-[#6B7280] uppercase tracking-wider mb-3">{labels.todo}</h3>
+              <h3 className="text-sm font-bold text-[var(--text2)] uppercase tracking-wider mb-3">{labels.todo}</h3>
               <ul className="space-y-0.5 flex-1">
                 {tasks
                   .filter((task) => task.status !== "done")
@@ -173,35 +173,35 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                     return (
                     <li
                       key={task.id}
-                      className="flex items-center gap-1.5 py-1 px-2 bg-white border border-[#E5E7EB] rounded-lg"
+                      className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg"
                     >
                       <div className="flex flex-col flex-shrink-0 gap-0.5">
                         <button
                           type="button"
                           onClick={() => moveTask(task.id, "up")}
                           disabled={!canMoveUp}
-                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
                           title={labels.moveUp}
                         >
-                          <ChevronUp className="w-3.5 h-3.5 text-[#6B7280]" />
+                          <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
                         </button>
                         <button
                           type="button"
                           onClick={() => moveTask(task.id, "down")}
                           disabled={!canMoveDown}
-                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
                           title={labels.moveDown}
                         >
-                          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280]" />
+                          <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
                         </button>
                       </div>
                       <button
                         type="button"
                         onClick={() => updateStatus(task.id, "done")}
-                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
+                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
                         title={labels.done}
                       >
-                        <Circle className="w-4 h-4 text-[#9CA3AF]" />
+                        <Circle className="w-4 h-4 text-[var(--text3)]" />
                       </button>
                       {editingId === task.id ? (
                         <input
@@ -213,14 +213,14 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                             if (e.key === "Enter") updateTitle(task.id);
                             if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
                           }}
-                          className="flex-1 px-2 py-0.5 border border-[#E5E7EB] rounded text-sm min-w-0"
+                          className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
                           autoFocus
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-sm font-medium min-w-0 truncate"
+                          className="flex-1 text-left text-sm font-medium min-w-0 truncate text-[var(--text)]"
                         >
                           {task.title}
                         </button>
@@ -228,7 +228,7 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                       <button
                         type="button"
                         onClick={() => deleteTask(task.id)}
-                        className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
+                        className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -248,32 +248,32 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                     return (
                     <li
                       key={task.id}
-                      className="flex items-center gap-1.5 py-1 px-2 bg-white border border-[#E5E7EB] rounded-lg opacity-90"
+                      className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg opacity-90"
                     >
                       <div className="flex flex-col flex-shrink-0 gap-0.5">
                         <button
                           type="button"
                           onClick={() => moveTask(task.id, "up")}
                           disabled={!canMoveUp}
-                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
                           title={labels.moveUp}
                         >
-                          <ChevronUp className="w-3.5 h-3.5 text-[#6B7280]" />
+                          <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
                         </button>
                         <button
                           type="button"
                           onClick={() => moveTask(task.id, "down")}
                           disabled={!canMoveDown}
-                          className="p-0.5 rounded hover:bg-[#F3F4F6] disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
                           title={labels.moveDown}
                         >
-                          <ChevronDown className="w-3.5 h-3.5 text-[#6B7280]" />
+                          <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
                         </button>
                       </div>
                       <button
                         type="button"
                         onClick={() => updateStatus(task.id, "todo")}
-                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[#F3F4F6]"
+                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
                         title={labels.todo}
                       >
                         <Check className="w-4 h-4 text-emerald-500" />
@@ -288,14 +288,14 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                             if (e.key === "Enter") updateTitle(task.id);
                             if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
                           }}
-                          className="flex-1 px-2 py-0.5 border border-[#E5E7EB] rounded text-sm min-w-0"
+                          className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
                           autoFocus
                         />
                       ) : (
                         <button
                           type="button"
                           onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[#9CA3AF]"
+                          className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[var(--text3)]"
                         >
                           {task.title}
                         </button>
@@ -303,7 +303,7 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                       <button
                         type="button"
                         onClick={() => deleteTask(task.id)}
-                        className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0"
+                        className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

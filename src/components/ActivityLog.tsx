@@ -109,50 +109,50 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
-      <div className="p-6 border-b border-[#E5E7EB] bg-white">
-        <h2 className="text-lg font-bold mb-4">{labels.title}</h2>
+    <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)]">
+        <h2 className="text-lg font-bold mb-4 text-[var(--text)]">{labels.title}</h2>
         <div className="flex flex-wrap items-center gap-4">
-          <label className="flex items-center gap-2 text-sm font-medium">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
             <span>{labels.from}</span>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="px-3 py-2 bg-[#F3F4F6] border-none rounded-lg text-sm"
+              className="px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm text-[var(--text)]"
             />
           </label>
-          <label className="flex items-center gap-2 text-sm font-medium">
+            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
             <span>{labels.to}</span>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="px-3 py-2 bg-[#F3F4F6] border-none rounded-lg text-sm"
+              className="px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm text-[var(--text)]"
             />
           </label>
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6 flex gap-6 min-h-0">
         {loading ? (
-          <div className="text-[#6B7280]">Loading…</div>
+          <div className="text-[var(--text2)]">Loading…</div>
         ) : events.length === 0 ? (
-          <p className="text-[#9CA3AF] font-medium">{labels.noEntries}</p>
+          <p className="text-[var(--text3)] font-medium">{labels.noEntries}</p>
         ) : (
           <>
             <ul className="flex-[2_2_0%] min-w-0 space-y-1.5 overflow-auto pr-2">
               {events.map((ev) => (
                 <li
                   key={ev.id}
-                  className="flex items-center gap-3 py-2 px-3 bg-white border border-[#E5E7EB] rounded-xl"
+                  className="flex items-center gap-3 py-2 px-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl"
                 >
                   <div
                     className="w-2 h-5 rounded flex-shrink-0"
                     style={{ backgroundColor: ev.color }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm leading-tight">{ev.title}</p>
-                    <p className="text-[10px] text-[#9CA3AF] uppercase font-bold mt-0.5 leading-tight">
+                    <p className="font-medium text-sm leading-tight text-[var(--text)]">{ev.title}</p>
+                    <p className="text-[10px] text-[var(--text3)] uppercase font-bold mt-0.5 leading-tight">
                       {ev.date} · {formatTime(ev.start_minutes)} · {formatDuration(ev.duration_minutes)}
                       {ev.tags.length > 0 && ` · ${ev.tags.map((tag) => `#${tag}`).join(" ")}`}
                     </p>
@@ -160,9 +160,9 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                 </li>
               ))}
             </ul>
-            <div className="flex-[3_3_0%] min-w-0 flex flex-col bg-white border border-[#E5E7EB] rounded-xl p-4">
+            <div className="flex-[3_3_0%] min-w-0 flex flex-col bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 activity-chart">
               {tagHours.length === 0 ? (
-                <p className="text-[#9CA3AF] font-medium text-sm">{labels.noTags}</p>
+                <p className="text-[var(--text3)] font-medium text-sm">{labels.noTags}</p>
               ) : (
                 <>
                   <ResponsiveContainer width="100%" height={Math.max(140, tagHours.length * 28)}>
@@ -171,12 +171,14 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                       layout="vertical"
                       margin={{ top: 8, right: 8, left: 8, bottom: 8 }}
                     >
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                       <XAxis
                         type="number"
                         domain={[0, maxHours]}
                         ticks={xAxisTicks}
-                        stroke="#6B7280"
+                        className="text-[var(--text2)]"
+                        tick={{ fill: "var(--text2)" }}
+                        axisLine={{ stroke: "var(--border)" }}
                         fontSize={12}
                       />
                       <YAxis
@@ -184,7 +186,8 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                         dataKey="tag"
                         tickFormatter={(v) => `#${v}`}
                         width={100}
-                        stroke="#6B7280"
+                        tick={{ fill: "var(--text2)" }}
+                        axisLine={{ stroke: "var(--border)" }}
                         fontSize={12}
                       />
                       <Tooltip
@@ -198,15 +201,15 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
-                  <div className="mt-4 pt-4 border-t border-[#E5E7EB] flex flex-wrap gap-x-6 gap-y-2">
+                  <div className="mt-4 pt-4 border-t border-[var(--border)] flex flex-wrap gap-x-6 gap-y-2">
                     {tagHours.map(({ tag, hours }) => (
                       <div key={tag} className="flex items-center gap-2 text-sm">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
                           style={{ backgroundColor: tagToColor.get(tag) ?? "#3B82F6" }}
                         />
-                        <span className="font-medium text-[#374151]">#{tag}</span>
-                        <span className="text-[#6B7280]">{hours} h</span>
+                        <span className="font-medium text-[var(--text)]">#{tag}</span>
+                        <span className="text-[var(--text2)]">{hours} h</span>
                       </div>
                     ))}
                   </div>

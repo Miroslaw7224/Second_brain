@@ -48,7 +48,7 @@ export default function PlanowanieView({
 }: PlanowanieViewProps) {
   const [planningTab, setPlanningTab] = useState<'calendar' | 'activity' | 'tasks' | 'tags'>('calendar');
   const [planAskInput, setPlanAskInput] = useState('');
-  const [planAskResponse, setPlanAskResponse] = useState('');
+  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
   const [planAskLoading, setPlanAskLoading] = useState(false);
   const [planAskPendingMessage, setPlanAskPendingMessage] = useState<string | null>(null);
   const [planAskUnknownTags, setPlanAskUnknownTags] = useState<string[]>([]);
@@ -86,17 +86,25 @@ export default function PlanowanieView({
     const msg = planAskInput.trim();
     setPlanAskInput('');
     setPlanAskLoading(true);
-    setPlanAskResponse('');
     setPlanAskPendingMessage(null);
     setPlanAskUnknownTags([]);
+
+    const updatedMessages = [...messages, { role: 'user' as const, content: msg }];
+    setMessages(updatedMessages);
+
     try {
       const res = await apiFetch('/api/plan/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: msg, lang }),
+        body: JSON.stringify({
+          message: msg,
+          history: updatedMessages.slice(-19, -1),
+          lang,
+        }),
       });
       const data = await res.json();
-      setPlanAskResponse(data.text || data.error || '');
+      const assistantContent = data.text || data.error || '';
+      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }].slice(-20));
       if (data.unknownTags && Array.isArray(data.unknownTags) && data.unknownTags.length > 0) {
         setPlanAskPendingMessage(msg);
         setPlanAskUnknownTags(data.unknownTags);
@@ -106,7 +114,7 @@ export default function PlanowanieView({
         if (planningTab === 'calendar') setPlanningTab('calendar');
       }
     } catch (err) {
-      setPlanAskResponse('Sorry, something went wrong.');
+      setMessages((prev) => [...prev, { role: 'assistant', content: 'Sorry, something went wrong.' }].slice(-20));
     } finally {
       setPlanAskLoading(false);
     }
@@ -115,7 +123,6 @@ export default function PlanowanieView({
   const handlePlanAskAddTagAndRetry = async () => {
     if (!planAskPendingMessage || planAskUnknownTags.length === 0 || planAskLoading) return;
     setPlanAskLoading(true);
-    setPlanAskResponse('');
     try {
       for (const tagName of planAskUnknownTags) {
         await apiFetch('/api/tags', {
@@ -128,10 +135,11 @@ export default function PlanowanieView({
       const res = await apiFetch('/api/plan/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: planAskPendingMessage, lang }),
+        body: JSON.stringify({ message: planAskPendingMessage, history: messages, lang }),
       });
       const data = await res.json();
-      setPlanAskResponse(data.text || data.error || '');
+      const assistantContent = data.text || data.error || '';
+      setMessages((prev) => [...prev, { role: 'assistant', content: assistantContent }].slice(-20));
       setPlanAskPendingMessage(null);
       setPlanAskUnknownTags([]);
       if (data.created) {
@@ -139,7 +147,8 @@ export default function PlanowanieView({
         if (planningTab === 'calendar') setPlanningTab('calendar');
       }
     } catch (err) {
-      setPlanAskResponse(lang === 'pl' ? 'Nie udało się dodać tagu lub wpisu.' : 'Failed to add tag or entry.');
+      const errorMsg = lang === 'pl' ? 'Nie udało się dodać tagu lub wpisu.' : 'Failed to add tag or entry.';
+      setMessages((prev) => [...prev, { role: 'assistant', content: errorMsg }].slice(-20));
     } finally {
       setPlanAskLoading(false);
     }
@@ -165,7 +174,7 @@ export default function PlanowanieView({
         t={sidebarT}
       >
         <div>
-          <h2 className="text-xs font-semibold text-[#9CA3AF] uppercase tracking-widest mb-3 px-2">
+          <h2 className="text-xs font-semibold text-[var(--text3)] uppercase tracking-widest mb-3 px-2">
             {t.modePlanowanie}
           </h2>
           <div className="space-y-1">
@@ -174,8 +183,8 @@ export default function PlanowanieView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
                 planningTab === 'calendar'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
               )}
             >
               <Calendar className="w-5 h-5 flex-shrink-0" />
@@ -186,8 +195,8 @@ export default function PlanowanieView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
                 planningTab === 'activity'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
               )}
             >
               <Briefcase className="w-5 h-5 flex-shrink-0" />
@@ -198,8 +207,8 @@ export default function PlanowanieView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
                 planningTab === 'tasks'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
               )}
             >
               <ListTodo className="w-5 h-5 flex-shrink-0" />
@@ -210,8 +219,8 @@ export default function PlanowanieView({
               className={cn(
                 'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
                 planningTab === 'tags'
-                  ? 'bg-black text-white border-black'
-                  : 'bg-white border-transparent hover:bg-[#F9FAFB] hover:border-[#F3F4F6]'
+                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
+                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
               )}
             >
               <Tag className="w-5 h-5 flex-shrink-0" />
@@ -259,19 +268,38 @@ export default function PlanowanieView({
           )}
         </div>
 
-        <div className="flex-shrink-0 p-4 bg-white border-t border-[#E5E7EB]">
+        <div className="flex-shrink-0 p-4 bg-[var(--surface)] border-t border-[var(--border)]">
           <div className="max-w-2xl mx-auto">
-            {planAskResponse && (
-              <p className="text-sm text-[#374151] mb-2 px-2 py-1 bg-[#F3F4F6] rounded-lg">
-                {planAskResponse}
-              </p>
-            )}
+            <div
+              className="overflow-y-auto mb-2 space-y-2 px-2 py-1 rounded-lg bg-[var(--bg2)]"
+              style={{ maxHeight: 240 }}
+            >
+              {messages.map((m, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    'text-sm px-3 py-2 rounded-lg max-w-[85%]',
+                    m.role === 'user'
+                      ? 'ml-auto bg-[var(--accent)] text-white'
+                      : 'mr-auto bg-[var(--bg3)] text-[var(--text)]'
+                  )}
+                >
+                  {m.content}
+                </div>
+              ))}
+              {planAskLoading && (
+                <div className="flex items-center gap-1 text-[var(--text3)] text-sm px-3 py-2">
+                  <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />
+                  <span>…</span>
+                </div>
+              )}
+            </div>
             {planAskUnknownTags.length > 0 && (
               <button
                 type="button"
                 onClick={handlePlanAskAddTagAndRetry}
                 disabled={planAskLoading}
-                className="mb-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-black text-white hover:bg-[#333] disabled:opacity-50"
+                className="mb-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--accent)] text-white hover:brightness-110 disabled:opacity-50"
               >
                 {lang === 'pl'
                   ? planAskUnknownTags.length === 1
@@ -289,14 +317,14 @@ export default function PlanowanieView({
                 onChange={(e) => setPlanAskInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handlePlanAsk()}
                 placeholder={t.planAskPlaceholder}
-                className="flex-1 px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+                className="flex-1 px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
               />
               <button
                 onClick={handlePlanAsk}
                 disabled={!planAskInput.trim() || planAskLoading}
                 className={cn(
                   'px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1',
-                  planAskInput.trim() && !planAskLoading ? 'bg-black text-white' : 'bg-[#F3F4F6] text-[#9CA3AF]'
+                  planAskInput.trim() && !planAskLoading ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg3)] text-[var(--text3)]'
                 )}
               >
                 {planAskLoading ? (

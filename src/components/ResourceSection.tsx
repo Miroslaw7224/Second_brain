@@ -53,7 +53,7 @@ export function ResourceFilterSidebar() {
 
   return (
     <div className="space-y-3">
-      <p className="text-sm font-medium text-[#374151]">{filterByTagsLabel}</p>
+      <p className="text-sm font-medium text-[var(--text)]">{filterByTagsLabel}</p>
       <div className="flex flex-wrap gap-1.5">
         {allTags.map((tag) => (
           <button
@@ -62,8 +62,8 @@ export function ResourceFilterSidebar() {
             onClick={() => toggleTag(tag)}
             className={`px-2.5 py-1 rounded-lg text-sm font-medium transition-colors ${
               selectedTags.includes(tag)
-                ? "bg-black text-white"
-                : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]"
+                ? "bg-[var(--accent)] text-white"
+                : "bg-[var(--bg3)] text-[var(--text)] hover:bg-[var(--border)]"
             }`}
           >
             {tag}
@@ -74,7 +74,7 @@ export function ResourceFilterSidebar() {
         <button
           type="button"
           onClick={clearTagFilter}
-          className="text-sm text-[#6B7280] hover:text-black font-medium"
+          className="text-sm text-[var(--text2)] hover:text-[var(--text)] font-medium"
         >
           {clearFiltersLabel}
         </button>
@@ -448,14 +448,14 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
 
   return (
     <React.Fragment>
-      <div className="p-6 border-b border-[#E5E7EB] bg-white">
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)]">
         <h2 className="text-lg font-bold">{tabResourcesLabel}</h2>
       </div>
       <div className="flex-1 overflow-auto p-6 flex gap-6 min-h-0">
         {/* Lewa kolumna: filtr po tagach */}
         {!loading && resources.length > 0 && (
           <div className="flex-[1_1_0%] min-w-0 space-y-3 overflow-auto pr-2">
-            <p className="text-sm font-medium text-[#374151]">{filterByTagsLabel}</p>
+            <p className="text-sm font-medium text-[var(--text)]">{filterByTagsLabel}</p>
             <div className="flex flex-wrap gap-1.5">
               {allTags.map((tag) => (
                 <button
@@ -464,8 +464,8 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                   onClick={() => toggleTag(tag)}
                   className={`px-2.5 py-1 rounded-lg text-sm font-medium transition-colors ${
                     selectedTags.includes(tag)
-                      ? "bg-black text-white"
-                      : "bg-[#F3F4F6] text-[#374151] hover:bg-[#E5E7EB]"
+                      ? "bg-[var(--accent)] text-white"
+                      : "bg-[var(--bg3)] text-[var(--text)] hover:bg-[var(--border)]"
                   }`}
                 >
                   {tag}
@@ -476,7 +476,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
               <button
                 type="button"
                 onClick={clearTagFilter}
-                className="text-sm text-[#6B7280] hover:text-black font-medium"
+                className="text-sm text-[var(--text2)] hover:text-[var(--text)] font-medium"
               >
                 {clearFiltersLabel}
               </button>
@@ -487,11 +487,11 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
         {/* Prawa kolumna: formularz i lista zasobów */}
         <div className={!loading && resources.length > 0 ? "flex-[2_2_0%] min-w-0 space-y-3 overflow-auto" : "flex-1 min-w-0 space-y-3 overflow-auto"}>
           {/* Sekcja 1: formularz (Opis, URL, Tagi) */}
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-4 space-y-0">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 space-y-0">
             <button
               type="button"
               onClick={() => setFormExpanded((e) => !e)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-left text-base font-semibold text-[#374151] hover:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+              className="w-full flex items-center justify-between gap-2 py-2 text-left text-base font-semibold text-[var(--text)] hover:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1"
             >
               <span>{resourceDescriptionPlaceholder}</span>
               <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${formExpanded ? "rotate-180" : ""}`} />
@@ -503,27 +503,27 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
           value={addDescription}
           onChange={(e) => setAddDescription(e.target.value)}
           placeholder={resourceDescriptionPlaceholder}
-          className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black"
+          className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
         />
         <input
           type="url"
           value={addUrl}
           onChange={(e) => setAddUrl(e.target.value)}
           placeholder={resourceUrlPlaceholder}
-          className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black"
+          className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
         />
         <input
           type="text"
           value={addTags}
           onChange={(e) => setAddTags(e.target.value)}
           placeholder={resourceTagsPlaceholder}
-          className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black"
+          className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
         />
         <button
           type="button"
           onClick={handleAdd}
           disabled={adding || !addDescription.trim() || !addUrl.trim()}
-          className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
+          className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
         >
           {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           {addResourceLabel}
@@ -533,11 +533,11 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
           </div>
 
           {/* Sekcja 2: wklej w formacie blokowym */}
-          <div className="bg-white border border-[#E5E7EB] rounded-xl p-4">
+          <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4">
             <button
               type="button"
               onClick={() => setBlockFormatExpanded((e) => !e)}
-              className="w-full flex items-center justify-between gap-2 py-2 text-left text-base font-semibold text-[#374151] hover:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+              className="w-full flex items-center justify-between gap-2 py-2 text-left text-base font-semibold text-[var(--text)] hover:text-black rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1"
             >
               <span>{blockFormatLabel}</span>
               <ChevronDown className={`w-4 h-4 flex-shrink-0 transition-transform ${blockFormatExpanded ? "rotate-180" : ""}`} />
@@ -552,14 +552,14 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
             }}
             placeholder={blockFormatPlaceholder}
             rows={4}
-            className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-base focus:ring-2 focus:ring-black resize-y font-mono text-sm"
+            className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)] resize-y font-mono text-sm"
           />
           <p className="text-xs text-[#6B7280]">{blockFormatHint}</p>
           <button
             type="button"
             onClick={handleAddFromBlock}
             disabled={adding || !blockFormatText.trim()}
-            className="flex items-center gap-2 px-4 py-2 bg-[#374151] text-white rounded-xl text-sm font-semibold hover:bg-[#1F2937] transition-all disabled:opacity-50 disabled:hover:bg-[#374151]"
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--text2)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--text)] transition-all disabled:opacity-50 disabled:hover:bg-[var(--text2)]"
           >
             {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
             {addFromBlockLabel}
@@ -575,22 +575,22 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
         <p className="text-sm text-green-600 font-medium">{copyMessage}</p>
       )}
 
-          <div className="border-t border-[#E5E7EB] pt-4">
+          <div className="border-t border-[var(--border)] pt-4">
         {loading ? (
-          <div className="flex items-center gap-2 text-[#9CA3AF]">
+          <div className="flex items-center gap-2 text-[var(--text3)]">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span>Loading...</span>
           </div>
         ) : resources.length === 0 ? (
-          <p className="text-[#9CA3AF] font-medium">{noResourcesLabel}</p>
+          <p className="text-[var(--text3)] font-medium">{noResourcesLabel}</p>
         ) : filteredResources.length === 0 ? (
-          <p className="text-[#9CA3AF] font-medium">{noMatchingTagsLabel}</p>
+          <p className="text-[var(--text3)] font-medium">{noMatchingTagsLabel}</p>
         ) : (
           <ul className="space-y-1.5">
                 {filteredResources.map((r) => (
                   <li
                     key={r.id}
-                    className="flex items-center justify-between gap-3 py-3 px-4 bg-white border border-[#E5E7EB] rounded-xl"
+                    className="flex items-center justify-between gap-3 py-3 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-xl"
                   >
                 <div className="min-w-0 flex-1 flex items-stretch gap-3">
                   {getFaviconUrl(r.url) && (
@@ -618,7 +618,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                           if (e.key === "Enter") saveTitle();
                           if (e.key === "Escape") cancelEditTitle();
                         }}
-                        className="w-full text-base font-semibold text-[#111827] bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg px-2 py-1 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                        className="w-full text-base font-semibold text-[var(--text)] bg-[var(--bg3)] border border-[var(--border)] rounded-lg px-2 py-1 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none"
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
@@ -627,12 +627,12 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                         tabIndex={0}
                         onClick={() => startEditTitle(r)}
                         onKeyDown={(e) => e.key === "Enter" && startEditTitle(r)}
-                        className="text-base font-semibold text-[#111827] truncate cursor-pointer hover:bg-[#F9FAFB] rounded px-1 -mx-1"
+                        className="text-base font-semibold text-[var(--text)] truncate cursor-pointer hover:bg-[#F9FAFB] rounded px-1 -mx-1"
                       >
                         {r.title === r.url ? (
                           <span>
                             {r.url}
-                            <span className="text-[#9CA3AF] ml-1 font-normal text-sm">{titleUnavailableLabel}</span>
+                            <span className="text-[var(--text3)] ml-1 font-normal text-sm">{titleUnavailableLabel}</span>
                           </span>
                         ) : (
                           r.title
@@ -652,7 +652,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                           if (e.key === "Escape") cancelEditTags();
                         }}
                         placeholder={resourceTagsPlaceholder}
-                        className="mt-1 w-full text-sm text-[#374151] bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg px-2 py-1 focus:ring-2 focus:ring-black focus:border-transparent outline-none"
+                        className="mt-1 w-full text-sm text-[var(--text)] bg-[var(--bg3)] border border-[var(--border)] rounded-lg px-2 py-1 focus:ring-2 focus:ring-[var(--accent)] focus:border-transparent outline-none"
                         onClick={(e) => e.stopPropagation()}
                       />
                     ) : (
@@ -662,7 +662,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                             {(r.tags || []).map((tag) => (
                               <span
                                 key={tag}
-                                className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[#E5E7EB] text-[#374151]"
+                                className="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-[var(--border)] text-[var(--text)]"
                               >
                                 {tag}
                               </span>
@@ -670,7 +670,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); startEditTags(r); }}
-                              className="inline-flex items-center gap-1 text-xs text-[#6B7280] hover:text-black font-medium"
+                              className="inline-flex items-center gap-1 text-xs text-[var(--text2)] hover:text-[var(--text)] font-medium"
                               title={editTagsLabel}
                             >
                               <Pencil className="w-3 h-3" />
@@ -682,7 +682,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); startEditTags(r); }}
-                            className="inline-flex items-center gap-1 text-xs text-[#6B7280] hover:text-black font-medium"
+                            className="inline-flex items-center gap-1 text-xs text-[var(--text2)] hover:text-[var(--text)] font-medium"
                             title={editTagsLabel}
                           >
                             <Pencil className="w-3 h-3" />
@@ -697,7 +697,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                   <button
                     type="button"
                     onClick={() => window.open(r.url, "_blank")}
-                    className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors text-[#6B7280] hover:text-black"
+                    className="p-2 hover:bg-[var(--bg3)] rounded-lg transition-colors text-[var(--text2)] hover:text-[var(--text)]"
                     title="Open link"
                   >
                     <ExternalLink className="w-4 h-4" />
@@ -705,7 +705,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                   <button
                     type="button"
                     onClick={() => handleCopy(r.url)}
-                    className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors text-[#6B7280] hover:text-black"
+                    className="p-2 hover:bg-[var(--bg3)] rounded-lg transition-colors text-[var(--text2)] hover:text-[var(--text)]"
                     title="Copy URL"
                   >
                     <Copy className="w-4 h-4" />

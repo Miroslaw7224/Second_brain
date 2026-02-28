@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { Plus, ChevronLeft, ChevronRight, Trash2, Pencil } from "lucide-react";
 import { CalendarEventForm, type CalendarEventFormData } from "./CalendarEventForm";
 import { CALENDAR_COLORS, formatDuration } from "./calendarConstants";
 import type { UserTag } from "./TagsSection";
@@ -95,6 +95,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
   const [addDate, setAddDate] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
 
   const monthLabel = MONTH_NAMES[lang][viewMonth];
@@ -150,42 +151,50 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
   const handleOpenAdd = (date: string) => {
     setAddDate(date);
     setEditingEvent(null);
+    setSaveError(null);
     setModalOpen(true);
   };
 
   const handleOpenEdit = (ev: CalendarEvent) => {
     setEditingEvent(ev);
     setAddDate(null);
+    setSaveError(null);
     setModalOpen(true);
   };
 
   const handleSave = async (data: CalendarEventFormData) => {
+    setSaveError(null);
     try {
       if (editingEvent) {
-        await apiFetch(`/api/calendar/events/${editingEvent.id}`, {
+        const res = await apiFetch(`/api/calendar/events/${editingEvent.id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
+        }
       } else {
-        await apiFetch("/api/calendar/events", {
+        const res = await apiFetch("/api/calendar/events", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(data),
         });
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
+        }
       }
       setModalOpen(false);
       setEditingEvent(null);
       setAddDate(null);
-      setEvents((prev) => {
-        const rest = prev.filter((e) => e.id !== editingEvent?.id);
-        return rest;
-      });
       const res = await apiFetch(`/api/calendar/events?startDate=${startDate}&endDate=${endDate}`);
       const data2 = await res.json();
       setEvents(Array.isArray(data2) ? data2 : []);
     } catch (err) {
       console.error("Save calendar event failed", err);
+      setSaveError(err instanceof Error ? err.message : "Save failed");
     }
   };
 
@@ -208,12 +217,12 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
   const totalHeight = (days.length + 1) * rowHeight;
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
-      <div className="flex items-center justify-between p-4 border-b border-[#E5E7EB] bg-white">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+      <div className="flex items-center justify-between p-4 border-b border-[var(--border)] bg-[var(--surface)]">
         <div className="flex items-center gap-2">
           <button
             onClick={handlePrevMonth}
-            className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors"
+            className="p-2 hover:bg-[var(--bg3)] rounded-lg transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -222,18 +231,23 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
           </span>
           <button
             onClick={handleNextMonth}
-            className="p-2 hover:bg-[#F3F4F6] rounded-lg transition-colors"
+            className="p-2 hover:bg-[var(--bg3)] rounded-lg transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
         </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-[var(--text3)] hidden sm:inline">
+              {(t.calendarClickToEdit as string) ?? "Click an event to edit"}
+            </span>
           <button
-            onClick={() => { setAddDate(days[0]?.date ?? startDate); setEditingEvent(null); setModalOpen(true); }}
-            className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold"
+            onClick={() => { setAddDate(days[0]?.date ?? startDate); setEditingEvent(null); setSaveError(null); setModalOpen(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold"
           >
             <Plus className="w-4 h-4" />
             {(t.calendarAddEntry as string) ?? "Add entry"}
           </button>
+          </div>
       </div>
 
       <div
@@ -241,7 +255,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
         ref={gridRef}
       >
         {loading ? (
-          <div className="flex items-center justify-center h-64 text-[#6B7280]">Loading…</div>
+          <div className="flex items-center justify-center h-64 text-[var(--text2)]">Loading…</div>
         ) : (
           <div
             className="overflow-auto overflow-x-scroll overflow-y-auto w-full"
@@ -249,15 +263,15 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
           >
             <div style={{ width: totalWidth, minWidth: totalWidth }}>
             {/* Header row: sticky at top when scrolling down */}
-            <div className="flex border-b border-[#E5E7EB] bg-[#F9FAFB] sticky top-0 z-20 shadow-sm" style={{ height: rowHeight }}>
-              <div className="flex-shrink-0 border-r border-[#E5E7EB] flex items-center px-2 text-xs font-bold text-[#9CA3AF] bg-[#F9FAFB] sticky left-0 z-30" style={{ width: dayLabelWidth }}>
+            <div className="flex border-b border-[var(--border)] bg-[var(--bg2)] sticky top-0 z-20 shadow-sm" style={{ height: rowHeight }}>
+              <div className="flex-shrink-0 border-r border-[var(--border)] flex items-center px-2 text-xs font-bold text-[var(--text3)] bg-[var(--bg2)] sticky left-0 z-30" style={{ width: dayLabelWidth }}>
                 {(t.calendarDay as string) ?? "Day"}
               </div>
-              <div className="flex bg-[#F9FAFB]">
+              <div className="flex bg-[var(--bg2)]">
                 {Array.from({ length: HOURS }, (_, h) => (
                   <div
                     key={h}
-                    className="border-r border-[#E5E7EB] text-[10px] text-[#9CA3AF] font-medium flex items-center justify-center flex-shrink-0"
+                    className="border-r border-[var(--border)] text-[10px] text-[var(--text3)] font-medium flex items-center justify-center flex-shrink-0"
                     style={{ width: cellWidth, height: rowHeight }}
                   >
                     {h}
@@ -274,11 +288,11 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
               return (
                 <div
                   key={day.date}
-                  className={`flex border-b border-[#E5E7EB] relative ${isToday ? "bg-[#EFF6FF] ring-1 ring-inset ring-[#3B82F6]" : "bg-white"}`}
+                  className={`flex border-b border-[var(--border)] relative ${isToday ? "bg-[var(--accent-bg)] ring-1 ring-inset ring-[var(--accent)]" : "bg-[var(--surface)]"}`}
                   style={{ height: rowHeight }}
                 >
                   <div
-                    className={`flex-shrink-0 border-r border-[#E5E7EB] flex items-center px-2 text-sm font-medium sticky left-0 z-10 ${isToday ? "bg-[#DBEAFE] font-semibold text-[#1D4ED8]" : "bg-[#F9FAFB]"}`}
+                    className={`flex-shrink-0 border-r border-[var(--border)] flex items-center px-2 text-sm font-medium sticky left-0 z-10 ${isToday ? "bg-[var(--accent-bg)] font-semibold text-[var(--accent)]" : "bg-[var(--bg2)]"}`}
                     style={{ width: dayLabelWidth }}
                   >
                     {day.day} {DAY_NAMES[lang][day.dayOfWeek]}
@@ -290,6 +304,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
                       if ((e.target as HTMLElement).closest("[data-event]")) return;
                       setAddDate(day.date);
                       setEditingEvent(null);
+                      setSaveError(null);
                       setModalOpen(true);
                     }}
                   >
@@ -305,7 +320,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
                           key={ev.id}
                           data-event
                           onClick={(e) => { e.stopPropagation(); handleOpenEdit(ev); }}
-                          className="absolute rounded overflow-hidden cursor-pointer border border-white/50 shadow-sm flex items-center"
+                          className="absolute rounded overflow-hidden cursor-pointer border border-white/50 shadow-sm flex items-center gap-1 group hover:ring-2 hover:ring-white/80"
                           style={{
                             left: leftPx,
                             width: Math.max(24, widthPx),
@@ -313,11 +328,12 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
                             height: `${heightPct}%`,
                             backgroundColor: ev.color,
                           }}
-                          title={`${ev.title} ${ev.tags.map((t) => `#${t}`).join(" ")} · ${formatDuration(ev.duration_minutes)}`}
+                          title={`${ev.title} ${ev.tags.map((t) => `#${t}`).join(" ")} · ${formatDuration(ev.duration_minutes)} · ${(t.calendarClickToEdit as string) ?? "Click to edit"}`}
                         >
-                          <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow">
+                          <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
                             {ev.title}
                           </span>
+                          <Pencil className="w-3 h-3 text-white/90 flex-shrink-0 opacity-70 group-hover:opacity-100 mr-1" aria-hidden />
                         </div>
                       );
                     })}
@@ -332,7 +348,7 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
+          <div className="bg-[var(--surface)] rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto p-6">
             <h3 className="text-lg font-bold mb-4">
               {editingEvent ? ((t.calendarEditEntry as string) ?? "Edit entry") : ((t.calendarNewEntry as string) ?? "New entry")}
             </h3>
@@ -354,11 +370,16 @@ export function CalendarView({ apiFetch, lang, t, userTags = [], refreshTrigger 
               tagTitles={tagTitles}
               tagColors={tagColors}
               onSubmit={handleSave}
-              onCancel={() => { setModalOpen(false); setEditingEvent(null); setAddDate(null); }}
+              onCancel={() => { setModalOpen(false); setEditingEvent(null); setAddDate(null); setSaveError(null); }}
               submitLabel={editingEvent ? ((t.calendarSave as string) ?? "Save") : ((t.calendarAddEntry as string) ?? "Add")}
             />
+            {saveError && (
+              <p className="mt-3 text-sm text-red-500" role="alert">
+                {saveError}
+              </p>
+            )}
             {editingEvent && (
-              <div className="mt-4 pt-4 border-t border-[#E5E7EB]">
+              <div className="mt-4 pt-4 border-t border-[var(--border)]">
                 <button
                   type="button"
                   onClick={() => handleDelete(editingEvent.id)}

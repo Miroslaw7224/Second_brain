@@ -110,17 +110,17 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
   };
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden bg-[#F8F9FA]">
-      <div className="p-6 border-b border-[#E5E7EB] bg-white">
+    <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+      <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)]">
         <h2 className="text-lg font-bold mb-1">{labels.title}</h2>
-        <p className="text-sm text-[#6B7280] mb-4">{labels.subtitle}</p>
+        <p className="text-sm text-[var(--text2)] mb-4">{labels.subtitle}</p>
         <div className="max-w-2xl grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-center">
           <input
             type="text"
             value={newTag}
             onChange={(e) => setNewTag(e.target.value)}
             placeholder={`#${labels.tagLabel.toLowerCase()}`}
-            className="px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+            className="px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
           />
           <input
             type="text"
@@ -128,15 +128,15 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
             onChange={(e) => setNewTitle(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && addTag()}
             placeholder={labels.titleLabel}
-            className="px-4 py-3 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+            className="px-4 py-3 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
           />
-          <label className="flex items-center gap-2 text-sm text-[#6B7280]">
+          <label className="flex items-center gap-2 text-sm text-[var(--text2)]">
             <span>Kolor</span>
             <input
               type="color"
               value={newColor}
               onChange={(e) => setNewColor(e.target.value)}
-              className="w-9 h-9 rounded-lg border border-[#E5E7EB] cursor-pointer"
+              className="w-9 h-9 rounded-lg border border-[var(--border)] cursor-pointer"
               title="Kolor tagu"
             />
           </label>
@@ -144,7 +144,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
             type="button"
             onClick={addTag}
             disabled={saving || !newTag.trim()}
-            className="flex items-center gap-2 px-4 py-3 bg-black text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-3 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:opacity-90 disabled:opacity-50"
           >
             <Plus className="w-4 h-4" />
             {labels.add}
@@ -153,7 +153,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
       </div>
       <div className="flex-1 overflow-y-auto p-6">
         {userTags.length === 0 && !saving ? (
-          <div className="max-w-md p-8 border-2 border-dashed border-[#E5E7EB] rounded-2xl text-center text-[#6B7280] text-sm">
+          <div className="max-w-md p-8 border-2 border-dashed border-[var(--border)] rounded-2xl text-center text-[var(--text2)] text-sm">
             {labels.noTags}
           </div>
         ) : (
@@ -161,7 +161,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
             {userTags.map((item) => (
               <li
                 key={item.id}
-                className="flex items-center gap-3 p-3 bg-white border border-[#E5E7EB] rounded-xl"
+                className="flex items-center gap-3 p-3 bg-white border border-[var(--border)] rounded-xl"
               >
                 {editingId === item.id ? (
                   <>
@@ -169,7 +169,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                       type="text"
                       value={editTag}
                       onChange={(e) => setEditTag(e.target.value)}
-                      className="flex-1 min-w-0 px-3 py-2 bg-[#F3F4F6] border-none rounded-lg text-sm"
+                      className="flex-1 min-w-0 px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm"
                       placeholder={labels.tagLabel}
                     />
                     <input
@@ -177,20 +177,20 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                       value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
-                      className="flex-1 min-w-0 px-3 py-2 bg-[#F3F4F6] border-none rounded-lg text-sm"
+                      className="flex-1 min-w-0 px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm"
                       placeholder={labels.titleLabel}
                     />
                     <input
                       type="color"
                       value={editColor}
                       onChange={(e) => setEditColor(e.target.value)}
-                      className="w-8 h-8 rounded border border-[#E5E7EB] cursor-pointer"
+                      className="w-8 h-8 rounded border border-[var(--border)] cursor-pointer"
                       title="Kolor"
                     />
                     <button
                       type="button"
                       onClick={() => saveEdit(item.id)}
-                      className="p-2 text-black hover:bg-[#F3F4F6] rounded-lg"
+                      className="p-2 text-[var(--text)] hover:bg-[var(--bg3)] rounded-lg"
                       title="Save"
                     >
                       <Pencil className="w-4 h-4" />
@@ -198,7 +198,7 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                     <button
                       type="button"
                       onClick={cancelEdit}
-                      className="px-3 py-1.5 text-sm text-[#6B7280] hover:bg-[#F3F4F6] rounded-lg"
+                      className="px-3 py-1.5 text-sm text-[var(--text2)] hover:bg-[var(--bg3)] rounded-lg"
                     >
                       Cancel
                     </button>
@@ -210,14 +210,14 @@ export function TagsSection({ apiFetch, lang, t, userTags, onTagsChange }: TagsS
                       style={{ backgroundColor: item.color || CALENDAR_COLORS[0] }}
                       title="Kolor tagu"
                     />
-                    <span className="font-medium text-sm text-[#1A1A1A]">#{item.tag}</span>
-                    <span className="flex-1 min-w-0 text-sm text-[#6B7280] truncate">
+                    <span className="font-medium text-sm text-[var(--text)]">#{item.tag}</span>
+                    <span className="flex-1 min-w-0 text-sm text-[var(--text2)] truncate">
                       {item.title || "—"}
                     </span>
                     <button
                       type="button"
                       onClick={() => startEdit(item)}
-                      className="p-2 text-[#6B7280] hover:bg-[#F3F4F6] rounded-lg"
+                      className="p-2 text-[var(--text2)] hover:bg-[var(--bg3)] rounded-lg"
                       title="Edit"
                     >
                       <Pencil className="w-4 h-4" />

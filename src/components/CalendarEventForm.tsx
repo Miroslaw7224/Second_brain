@@ -92,32 +92,32 @@ export function CalendarEventForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">Title</label>
+        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Title</label>
         <input
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. QA testing, Learning"
-          className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+          className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
           required
         />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">Date</label>
+          <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Date</label>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+            className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">Start time</label>
+          <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Start time</label>
           <select
             value={startMinutes}
             onChange={(e) => setStartMinutes(Number(e.target.value))}
-            className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+            className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
           >
             {hourOptions.map((m) => (
               <option key={m} value={m}>
@@ -128,11 +128,11 @@ export function CalendarEventForm({
         </div>
       </div>
       <div>
-        <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">Duration (15 min steps)</label>
+        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Duration (15 min steps)</label>
         <select
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(Number(e.target.value))}
-          className="w-full px-4 py-2 bg-[#F3F4F6] border-none rounded-xl text-sm focus:ring-2 focus:ring-black"
+          className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
         >
           {DURATION_OPTIONS.map((m) => (
             <option key={m} value={m}>
@@ -142,12 +142,12 @@ export function CalendarEventForm({
         </select>
       </div>
       <div>
-        <label className="block text-xs font-bold text-[#4B5563] uppercase mb-1">Tags (#testy, #nauka…)</label>
+        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Tags (#testy, #nauka…)</label>
         <div className="flex gap-2 flex-wrap">
           {tags.map((t) => (
             <span
               key={t}
-              className="inline-flex items-center gap-1 px-2 py-0.5 bg-[#E5E7EB] rounded-md text-xs font-medium"
+              className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--border)] rounded-md text-xs font-medium"
             >
               #{t}
               <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500">
@@ -170,14 +170,14 @@ export function CalendarEventForm({
               }}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
               placeholder="#tag lub wybierz poniżej"
-              className="flex-1 px-2 py-1 bg-[#F3F4F6] border-none rounded text-sm"
+              className="flex-1 px-2 py-1 bg-[var(--bg3)] border-none rounded text-sm"
             />
-            <button type="button" onClick={addTag} className="px-2 py-1 bg-black text-white rounded text-sm">
+            <button type="button" onClick={addTag} className="px-2 py-1 bg-[var(--accent)] text-white rounded text-sm">
               +
             </button>
             {(tagInputFocused || tagInput) && filteredExistingTags.length > 0 && (
-              <div className="absolute left-0 right-0 top-full z-20 mt-1 py-1 bg-white border border-[#E5E7EB] rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                <p className="px-2 py-0.5 text-[10px] font-bold text-[#9CA3AF] uppercase">Propozycje</p>
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                <p className="px-2 py-0.5 text-[10px] font-bold text-[var(--text3)] uppercase">Propozycje</p>
                 {filteredExistingTags.map((t) => (
                   <button
                     key={t}
@@ -190,9 +190,9 @@ export function CalendarEventForm({
                       const assignedTitle = tagTitles[t];
                       if (assignedTitle) setTitle(assignedTitle);
                     }}
-                    className="w-full text-left text-sm px-3 py-1.5 hover:bg-[#F3F4F6] flex items-center gap-1"
+                    className="w-full text-left text-sm px-3 py-1.5 hover:bg-[var(--bg3)] flex items-center gap-1"
                   >
-                    <span className="text-[#6B7280]">#</span>
+                    <span className="text-[var(--text2)]">#</span>
                     {t}
                   </button>
                 ))}
@@ -202,10 +202,10 @@ export function CalendarEventForm({
         </div>
       </div>
       <div className="flex gap-2 justify-end pt-2">
-        <button type="button" onClick={onCancel} className="px-4 py-2 bg-[#F3F4F6] rounded-xl text-sm font-semibold">
+        <button type="button" onClick={onCancel} className="px-4 py-2 bg-[var(--bg3)] rounded-xl text-sm font-semibold">
           Cancel
         </button>
-        <button type="submit" className="px-4 py-2 bg-black text-white rounded-xl text-sm font-semibold">
+        <button type="submit" className="px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold">
           {submitLabel}
         </button>
       </div>

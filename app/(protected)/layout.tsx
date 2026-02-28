@@ -20,8 +20,8 @@ export default function ProtectedLayout({
 
   if (loading)
     return (
-      <div className="min-h-screen bg-[#F8F9FA] flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-black animate-spin" />
+      <div className="min-h-screen bg-[var(--bg)] flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-[var(--text)] animate-spin" />
       </div>
     );
   if (!user) return null;
