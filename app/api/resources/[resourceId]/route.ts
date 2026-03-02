@@ -10,22 +10,27 @@ export async function PUT(
   const auth = await getAuthUserId(request);
   if (auth instanceof NextResponse) return auth;
   const { resourceId } = await params;
-  let body: { title?: string; tags?: string[] };
+  let body: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
-  const { title, tags } = body;
-  if (title === undefined && tags === undefined) {
-    return NextResponse.json({ error: "title or tags is required" }, { status: 400 });
-  }
-  const data: { title?: string; tags?: string[] } = {};
+  const { title, description, url, tags, isFavorite } = body;
+  const data: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean } = {};
   if (title !== undefined) data.title = typeof title === "string" ? title.trim() : String(title).trim();
+  if (description !== undefined) data.description = typeof description === "string" ? description.trim() : String(description).trim();
+  if (url !== undefined) data.url = typeof url === "string" ? url.trim() : String(url).trim();
   if (tags !== undefined) data.tags = Array.isArray(tags) ? tags : [String(tags)];
+  if (isFavorite !== undefined) data.isFavorite = Boolean(isFavorite);
+  if (Object.keys(data).length === 0) {
+    return NextResponse.json({ error: "At least one of title, description, url, tags, isFavorite is required" }, { status: 400 });
+  }
   try {
     await resourceService.updateResource(auth.uid, resourceId, data);
-    return NextResponse.json({ success: true });
+    const resources = await resourceService.getResources(auth.uid);
+    const updated = resources.find((r) => r.id === resourceId);
+    return NextResponse.json(updated ?? { success: true });
   } catch (err) {
     return handleServiceError(err);
   }

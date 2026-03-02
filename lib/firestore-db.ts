@@ -39,6 +39,7 @@ export interface NoteResourceRecord {
   title: string;
   thumbnailUrl?: string;
   tags: string[];
+  isFavorite?: boolean;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 }
@@ -230,6 +231,7 @@ export async function addResourceToFirestore(
     url: data.url,
     title: data.title,
     tags: data.tags ?? [],
+    isFavorite: data.isFavorite ?? false,
     ...(data.noteId != null && { noteId: data.noteId }),
     ...(data.thumbnailUrl != null && { thumbnailUrl: data.thumbnailUrl }),
     createdAt: FieldValue.serverTimestamp(),
@@ -246,6 +248,7 @@ export async function addResourceToFirestore(
     title: d.title ?? "",
     thumbnailUrl: d.thumbnailUrl,
     tags: Array.isArray(d.tags) ? d.tags : [],
+    isFavorite: d.isFavorite === true,
     createdAt: d.createdAt,
     updatedAt: d.updatedAt,
   };
@@ -267,6 +270,7 @@ export async function getResourcesFromFirestore(
       title: data.title ?? "",
       thumbnailUrl: data.thumbnailUrl,
       tags: Array.isArray(data.tags) ? data.tags : [],
+      isFavorite: data.isFavorite === true,
       createdAt: (data.createdAt ?? createdAt) as Timestamp,
       updatedAt: data.updatedAt,
     };
@@ -289,13 +293,16 @@ export async function deleteResourceFromFirestore(
 export async function updateResourceInFirestore(
   userId: string,
   resourceId: string,
-  data: { title?: string; tags?: string[] }
+  data: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean }
 ): Promise<void> {
   const updateData: Record<string, unknown> = {
     updatedAt: FieldValue.serverTimestamp(),
   };
   if (data.title !== undefined) updateData.title = data.title.trim();
+  if (data.description !== undefined) updateData.description = data.description.trim();
+  if (data.url !== undefined) updateData.url = data.url.trim();
   if (data.tags !== undefined) updateData.tags = Array.isArray(data.tags) ? data.tags : [];
+  if (data.isFavorite !== undefined) updateData.isFavorite = data.isFavorite;
   await userResourcesCol(userId).doc(resourceId).update(updateData);
 }
 

@@ -75,8 +75,25 @@ Notatki w trybie Wiedza korzystają z komponentu **NoteEditor** (`src/components
 Refaktor wdrożony.
 
 - **App.tsx** (~278 linii) — tylko layout: auth (loading, ekran logowania, handlery), stan `appMode`, `isSidebarOpen`, `lang`, `user`, `apiFetch`, `handleLogout` oraz warunkowy render `appMode === 'wiedza' ? <WiedzaView ... /> : <PlanowanieView ... />`.
-- **src/features/wiedza/** — `WiedzaView.tsx` (sidebar z zakładkami Chat/Notatki/Zasoby, lista dokumentów, upload; main: chat, notatki z NoteEditor, ResourceSection), `index.ts` (re-eksport).
+- **src/features/wiedza/** — `WiedzaView.tsx` (sidebar z zakładkami Chat/Notatki/Zasoby, lista dokumentów, upload; main: chat, notatki z NoteEditor, **ResourceSection**), `index.ts` (re-eksport).
 - **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar z zakładkami Kalendarz/Aktywność/Zadania/Tagi; main: CalendarView, ActivityLog, TasksSection, TagsSection, pasek Plan AI z historią konwersacji w stanie — patrz wyżej „Pamięć konwersacji Plan AI”), `index.ts` (re-eksport).
 - **src/components/layout/** — `AppSidebar.tsx` (wspólna ramka sidebara: logo, lang, children, UserCard, ProPlanBar), `AppHeader.tsx` (przełącznik trybów, przycisk sidebara, search, „Brain Active”).
 
 Komponenty CalendarView, ActivityLog, TasksSection, TagsSection, ResourceSection, NoteEditor pozostają w `src/components` i są używane z modułów features. Backend i API bez zmian.
+
+### ResourceSection – zasoby, ulubione i wyszukiwarka
+
+- **UI i UX** (`src/components/ResourceSection.tsx`):
+  - Zakładka **Zasoby** w module Wiedza ma teraz wspólny header z tytułem i polem wyszukiwania po **tytule/opisie/URL** (filtrowanie w czasie rzeczywistym, dodatkowo do filtra po tagach).
+  - Lewa kolumna podzielona jest logicznie na: (1) „Filtruj po tagach”, (2) formularz dodawania pojedynczego linku („Opis…”, `URL`, `Tagi`), (3) sekcję „Lub wklej w formacie blokowym”.
+  - Prawa kolumna zawiera listę zasobów oraz pasek **Ulubionych stron** nad listą — małe kafelki z faviconami działające jak ikony na pulpicie (klik otwiera stronę w nowej karcie).
+  - Każdy element listy ma teraz akcje: **Ulubione | Open link | Copy URL | Delete**; kliknięcie w treść wiersza otwiera modal edycji całego zasobu (tytuł, opis, URL, tagi, flaga Ulubione).
+
+- **Model i API**:
+  - `NoteResource` / `NoteResourceRecord` rozszerzone o pole `isFavorite?: boolean`, przechowywane w kolekcji `users/{userId}/resources` w Firestore.
+  - `GET /api/resources` zwraca pełny rekord zasobu łącznie z `isFavorite`.
+  - `PUT /api/resources/[resourceId]` przyjmuje częściowy payload (`title`, `description`, `url`, `tags`, `isFavorite`) i aktualizuje zasób przez `resourceService.updateResource()` / `updateResourceInFirestore()`.
+  - UI sortuje zasoby tak, aby ulubione (`isFavorite === true`) były **na górze listy**, przy zachowaniu dotychczasowej kolejności w ramach grupy.
+
+- **Edycja zasobu**:
+  - Zrezygnowaliśmy z inline edycji tytułu i tagów; zamiast tego cała edycja odbywa się w **modalu** (`editingResource`, `editForm` w `ResourceSection`), co upraszcza interakcję i umożliwia modyfikację wszystkich pól jednocześnie.

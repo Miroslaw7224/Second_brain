@@ -41,7 +41,7 @@ export async function deleteResource(
 export async function updateResource(
   userId: string,
   resourceId: string,
-  data: { title?: string; tags?: string[] }
+  data: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean }
 ): Promise<void> {
   return updateResourceInFirestore(userId, resourceId, data);
 }
