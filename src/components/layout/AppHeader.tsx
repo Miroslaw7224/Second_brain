@@ -5,8 +5,7 @@
 
 import React from 'react';
 import { ChevronRight, Search, History, MessageCircle, X } from 'lucide-react';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '@/src/lib/cn';
 import { ThemeToggle } from '@/src/components/theme/ThemeToggle';
 
 export interface AppHeaderTranslations {
@@ -23,10 +22,6 @@ export interface AppHeaderProps {
   appMode: 'wiedza' | 'planowanie';
   setAppMode: (mode: 'wiedza' | 'planowanie') => void;
   t: AppHeaderTranslations;
-}
-
-function cn(...inputs: (string | undefined)[]) {
-  return twMerge(clsx(inputs));
 }
 
 export function AppHeader({

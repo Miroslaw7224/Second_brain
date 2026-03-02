@@ -4,15 +4,15 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, Briefcase, ListTodo, Tag, Send, Loader2 } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { Send, Loader2 } from 'lucide-react';
+import { cn } from '@/src/lib/cn';
 import { AppSidebar, type AppSidebarUser, type AppSidebarTranslations } from '@/src/components/layout/AppSidebar';
 import { AppHeader } from '@/src/components/layout/AppHeader';
 import { CalendarView } from '@/src/components/CalendarView';
 import { TasksSection } from '@/src/components/TasksSection';
 import { ActivityLog } from '@/src/components/ActivityLog';
 import { TagsSection, type UserTag } from '@/src/components/TagsSection';
+import { PlanowanieSidebarContent } from './PlanowanieSidebarContent';
 import {
   getActiveSession,
   setActiveSession,
@@ -20,10 +20,6 @@ import {
   type ActiveSession,
 } from '@/src/lib/activeSession';
 import type { translations } from '@/src/translations';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 type TranslationsEn = (typeof translations)['en'];
 
@@ -240,61 +236,15 @@ export default function PlanowanieView({
         documentsCount={0}
         t={sidebarT}
       >
-        <div>
-          <h2 className="text-xs font-semibold text-[var(--text3)] uppercase tracking-widest mb-3 px-2">
-            {t.modePlanowanie}
-          </h2>
-          <div className="space-y-1">
-            <button
-              onClick={() => setPlanningTab('calendar')}
-              className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
-                planningTab === 'calendar'
-                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
-              )}
-            >
-              <Calendar className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{t.tabCalendar}</span>
-            </button>
-            <button
-              onClick={() => setPlanningTab('activity')}
-              className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
-                planningTab === 'activity'
-                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
-              )}
-            >
-              <Briefcase className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{t.tabActivity}</span>
-            </button>
-            <button
-              onClick={() => setPlanningTab('tasks')}
-              className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
-                planningTab === 'tasks'
-                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
-              )}
-            >
-              <ListTodo className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{t.tabTasks}</span>
-            </button>
-            <button
-              onClick={() => setPlanningTab('tags')}
-              className={cn(
-                'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left',
-                planningTab === 'tags'
-                  ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                  : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)]'
-              )}
-            >
-              <Tag className="w-5 h-5 flex-shrink-0" />
-              <span className="text-sm font-medium">{t.tabTags}</span>
-            </button>
-          </div>
-        </div>
+        <PlanowanieSidebarContent
+          planningTab={planningTab}
+          setPlanningTab={setPlanningTab}
+          modePlanowanie={t.modePlanowanie}
+          tabCalendar={t.tabCalendar}
+          tabActivity={t.tabActivity}
+          tabTasks={t.tabTasks}
+          tabTags={t.tabTags}
+        />
       </AppSidebar>
 
       <main className="flex-1 min-w-0 flex flex-col relative">
