@@ -110,7 +110,7 @@ export const translations = {
     ]
   },
   pl: {
-    title: "Drugi Mózg",
+    title: "Second Brain",
     subtitle: "Edycja Freelancera",
     knowledge: "Twoja Wiedza",
     noDocs: "Brak dokumentów",

@@ -275,9 +275,6 @@ export function CalendarView({
           </button>
         </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-[var(--text3)] hidden sm:inline">
-              {(t.calendarClickToEdit as string) ?? "Click an event to edit"}
-            </span>
             {activeSession ? (
               <>
                 <span className="text-sm font-medium text-[var(--text2)]">
@@ -407,7 +404,7 @@ export function CalendarView({
                             height: `${heightPct}%`,
                             backgroundColor: ev.color,
                           }}
-                          title={`${ev.title} ${ev.tags.map((t) => `#${t}`).join(" ")} · ${formatDuration(ev.duration_minutes)} · ${(t.calendarClickToEdit as string) ?? "Click to edit"}`}
+                          title={`${ev.title} ${ev.tags.map((t) => `#${t}`).join(" ")} · ${formatDuration(ev.duration_minutes)}`}
                         >
                           <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
                             {ev.title}
