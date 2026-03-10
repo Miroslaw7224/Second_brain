@@ -1,10 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import {
-  listNotes,
-  createNote,
-  updateNote,
-  deleteNote,
-} from "../../../services/noteService.js";
+import { listNotes, createNote, updateNote, deleteNote } from "../../../services/noteService.js";
 
 const mockGetNotes = vi.hoisted(() => vi.fn());
 const mockCreateNote = vi.hoisted(() => vi.fn());
@@ -76,9 +71,9 @@ describe("noteService", () => {
     it("given updateNote throws, when updateNote is called, then propagates the error", async () => {
       mockUpdateNote.mockRejectedValue(new Error("Update failed"));
 
-      await expect(
-        updateNote("user-1", "n1", { title: "T", content: "C" })
-      ).rejects.toThrow("Update failed");
+      await expect(updateNote("user-1", "n1", { title: "T", content: "C" })).rejects.toThrow(
+        "Update failed"
+      );
     });
   });
 

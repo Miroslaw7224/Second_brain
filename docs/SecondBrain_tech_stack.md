@@ -1,19 +1,19 @@
 # ⚙️ Tech Stack
 
 **Second Brain dla Freelancerów**
-*Uzasadnienie decyzji technologicznych | MVP v1.1*
+_Uzasadnienie decyzji technologicznych | MVP v1.1_
 
 ---
 
-| Zasada #1 | Zasada #2 |
-|---|---|
-| *Minimalny stack, maksymalna szybkość dostarczenia* | *Zero lock-in na wczesnym etapie (świadome kompromisy)* |
+| Zasada #1                                           | Zasada #2                                               |
+| --------------------------------------------------- | ------------------------------------------------------- |
+| _Minimalny stack, maksymalna szybkość dostarczenia_ | _Zero lock-in na wczesnym etapie (świadome kompromisy)_ |
 
 ---
 
 ## Architektura — big picture
 
-> *Next.js (frontend + API) → Firebase (auth, storage, DB, functions) → Gemini API (embeddingi + chat) → Vercel (hosting) → Stripe (płatności)*
+> _Next.js (frontend + API) → Firebase (auth, storage, DB, functions) → Gemini API (embeddingi + chat) → Vercel (hosting) → Stripe (płatności)_
 
 Cały stack jest serverless, nie wymaga zarządzania infrastrukturą i mieści się w darmowych tierach na etapie MVP. Jeden dostawca backendu (Firebase), jeden dostawca AI (Google/Gemini), jeden hosting (Vercel) — minimalna liczba zewnętrznych zależności.
 
@@ -22,7 +22,7 @@ Cały stack jest serverless, nie wymaga zarządzania infrastrukturą i mieści s
 ## 1. Frontend — Next.js 14 (App Router)
 
 > **Wybrano:** Next.js 14 z App Router
-> **Alternatywy:** *Vite + React SPA, Remix, SvelteKit*
+> **Alternatywy:** _Vite + React SPA, Remix, SvelteKit_
 
 ### Dlaczego Next.js
 
@@ -40,7 +40,7 @@ Krytyczny argument: RAG pipeline (chunking, embeddingi, similarity search) może
 ## 2. Autentykacja — Firebase Auth
 
 > **Wybrano:** Firebase Auth
-> **Alternatywy:** *NextAuth.js, Supabase Auth, Clerk*
+> **Alternatywy:** _NextAuth.js, Supabase Auth, Clerk_
 
 ### Dlaczego Firebase Auth
 
@@ -58,7 +58,7 @@ Bezpośrednia integracja z Firestore (reguły bezpieczeństwa oparte na `request
 ## 3. Baza danych — Firestore
 
 > **Wybrano:** Firestore (NoSQL)
-> **Alternatywy:** *PostgreSQL (Supabase), PlanetScale, MongoDB Atlas*
+> **Alternatywy:** _PostgreSQL (Supabase), PlanetScale, MongoDB Atlas_
 
 ### Dlaczego Firestore
 
@@ -83,7 +83,7 @@ users/{userId}/chunks/{chunkId}   → chunk + wektor embeddingu
 ## 4. Przechowywanie plików — Firebase Storage
 
 > **Wybrano:** Firebase Storage
-> **Alternatywy:** *Supabase Storage, AWS S3, Cloudflare R2*
+> **Alternatywy:** _Supabase Storage, AWS S3, Cloudflare R2_
 
 ### Dlaczego Firebase Storage
 
@@ -101,7 +101,7 @@ Na MVP limit 10MB per plik i 3 pliki jednocześnie jest wystarczający. Koszt Fi
 ## 5. Embeddingi (RAG) — Gemini text-embedding-004
 
 > **Wybrano:** Gemini text-embedding-004
-> **Alternatywy:** *OpenAI text-embedding-3-small, Cohere Embed, lokalne modele (all-MiniLM)*
+> **Alternatywy:** _OpenAI text-embedding-3-small, Cohere Embed, lokalne modele (all-MiniLM)_
 
 ### Dlaczego Gemini text-embedding-004
 
@@ -119,7 +119,7 @@ Koszt jest znacznie niższy niż OpenAI przy porównywalnej jakości dla angiels
 ## 6. Chat AI — Gemini 1.5 Flash
 
 > **Wybrano:** Gemini 1.5 Flash
-> **Alternatywy:** *GPT-4o-mini, Claude Haiku, Mistral 7B (self-hosted)*
+> **Alternatywy:** _GPT-4o-mini, Claude Haiku, Mistral 7B (self-hosted)_
 
 ### Dlaczego Gemini 1.5 Flash
 
@@ -137,7 +137,7 @@ Streaming response jest natywny i prosty w integracji z Next.js Streaming API �
 ## 7. Vector Search — Firestore + cosine similarity
 
 > **Wybrano:** Custom cosine similarity w Next.js API Route
-> **Alternatywy:** *Pinecone, Weaviate, pgvector (Supabase), Qdrant, Vertex AI Vector Search*
+> **Alternatywy:** _Pinecone, Weaviate, pgvector (Supabase), Qdrant, Vertex AI Vector Search_
 
 ### Dlaczego własna implementacja na MVP
 
@@ -150,14 +150,14 @@ Algorytm jest prosty: pobierz wszystkie wektory usera z Firestore → oblicz pod
 - Wolniejsze niż dedykowany vector store przy dużej liczbie chunków — celowo odroczona decyzja
 - Brak zaawansowanego filtrowania metadanych — wystarczające na MVP
 
-> *Próg migracji: gdy użytkownik ma > 2000 chunków LUB latencja search > 500ms — czas na Pinecone lub pgvector.*
+> _Próg migracji: gdy użytkownik ma > 2000 chunków LUB latencja search > 500ms — czas na Pinecone lub pgvector._
 
 ---
 
 ## 8. Automatyzacje i logika serverside — Firebase Cloud Functions ✅ NOWE
 
 > **Wybrano:** Firebase Cloud Functions
-> **Alternatywy:** *Make (Integromat) — używany w Etapie 1 no-code, Zapier, własny serwer Express*
+> **Alternatywy:** _Make (Integromat) — używany w Etapie 1 no-code, Zapier, własny serwer Express_
 
 ### Kontekst
 
@@ -187,19 +187,19 @@ Serverless model jest zgodny z resztą stacku — zero zarządzania serwerem, p�
 
 ### Mapa przejścia Etap 1 → Etap 2
 
-| Funkcja | Etap 1 (Make) | Etap 2 (Cloud Functions) |
-|---|---|---|
-| Email powitalny | Make scenario → SendGrid | `onUserCreate` trigger → SendGrid / Resend |
-| Onboarding Firestore | Make → Firestore HTTP API | `onUserCreate` trigger → Firestore SDK |
-| Webhook Stripe | Make → Firestore HTTP API | Dedicated HTTPS function → Firestore SDK |
-| Alert limitu dokumentów | Brak | `onDocumentCreated` trigger → email |
+| Funkcja                 | Etap 1 (Make)             | Etap 2 (Cloud Functions)                   |
+| ----------------------- | ------------------------- | ------------------------------------------ |
+| Email powitalny         | Make scenario → SendGrid  | `onUserCreate` trigger → SendGrid / Resend |
+| Onboarding Firestore    | Make → Firestore HTTP API | `onUserCreate` trigger → Firestore SDK     |
+| Webhook Stripe          | Make → Firestore HTTP API | Dedicated HTTPS function → Firestore SDK   |
+| Alert limitu dokumentów | Brak                      | `onDocumentCreated` trigger → email        |
 
 ---
 
 ## 9. Hosting — Vercel + Firebase
 
 > **Wybrano:** Vercel (Next.js) + Firebase (backend services)
-> **Alternatywy:** *Railway, Render, AWS Amplify, Fly.io*
+> **Alternatywy:** _Railway, Render, AWS Amplify, Fly.io_
 
 ### Dlaczego Vercel
 
@@ -217,7 +217,7 @@ Połączenie Vercel + Firebase to sprawdzony duet: Next.js na Vercel, wszystkie 
 ## 10. Płatności — Stripe
 
 > **Wybrano:** Stripe
-> **Alternatywy:** *Paddle, LemonSqueezy, Gumroad*
+> **Alternatywy:** _Paddle, LemonSqueezy, Gumroad_
 
 ### Dlaczego Stripe
 
@@ -234,13 +234,13 @@ Na MVP jeden plan ($19/msc) + Free Trial (7 dni, bez karty). Stripe Checkout eli
 
 ## Podsumowanie decyzji
 
-| Kryterium | Waga na MVP | Jak stack to spełnia |
-|---|---|---|
-| Szybkość wdrożenia | Krytyczna | Firebase eliminuje konfigurację backendu, Vercel eliminuje DevOps |
-| Koszt miesięczny | Wysoka | Free tiers pokrywają 0–100 userów; Google Cloud limit $20 jako hard cap |
-| Izolacja danych per user | Krytyczna | Firestore security rules + Firebase Auth uid — wbudowane w bazę |
-| Skalowalność | Średnia | Świadome kompromisy z planem migracji na każdą warstwę |
-| Czas do płatnego użytkownika | Najwyższa | Cały stack deployowalny w < 2 tygodnie przez solo developera |
+| Kryterium                    | Waga na MVP | Jak stack to spełnia                                                    |
+| ---------------------------- | ----------- | ----------------------------------------------------------------------- |
+| Szybkość wdrożenia           | Krytyczna   | Firebase eliminuje konfigurację backendu, Vercel eliminuje DevOps       |
+| Koszt miesięczny             | Wysoka      | Free tiers pokrywają 0–100 userów; Google Cloud limit $20 jako hard cap |
+| Izolacja danych per user     | Krytyczna   | Firestore security rules + Firebase Auth uid — wbudowane w bazę         |
+| Skalowalność                 | Średnia     | Świadome kompromisy z planem migracji na każdą warstwę                  |
+| Czas do płatnego użytkownika | Najwyższa   | Cały stack deployowalny w < 2 tygodnie przez solo developera            |
 
 ---
 
@@ -248,16 +248,15 @@ Na MVP jeden plan ($19/msc) + Free Trial (7 dni, bez karty). Stripe Checkout eli
 
 Każda migracja jest niezależna — można je robić po kolei w odpowiedzi na konkretny ból, nie z góry.
 
-| Warstwa | Teraz (MVP) | Przy skalowaniu | Trigger |
-|---|---|---|---|
-| Vector Search | Firestore + cosine similarity | Pinecone / pgvector | > 2000 chunków lub latencja > 500ms |
-| Automatyzacje | Firebase Cloud Functions | Bez zmian lub Inngest | Złożoność logiki przekracza możliwości Functions |
-| Autentykacja | Firebase Auth | Bez zmian lub Clerk | Potrzeba enterprise SSO |
-| Chat AI | Gemini 1.5 Flash | Bez zmian lub fine-tuned model | Jakość odpowiedzi niewystarczająca |
-| Hosting | Vercel Hobby | Vercel Pro / Railway | > 100GB bandwidth / msc |
-| Pliki | Firebase Storage | Cloudflare R2 | Koszty storage > $20/msc |
+| Warstwa       | Teraz (MVP)                   | Przy skalowaniu                | Trigger                                          |
+| ------------- | ----------------------------- | ------------------------------ | ------------------------------------------------ |
+| Vector Search | Firestore + cosine similarity | Pinecone / pgvector            | > 2000 chunków lub latencja > 500ms              |
+| Automatyzacje | Firebase Cloud Functions      | Bez zmian lub Inngest          | Złożoność logiki przekracza możliwości Functions |
+| Autentykacja  | Firebase Auth                 | Bez zmian lub Clerk            | Potrzeba enterprise SSO                          |
+| Chat AI       | Gemini 1.5 Flash              | Bez zmian lub fine-tuned model | Jakość odpowiedzi niewystarczająca               |
+| Hosting       | Vercel Hobby                  | Vercel Pro / Railway           | > 100GB bandwidth / msc                          |
+| Pliki         | Firebase Storage              | Cloudflare R2                  | Koszty storage > $20/msc                         |
 
-> *Zasada: nie migruj zanim nie boli. Każda z powyższych migracji to 1–3 dni pracy — robimy je reaktywnie, nie proaktywnie.*
+> _Zasada: nie migruj zanim nie boli. Każda z powyższych migracji to 1–3 dni pracy — robimy je reaktywnie, nie proaktywnie._
 
 ---
-

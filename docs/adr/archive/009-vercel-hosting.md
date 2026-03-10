@@ -28,12 +28,14 @@ Wybieramy **Vercel** jako platformę hostingu dla Next.js. Zero konfiguracji —
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Zero konfiguracji deployu — git push = deploy
 - Preview per PR — testowanie przed merge
 - Edge CDN — szybki dostęp globalnie
 - Free tier Hobby na MVP
 
 **Negatywne:**
+
 - Vercel Hobby ma limity (100GB bandwidth, brak team features) — przy wzroście upgrade do Pro ($20/msc)
 - Serverless cold start — nieistotne dla rzadkich requestów na MVP
 

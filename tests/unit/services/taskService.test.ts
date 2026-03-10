@@ -33,7 +33,14 @@ describe("taskService", () => {
   describe("getTasks", () => {
     it("given Firestore returns tasks, when getTasks is called, then returns the list (happy path)", async () => {
       const tasks = [
-        { id: "t1", title: "Task 1", description: "", status: "todo" as const, due_date: null, priority: null },
+        {
+          id: "t1",
+          title: "Task 1",
+          description: "",
+          status: "todo" as const,
+          due_date: null,
+          priority: null,
+        },
       ];
       mockGetTasks.mockResolvedValue(tasks);
 

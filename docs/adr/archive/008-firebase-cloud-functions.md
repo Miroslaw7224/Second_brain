@@ -19,6 +19,7 @@ Priorytet: spójność z Firebase, brak dodatkowego konta i billingu, triggery o
 Wybieramy **Firebase Cloud Functions** do automatyzacji w Etapie 2. Zastępuje Make — triggery na zdarzeniach Firestore (`onDocumentCreated`, `onDocumentUpdated`), Auth (`onUserCreate`), oraz HTTPS functions dla webhooków Stripe.
 
 Przypadki użycia:
+
 - Email powitalny — trigger po rejestracji
 - Onboarding — automatyczne tworzenie kolekcji Firestore
 - Alert limitu dokumentów — trigger gdy `documents count >= 45`
@@ -34,12 +35,14 @@ Przypadki użycia:
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Natywny dostęp do Firestore, Auth, Storage — bez dodatkowej konfiguracji
 - Triggery oparte na zdarzeniach — bez wystawiania publicznych endpointów
 - Serverless — zero zarządzania serwerem, płatność za wykonanie
 - Spójność ekosystemu Firebase
 
 **Negatywne:**
+
 - Cold start (100–500ms) przy rzadkich wywołaniach — nieistotne dla triggerów w tle
 - Limit czasu wykonania 540s — wystarczający dla opisanych przypadków
 - Lokalny development wymaga Firebase Emulator Suite — jednorazowy setup

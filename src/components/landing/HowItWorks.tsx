@@ -29,9 +29,7 @@ export default function HowItWorks() {
   return (
     <section className="bg-white px-6 py-20 sm:px-8 lg:px-12 xl:px-16" id="jak-dziala">
       <div className="mx-auto max-w-7xl">
-        <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">
-          Jak to działa
-        </h2>
+        <h2 className="text-center text-3xl font-bold text-slate-900 sm:text-4xl">Jak to działa</h2>
         <p className="mt-4 text-center text-lg text-slate-600">
           Czym jest Second Brain w 4 krokach
         </p>

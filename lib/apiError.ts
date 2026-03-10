@@ -5,7 +5,10 @@ export function handleServiceError(err: unknown): NextResponse {
   if (err instanceof DomainError) {
     return NextResponse.json({ error: err.message }, { status: err.statusCode });
   }
-  const status = err && typeof err === "object" && "status" in err ? (err as { status: number }).status : undefined;
+  const status =
+    err && typeof err === "object" && "status" in err
+      ? (err as { status: number }).status
+      : undefined;
   if (status === 429) {
     const msg = err instanceof Error ? err.message : "API rate limit exceeded.";
     const retryMatch = typeof msg === "string" ? msg.match(/retry in (\d+(?:\.\d+)?)s/i) : null;

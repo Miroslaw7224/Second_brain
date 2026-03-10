@@ -189,15 +189,17 @@ export default function LoginScreen() {
                 required
               />
             </div>
-            {authError && (
-              <p className="text-xs text-red-500 font-medium">{authError}</p>
-            )}
+            {authError && <p className="text-xs text-red-500 font-medium">{authError}</p>}
             <button
               type="submit"
               disabled={checkingWaitlist}
               className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {checkingWaitlist ? "Sprawdzanie dostępu…" : authMode === "login" ? t.login : t.register}
+              {checkingWaitlist
+                ? "Sprawdzanie dostępu…"
+                : authMode === "login"
+                  ? t.login
+                  : t.register}
             </button>
           </form>
 
@@ -241,9 +243,7 @@ export default function LoginScreen() {
             {authMode === "login" ? t.noAccount : t.hasAccount}{" "}
             <button
               type="button"
-              onClick={() =>
-                setAuthMode(authMode === "login" ? "register" : "login")
-              }
+              onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
               className="font-bold text-[var(--text)] hover:underline"
             >
               {authMode === "login" ? t.register : t.login}

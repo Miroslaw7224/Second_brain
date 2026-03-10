@@ -35,12 +35,12 @@ Infrastructure (Firestore, Storage, Gemini, Stripe)
 
 **Mapowanie na foldery (Next.js App Router):**
 
-| Warstwa | Lokalizacja | Przykłady |
-|--------|-------------|-----------|
-| UI | `app/`, `components/` | `app/page.tsx`, `app/chat/page.tsx`, `components/ChatPanel.tsx` |
-| Route Handlers | `app/api/` | `app/api/chat/route.ts`, `app/api/documents/route.ts` |
-| Services | `services/` | `services/ragService.ts`, `services/documentService.ts`, `services/subscriptionService.ts` |
-| Infrastructure | `lib/` | `lib/firestore-db.ts`, `lib/gemini.ts`, `lib/stripe.ts`, `lib/storage.ts` |
+| Warstwa        | Lokalizacja           | Przykłady                                                                                  |
+| -------------- | --------------------- | ------------------------------------------------------------------------------------------ |
+| UI             | `app/`, `components/` | `app/page.tsx`, `app/chat/page.tsx`, `components/ChatPanel.tsx`                            |
+| Route Handlers | `app/api/`            | `app/api/chat/route.ts`, `app/api/documents/route.ts`                                      |
+| Services       | `services/`           | `services/ragService.ts`, `services/documentService.ts`, `services/subscriptionService.ts` |
+| Infrastructure | `lib/`                | `lib/firestore-db.ts`, `lib/gemini.ts`, `lib/stripe.ts`, `lib/storage.ts`                  |
 
 Dopuszczalne: `lib/` może zawierać też współdzielone narzędzia (utils, typy), przy czym klienty zewnętrznych systemów (Firestore, Gemini, Stripe) są w `lib/` i to one są wywoływane wyłącznie z `services/`.
 
@@ -75,12 +75,14 @@ Nie wymuszamy jej od dnia jeden. Warto ją rozważyć, gdy zapytań Firestore pr
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Kontrakt z samym sobą: UI nie dotyka infrastruktury — mniej pułapek w Next.js (Server Components + Firestore).
 - Testowalność: `ragService.query()` i `documentService.ingest()` testowane bez HTTP; Route Handlery można testować jako cienką warstwę.
 - Jedno miejsce na logikę domenową (Services) — łatwiejsze zmiany i onboarding (lub Cursor).
 - Actionable ADR: jasne foldery (`/services/`, `/lib/`) — wiadomo, gdzie co pisać.
 
 **Negatywne:**
+
 - Więcej plików i jednego poziomu indirekcji — akceptowalne za czytelność i testy.
 - Trzeba dyscyplinować się, żeby nie „skrócić" przez wywołanie Firestore/Gemini z komponentu — ADR służy właśnie jako przypomnienie.
 

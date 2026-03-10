@@ -108,9 +108,9 @@ describe("calendarService", () => {
     it("given updateCalendarEvent throws, when updateCalendarEvent is called, then propagates the error", async () => {
       mockUpdateCalendarEvent.mockRejectedValue(new Error("Update failed"));
 
-      await expect(
-        updateCalendarEvent("user-1", "e1", { title: "X" })
-      ).rejects.toThrow("Update failed");
+      await expect(updateCalendarEvent("user-1", "e1", { title: "X" })).rejects.toThrow(
+        "Update failed"
+      );
     });
   });
 

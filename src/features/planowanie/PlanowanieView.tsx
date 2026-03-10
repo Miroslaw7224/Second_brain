@@ -3,37 +3,41 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Send, Loader2 } from 'lucide-react';
-import { cn } from '@/src/lib/cn';
-import { AppSidebar, type AppSidebarUser, type AppSidebarTranslations } from '@/src/components/layout/AppSidebar';
-import { AppHeader } from '@/src/components/layout/AppHeader';
-import { CalendarView } from '@/src/components/CalendarView';
-import { TasksSection } from '@/src/components/TasksSection';
-import { ActivityLog } from '@/src/components/ActivityLog';
-import { TagsSection, type UserTag } from '@/src/components/TagsSection';
-import { PlanowanieSidebarContent } from './PlanowanieSidebarContent';
+import React, { useState, useEffect, useCallback } from "react";
+import { Send, Loader2 } from "lucide-react";
+import { cn } from "@/src/lib/cn";
+import {
+  AppSidebar,
+  type AppSidebarUser,
+  type AppSidebarTranslations,
+} from "@/src/components/layout/AppSidebar";
+import { AppHeader } from "@/src/components/layout/AppHeader";
+import { CalendarView } from "@/src/components/CalendarView";
+import { TasksSection } from "@/src/components/TasksSection";
+import { ActivityLog } from "@/src/components/ActivityLog";
+import { TagsSection, type UserTag } from "@/src/components/TagsSection";
+import { PlanowanieSidebarContent } from "./PlanowanieSidebarContent";
 import {
   getActiveSession,
   setActiveSession,
   clearActiveSession,
   type ActiveSession,
-} from '@/src/lib/activeSession';
-import type { translations } from '@/src/translations';
+} from "@/src/lib/activeSession";
+import type { translations } from "@/src/translations";
 
-type TranslationsEn = (typeof translations)['en'];
+type TranslationsEn = (typeof translations)["en"];
 
 export interface PlanowanieViewProps {
   user: AppSidebarUser | null;
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
-  lang: 'en' | 'pl';
+  lang: "en" | "pl";
   t: TranslationsEn;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: 'wiedza' | 'planowanie';
-  setAppMode: (mode: 'wiedza' | 'planowanie') => void;
+  appMode: "wiedza" | "planowanie";
+  setAppMode: (mode: "wiedza" | "planowanie") => void;
   onLogout: () => void;
-  setLang: (lang: 'en' | 'pl') => void;
+  setLang: (lang: "en" | "pl") => void;
 }
 
 export default function PlanowanieView({
@@ -48,9 +52,13 @@ export default function PlanowanieView({
   onLogout,
   setLang,
 }: PlanowanieViewProps) {
-  const [planningTab, setPlanningTab] = useState<'calendar' | 'activity' | 'tasks' | 'tags'>('calendar');
-  const [planAskInput, setPlanAskInput] = useState('');
-  const [messages, setMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string }>>([]);
+  const [planningTab, setPlanningTab] = useState<"calendar" | "activity" | "tasks" | "tags">(
+    "calendar"
+  );
+  const [planAskInput, setPlanAskInput] = useState("");
+  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>(
+    []
+  );
   const [planAskLoading, setPlanAskLoading] = useState(false);
   const [planAskPendingMessage, setPlanAskPendingMessage] = useState<string | null>(null);
   const [planAskUnknownTags, setPlanAskUnknownTags] = useState<string[]>([]);
@@ -89,13 +97,13 @@ export default function PlanowanieView({
     const started = new Date(activeSession.startedAt);
     const now = Date.now();
     const date = new Date();
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
     const startMinutes = Math.floor((started.getHours() * 60 + started.getMinutes()) / 15) * 15;
     const durationMinutes = Math.ceil((now - started.getTime()) / (15 * 60 * 1000)) * 15;
     try {
-      const res = await apiFetch('/api/calendar/events', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await apiFetch("/api/calendar/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           date: dateStr,
           start_minutes: startMinutes,
@@ -113,27 +121,27 @@ export default function PlanowanieView({
       clearActiveSession(user.id);
       setCalendarRefreshKey((k) => k + 1);
     } catch (err) {
-      console.error('End session failed', err);
-      setSessionEndError(err instanceof Error ? err.message : 'Failed to save');
+      console.error("End session failed", err);
+      setSessionEndError(err instanceof Error ? err.message : "Failed to save");
     }
   }, [activeSession, user?.id, apiFetch]);
 
   const fetchTags = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/tags');
+      const res = await apiFetch("/api/tags");
       if (!res.ok) {
         setUserTags([]);
         return;
       }
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
         setUserTags([]);
         return;
       }
       const data = await res.json();
       setUserTags(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch tags', err);
+      console.error("Failed to fetch tags", err);
       setUserTags([]);
     }
   }, [apiFetch]);
@@ -147,18 +155,18 @@ export default function PlanowanieView({
   const handlePlanAsk = async () => {
     if (!planAskInput.trim() || planAskLoading) return;
     const msg = planAskInput.trim();
-    setPlanAskInput('');
+    setPlanAskInput("");
     setPlanAskLoading(true);
     setPlanAskPendingMessage(null);
     setPlanAskUnknownTags([]);
 
-    const updatedMessages = [...messages, { role: 'user' as const, content: msg }];
+    const updatedMessages = [...messages, { role: "user" as const, content: msg }];
     setMessages(updatedMessages);
 
     try {
-      const res = await apiFetch('/api/plan/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await apiFetch("/api/plan/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           message: msg,
           history: updatedMessages.slice(-19, -1),
@@ -166,18 +174,24 @@ export default function PlanowanieView({
         }),
       });
       const data = await res.json();
-      const assistantContent = data.text || data.error || '';
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: assistantContent }].slice(-20));
+      const assistantContent = data.text || data.error || "";
+      setMessages((prev) =>
+        [...prev, { role: "assistant" as const, content: assistantContent }].slice(-20)
+      );
       if (data.unknownTags && Array.isArray(data.unknownTags) && data.unknownTags.length > 0) {
         setPlanAskPendingMessage(msg);
         setPlanAskUnknownTags(data.unknownTags);
       }
       if (data.created) {
         setCalendarRefreshKey((k) => k + 1);
-        if (planningTab === 'calendar') setPlanningTab('calendar');
+        if (planningTab === "calendar") setPlanningTab("calendar");
       }
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: 'Sorry, something went wrong.' }].slice(-20));
+      setMessages((prev) =>
+        [...prev, { role: "assistant" as const, content: "Sorry, something went wrong." }].slice(
+          -20
+        )
+      );
     } finally {
       setPlanAskLoading(false);
     }
@@ -188,30 +202,35 @@ export default function PlanowanieView({
     setPlanAskLoading(true);
     try {
       for (const tagName of planAskUnknownTags) {
-        await apiFetch('/api/tags', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        await apiFetch("/api/tags", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ tag: tagName.trim(), title: tagName.trim() }),
         });
       }
       await fetchTags();
-      const res = await apiFetch('/api/plan/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await apiFetch("/api/plan/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: planAskPendingMessage, history: messages, lang }),
       });
       const data = await res.json();
-      const assistantContent = data.text || data.error || '';
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: assistantContent }].slice(-20));
+      const assistantContent = data.text || data.error || "";
+      setMessages((prev) =>
+        [...prev, { role: "assistant" as const, content: assistantContent }].slice(-20)
+      );
       setPlanAskPendingMessage(null);
       setPlanAskUnknownTags([]);
       if (data.created) {
         setCalendarRefreshKey((k) => k + 1);
-        if (planningTab === 'calendar') setPlanningTab('calendar');
+        if (planningTab === "calendar") setPlanningTab("calendar");
       }
     } catch (err) {
-      const errorMsg = lang === 'pl' ? 'Nie udało się dodać tagu lub wpisu.' : 'Failed to add tag or entry.';
-      setMessages((prev) => [...prev, { role: 'assistant' as const, content: errorMsg }].slice(-20));
+      const errorMsg =
+        lang === "pl" ? "Nie udało się dodać tagu lub wpisu." : "Failed to add tag or entry.";
+      setMessages((prev) =>
+        [...prev, { role: "assistant" as const, content: errorMsg }].slice(-20)
+      );
     } finally {
       setPlanAskLoading(false);
     }
@@ -263,16 +282,20 @@ export default function PlanowanieView({
         />
 
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
-          {activeSession && planningTab !== 'calendar' && (
+          {activeSession && planningTab !== "calendar" && (
             <div className="flex-shrink-0 px-4 py-2 bg-[var(--accent-bg)] border-b border-[var(--accent)] flex items-center justify-between gap-2">
               <span className="text-sm font-medium text-[var(--text)]">
                 {(t.sessionInProgressSince as string)?.replace(
-                  '{time}',
-                  new Date(activeSession.startedAt).toLocaleTimeString(lang === 'pl' ? 'pl-PL' : 'en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                ) ?? `Work in progress since ${new Date(activeSession.startedAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`}
+                  "{time}",
+                  new Date(activeSession.startedAt).toLocaleTimeString(
+                    lang === "pl" ? "pl-PL" : "en-US",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }
+                  )
+                ) ??
+                  `Work in progress since ${new Date(activeSession.startedAt).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`}
               </span>
               <button
                 type="button"
@@ -283,7 +306,7 @@ export default function PlanowanieView({
               </button>
             </div>
           )}
-          {planningTab === 'calendar' ? (
+          {planningTab === "calendar" ? (
             <CalendarView
               apiFetch={apiFetch}
               lang={lang}
@@ -296,9 +319,9 @@ export default function PlanowanieView({
               sessionEndError={sessionEndError}
               clearSessionEndError={() => setSessionEndError(null)}
             />
-          ) : planningTab === 'activity' ? (
+          ) : planningTab === "activity" ? (
             <ActivityLog apiFetch={apiFetch} lang={lang} t={t} userTags={userTags} />
-          ) : planningTab === 'tags' ? (
+          ) : planningTab === "tags" ? (
             <TagsSection
               apiFetch={apiFetch}
               lang={lang}
@@ -321,10 +344,10 @@ export default function PlanowanieView({
                 <div
                   key={i}
                   className={cn(
-                    'text-sm px-3 py-2 rounded-lg max-w-[85%]',
-                    m.role === 'user'
-                      ? 'ml-auto bg-[var(--accent)] text-white'
-                      : 'mr-auto bg-[var(--bg3)] text-[var(--text)]'
+                    "text-sm px-3 py-2 rounded-lg max-w-[85%]",
+                    m.role === "user"
+                      ? "ml-auto bg-[var(--accent)] text-white"
+                      : "mr-auto bg-[var(--bg3)] text-[var(--text)]"
                   )}
                 >
                   {m.content}
@@ -344,13 +367,13 @@ export default function PlanowanieView({
                 disabled={planAskLoading}
                 className="mb-2 px-3 py-1.5 rounded-lg text-sm font-medium bg-[var(--accent)] text-white hover:brightness-110 disabled:opacity-50"
               >
-                {lang === 'pl'
+                {lang === "pl"
                   ? planAskUnknownTags.length === 1
                     ? `Dodaj tag "${planAskUnknownTags[0]}" i wpis`
-                    : 'Dodaj tagi i wpis'
+                    : "Dodaj tagi i wpis"
                   : planAskUnknownTags.length === 1
                     ? `Add tag "${planAskUnknownTags[0]}" and entry`
-                    : 'Add tags and entry'}
+                    : "Add tags and entry"}
               </button>
             )}
             <div className="flex gap-2">
@@ -358,7 +381,7 @@ export default function PlanowanieView({
                 type="text"
                 value={planAskInput}
                 onChange={(e) => setPlanAskInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handlePlanAsk()}
+                onKeyDown={(e) => e.key === "Enter" && handlePlanAsk()}
                 placeholder={t.planAskPlaceholder}
                 className="flex-1 px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-sm focus:ring-2 focus:ring-[var(--accent)]"
               />
@@ -366,8 +389,10 @@ export default function PlanowanieView({
                 onClick={handlePlanAsk}
                 disabled={!planAskInput.trim() || planAskLoading}
                 className={cn(
-                  'px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1',
-                  planAskInput.trim() && !planAskLoading ? 'bg-[var(--accent)] text-white' : 'bg-[var(--bg3)] text-[var(--text3)]'
+                  "px-4 py-2 rounded-xl text-sm font-semibold flex items-center gap-1",
+                  planAskInput.trim() && !planAskLoading
+                    ? "bg-[var(--accent)] text-white"
+                    : "bg-[var(--bg3)] text-[var(--text3)]"
                 )}
               >
                 {planAskLoading ? (

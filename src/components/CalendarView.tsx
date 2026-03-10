@@ -26,11 +26,7 @@ interface CalendarViewProps {
   userTags?: UserTag[];
   refreshTrigger?: number;
   activeSession?: ActiveSession | null;
-  onStartSession?: (payload: {
-    title: string;
-    tags: string[];
-    color: string;
-  }) => void;
+  onStartSession?: (payload: { title: string; tags: string[]; color: string }) => void;
   onEndSession?: () => void | Promise<void>;
   sessionEndError?: string | null;
   clearSessionEndError?: () => void;
@@ -80,9 +76,7 @@ export function CalendarView({
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    apiFetch(
-      `/api/calendar/events?startDate=${startDate}&endDate=${endDate}`
-    )
+    apiFetch(`/api/calendar/events?startDate=${startDate}&endDate=${endDate}`)
       .then((r) => r.json())
       .then((data) => {
         if (!cancelled) setEvents(Array.isArray(data) ? data : []);
@@ -107,8 +101,7 @@ export function CalendarView({
   for (const u of userTags) {
     if (u.tag) {
       if (u.title) tagTitles[u.tag] = u.title;
-      tagColors[u.tag] =
-        u.color || CALENDAR_COLORS[colorIndex % CALENDAR_COLORS.length];
+      tagColors[u.tag] = u.color || CALENDAR_COLORS[colorIndex % CALENDAR_COLORS.length];
       colorIndex++;
     }
   }
@@ -149,19 +142,14 @@ export function CalendarView({
     setSaveError(null);
     try {
       if (editingEvent) {
-        const res = await apiFetch(
-          `/api/calendar/events/${editingEvent.id}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(data),
-          }
-        );
+        const res = await apiFetch(`/api/calendar/events/${editingEvent.id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          throw new Error(
-            (errBody as { error?: string }).error ?? `HTTP ${res.status}`
-          );
+          throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
         }
       } else {
         const res = await apiFetch("/api/calendar/events", {
@@ -171,24 +159,18 @@ export function CalendarView({
         });
         if (!res.ok) {
           const errBody = await res.json().catch(() => ({}));
-          throw new Error(
-            (errBody as { error?: string }).error ?? `HTTP ${res.status}`
-          );
+          throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
         }
       }
       setModalOpen(false);
       setEditingEvent(null);
       setAddDate(null);
-      const res = await apiFetch(
-        `/api/calendar/events?startDate=${startDate}&endDate=${endDate}`
-      );
+      const res = await apiFetch(`/api/calendar/events?startDate=${startDate}&endDate=${endDate}`);
       const data2 = await res.json();
       setEvents(Array.isArray(data2) ? data2 : []);
     } catch (err) {
       console.error("Save calendar event failed", err);
-      setSaveError(
-        err instanceof Error ? err.message : "Save failed"
-      );
+      setSaveError(err instanceof Error ? err.message : "Save failed");
     }
   };
 
@@ -219,9 +201,7 @@ export function CalendarView({
       "{time}",
       activeSession ? formatSessionTime(activeSession.startedAt) : ""
     ) ??
-    (activeSession
-      ? `Work in progress since ${formatSessionTime(activeSession.startedAt)}`
-      : "");
+    (activeSession ? `Work in progress since ${formatSessionTime(activeSession.startedAt)}` : "");
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
@@ -285,10 +265,7 @@ export function CalendarView({
 
       {sessionEndError && (
         <div className="px-4 py-2 bg-red-500/10 border-b border-red-500/30 flex items-center justify-between gap-2">
-          <p
-            className="text-sm text-red-600 dark:text-red-400"
-            role="alert"
-          >
+          <p className="text-sm text-red-600 dark:text-red-400" role="alert">
             {sessionEndError}
           </p>
           {clearSessionEndError && (
@@ -305,9 +282,7 @@ export function CalendarView({
 
       <div className="flex-1 min-w-0 min-h-0 flex flex-col p-4" ref={gridRef}>
         {loading ? (
-          <div className="flex items-center justify-center h-64 text-[var(--text2)]">
-            Loading…
-          </div>
+          <div className="flex items-center justify-center h-64 text-[var(--text2)]">Loading…</div>
         ) : (
           <div
             className="overflow-auto overflow-x-scroll overflow-y-auto w-full"
@@ -447,22 +422,12 @@ export function CalendarView({
                 setStartSessionModalOpen(false);
               }}
               onCancel={() => setStartSessionModalOpen(false)}
-              submitLabel={
-                (t.sessionSubmitStart as string) ?? "Start work"
-              }
+              submitLabel={(t.sessionSubmitStart as string) ?? "Start work"}
               cancelLabel={(t.calendarCancel as string) ?? "Cancel"}
-              titleLabel={
-                (t.sessionModalTitleLabel as string) ?? "Title"
-              }
-              tagsLabel={
-                (t.sessionModalTagsLabel as string) ?? "Tags"
-              }
-              tagPlaceholder={
-                (t.sessionModalTagPlaceholder as string) ?? "#tag or pick below"
-              }
-              suggestionsLabel={
-                (t.sessionModalSuggestionsLabel as string) ?? "Suggestions"
-              }
+              titleLabel={(t.sessionModalTitleLabel as string) ?? "Title"}
+              tagsLabel={(t.sessionModalTagsLabel as string) ?? "Tags"}
+              tagPlaceholder={(t.sessionModalTagPlaceholder as string) ?? "#tag or pick below"}
+              suggestionsLabel={(t.sessionModalSuggestionsLabel as string) ?? "Suggestions"}
             />
           </div>
         </div>

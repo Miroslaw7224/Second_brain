@@ -9,7 +9,6 @@ import { ResourceListItem } from "./resources/ResourceListItem";
 import { ResourceEditModal } from "./resources/ResourceEditModal";
 
 export type { NoteResource } from "./resources/resourceTypes";
-export { ResourceFilterSidebar } from "./resources/ResourceFilterSidebar";
 
 export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
   const {
@@ -129,13 +128,9 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                 <span>Loading...</span>
               </div>
             ) : resources.length === 0 ? (
-              <p className="text-[var(--text3)] font-medium">
-                {labels.resourceNoResources}
-              </p>
+              <p className="text-[var(--text3)] font-medium">{labels.resourceNoResources}</p>
             ) : filteredResources.length === 0 ? (
-              <p className="text-[var(--text3)] font-medium">
-                {labels.resourceNoMatchingTags}
-              </p>
+              <p className="text-[var(--text3)] font-medium">{labels.resourceNoMatchingTags}</p>
             ) : (
               <ul className="space-y-1.5">
                 {filteredResources.map((r) => (

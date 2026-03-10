@@ -21,9 +21,9 @@ Dane współdzielone (user, apiFetch, lang, t, tagi) przekazujemy propsami lub k
 
 **Mapowanie na foldery:**
 
-| Moduł | Lokalizacja | Zawartość |
-|-------|-------------|-----------|
-| Wiedza | `src/features/wiedza/` | `WiedzaView.tsx` — cały content trybu Wiedza (sidebar wiedzy, chat, notatki z edytorem TipTap w `NoteEditor`, zasoby, lista dokumentów). `components/` — np. ChatPanel, NotesList, NoteEditor, ResourceSection (przeniesiony), lista dokumentów jako komponent. Stan: activeTab, documents, notes, messages, input, selectedNote itd. w WiedzaView lub w kontekście/hooku `useWiedza`. |
+| Moduł      | Lokalizacja                | Zawartość                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ---------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Wiedza     | `src/features/wiedza/`     | `WiedzaView.tsx` — cały content trybu Wiedza (sidebar wiedzy, chat, notatki z edytorem TipTap w `NoteEditor`, zasoby, lista dokumentów). `components/` — np. ChatPanel, NotesList, NoteEditor, ResourceSection (przeniesiony), lista dokumentów jako komponent. Stan: activeTab, documents, notes, messages, input, selectedNote itd. w WiedzaView lub w kontekście/hooku `useWiedza`.                                                                      |
 | Planowanie | `src/features/planowanie/` | `PlanowanieView.tsx` — content trybu Planowanie (sidebar z zakładkami, CalendarView / ActivityLog / TasksSection / TagsSection, pasek Plan AI). `components/` — opcjonalnie CalendarView, ActivityLog, TasksSection, TagsSection (albo pozostają w `src/components`, jeśli używane wyłącznie tutaj). Stan: planningTab, planAskInput, **messages** (historia konwersacji Plan AI — patrz niżej), planAskLoading w PlanowanieView lub hooku `usePlanowanie`. |
 
 Backend bez zmian: Next.js Route Handlers w `app/api/` + services (ragService, planService itd.) zgodnie z ADR-014.
@@ -70,24 +70,30 @@ Notatki w trybie Wiedza korzystają z komponentu **NoteEditor** (`src/components
 - Więcej plików; jednorazowy refaktor App.tsx (wyciągnięcie treści do WiedzaView i PlanowanieView).
 - Trzeba przekazywać dane współdzielone (user, apiFetch, lang, t, tagi) — propsami lub kontekstem.
 
-## Stan aplikacji (luty 2026)
+## Stan aplikacji (luty 2026, zaktualizowany marzec 2026 po ADR-019)
 
-Refaktor wdrożony.
+Refaktor wdrożony. Po refaktoryzacji dużych plików (ADR-019) struktura frontendu wygląda następująco:
 
-- **App.tsx** (~278 linii) — tylko layout: auth (loading, ekran logowania, handlery), stan `appMode`, `isSidebarOpen`, `lang`, `user`, `apiFetch`, `handleLogout` oraz warunkowy render `appMode === 'wiedza' ? <WiedzaView ... /> : <PlanowanieView ... />`.
-- **src/features/wiedza/** — `WiedzaView.tsx` (sidebar z zakładkami Chat/Notatki/Zasoby, lista dokumentów, upload; main: chat, notatki z NoteEditor, **ResourceSection**), `index.ts` (re-eksport).
-- **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar z zakładkami Kalendarz/Aktywność/Zadania/Tagi; main: CalendarView, ActivityLog, TasksSection, TagsSection, pasek Plan AI z historią konwersacji w stanie — patrz wyżej „Pamięć konwersacji Plan AI”), `index.ts` (re-eksport).
-- **src/components/layout/** — `AppSidebar.tsx` (wspólna ramka sidebara: logo, lang, children, UserCard, ProPlanBar), `AppHeader.tsx` (przełącznik trybów, przycisk sidebara, search, „Brain Active”).
+- **App.tsx** — tylko layout: auth (loading, ekran logowania, handlery), stan `appMode`, `isSidebarOpen`, `lang`, `user`, `apiFetch`, `handleLogout` oraz warunkowy render `appMode === 'wiedza' ? <WiedzaView ... /> : <PlanowanieView ... />`.
+- **src/lib/cn.ts** — wspólna utilita `cn` (clsx + tailwind-merge), używana w AppHeader, WiedzaView, PlanowanieView i komponentach feature’ów.
+- **src/features/wiedza/** — `WiedzaView.tsx` (cienki kontener: useWiedzaData, stan zakładek/czatu/notatek), `useWiedzaData.ts` (documents, notes, fetchDocuments, fetchNotes), `WiedzaSidebarContent.tsx` (zakładki + lista dokumentów + upload), `ChatPanel.tsx` (wiadomości + input), `NotesPanel.tsx` (lista notatek + NoteEditor), `index.ts` (re-eksport). Main content: ChatPanel / ResourceSection / NotesPanel w zależności od zakładki.
+- **src/features/planowanie/** — `PlanowanieView.tsx` (sidebar + main content + pasek Plan AI), `PlanowanieSidebarContent.tsx` (zakładki Kalendarz/Aktywność/Zadania/Tagi), `index.ts` (re-eksport). Main: CalendarView, ActivityLog, TasksSection, TagsSection.
+- **src/components/layout/** — `AppSidebar.tsx`, `AppHeader.tsx` (używają `cn` z `@/src/lib/cn`).
 
-Komponenty CalendarView, ActivityLog, TasksSection, TagsSection, ResourceSection, NoteEditor pozostają w `src/components` i są używane z modułów features. Backend i API bez zmian.
+Komponenty współdzielone:
+
+- **src/components/ResourceSection.tsx** — cienki wrapper: wywołuje `useResources` z `./resources/useResources`, renderuje layout z komponentami z `./resources/` (ResourceFilterSidebar, ResourceAddForm, ResourceFavoritesBar, ResourceListItem, ResourceEditModal). Typy i parsowanie w `src/components/resources/resourceTypes.ts`, `resourceParsing.ts`; testy w `tests/unit/components/resources/resourceParsing.test.ts`.
+- **src/components/calendar/** — `calendarUtils.ts` (CalendarEvent, getDaysInMonth, assignLanes, getOverlapCounts, MONTH_NAMES, DAY_NAMES), `CalendarDayColumn.tsx` (kolumna dnia z inline paskami eventów).
+- **src/components/CalendarView.tsx** — używa calendarUtils i CalendarDayColumn.
+- **src/components/** — ActivityLog, TasksSection, TagsSection, NoteEditor, CalendarEventForm, StartSessionModal, calendarConstants itd. — bez zmian w lokalizacji.
+
+Backend i API bez zmian.
 
 ### ResourceSection – zasoby, ulubione i wyszukiwarka
 
-- **UI i UX** (`src/components/ResourceSection.tsx`):
-  - Zakładka **Zasoby** w module Wiedza ma teraz wspólny header z tytułem i polem wyszukiwania po **tytule/opisie/URL** (filtrowanie w czasie rzeczywistym, dodatkowo do filtra po tagach).
-  - Lewa kolumna podzielona jest logicznie na: (1) „Filtruj po tagach”, (2) formularz dodawania pojedynczego linku („Opis…”, `URL`, `Tagi`), (3) sekcję „Lub wklej w formacie blokowym”.
-  - Prawa kolumna zawiera listę zasobów oraz pasek **Ulubionych stron** nad listą — małe kafelki z faviconami działające jak ikony na pulpicie (klik otwiera stronę w nowej karcie).
-  - Każdy element listy ma teraz akcje: **Ulubione | Open link | Copy URL | Delete**; kliknięcie w treść wiersza otwiera modal edycji całego zasobu (tytuł, opis, URL, tagi, flaga Ulubione).
+- **UI i UX** (`src/components/ResourceSection.tsx` + `src/components/resources/`; po ADR-019):
+  - Zakładka **Zasoby** ma wspólny header z tytułem i wyszukiwarką po **tytule/opisie/URL**. Lewa kolumna: ResourceFilterSidebar („Filtruj po tagach”), ResourceAddForm (formularz linku + „Lub wklej w formacie blokowym”). Prawa: ResourceFavoritesBar (kafelki ulubionych), lista ResourceListItem, ResourceEditModal. Stan z hooka **useResources** (bez Providera), przekazywany przez props; typy w `resourceTypes.ts`, parsowanie w `resourceParsing.ts` (testy w `tests/unit/components/resources/resourceParsing.test.ts`).
+  - Każdy element listy: **Ulubione | Open link | Copy URL | Delete**; klik w treść otwiera modal pełnej edycji.
 
 - **Model i API**:
   - `NoteResource` / `NoteResourceRecord` rozszerzone o pole `isFavorite?: boolean`, przechowywane w kolekcji `users/{userId}/resources` w Firestore.

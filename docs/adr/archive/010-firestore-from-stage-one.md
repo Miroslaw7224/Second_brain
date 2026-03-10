@@ -28,11 +28,13 @@ Celowo odrzucamy Airtable pomimo prostoty w no-code: użycie Firestore od dnia 1
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Brak migracji przy Etapie 2 — dane od razu w docelowej bazie
 - Spójność: Firestore w Etapie 1 i 2 — ten sam model danych
 - Kontakty z waitlisty gotowe do wykorzystania w Next.js
 
 **Negatywne:**
+
 - Make + Firestore wymaga więcej konfiguracji niż Tally + Airtable — akceptowalne jednorazowo
 
 ## Stan aplikacji (luty 2026)

@@ -25,12 +25,14 @@ Spójność z Gemini text-embedding-004 — jeden dostawca API (Google).
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Niski koszt per token — krytyczne dla chat aplikacji
 - Okno 1M tokenów — brak obcięcia kontekstu
 - Streaming natywny — UX token po tokenie
 - Jeden dostawca z embeddingami — prostszy stack
 
 **Negatywne:**
+
 - Flash mniej precyzyjny niż Gemini Pro/Ultra przy skomplikowanym wnioskowaniu — dla prostego Q&A różnica nieistotna
 - Latencja pierwszego tokenu bywa wyższa niż GPT-4o-mini — monitorować po launchu
 

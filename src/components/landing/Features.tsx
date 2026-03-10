@@ -4,7 +4,10 @@ import { BookOpen, Calendar } from "lucide-react";
 
 export default function Features() {
   return (
-    <section className="bg-[var(--bg)] px-6 pt-0 pb-24 sm:px-8 lg:px-12 xl:px-16 lg:pt-2 lg:pb-24" id="funkcje">
+    <section
+      className="bg-[var(--bg)] px-6 pt-0 pb-24 sm:px-8 lg:px-12 xl:px-16 lg:pt-2 lg:pb-24"
+      id="funkcje"
+    >
       <div className="mx-auto max-w-7xl">
         <h2 className="text-center text-3xl font-bold text-[var(--text)] sm:text-4xl">
           Dwa moduły

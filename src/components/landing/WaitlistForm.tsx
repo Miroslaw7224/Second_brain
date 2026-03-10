@@ -50,7 +50,11 @@ export default function WaitlistForm() {
           disabled={status === "loading" || status === "success" || !email.trim()}
           className="rounded-xl bg-[var(--accent)] px-6 py-3 font-semibold text-white transition hover:brightness-110 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 focus:ring-offset-[var(--bg2)] disabled:opacity-60 disabled:cursor-not-allowed"
         >
-          {status === "loading" ? "Zapisywanie…" : status === "success" ? "Zapisano" : "Dołącz do listy"}
+          {status === "loading"
+            ? "Zapisywanie…"
+            : status === "success"
+              ? "Zapisano"
+              : "Dołącz do listy"}
         </button>
       </form>
       {message && (

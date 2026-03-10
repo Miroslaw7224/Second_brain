@@ -74,7 +74,10 @@ describe("ragService", () => {
     });
 
     it("deduplicates tokens", () => {
-      expect(extractKeywords("deadline deadline deadlines", "en")).toEqual(["deadline", "deadlines"]);
+      expect(extractKeywords("deadline deadline deadlines", "en")).toEqual([
+        "deadline",
+        "deadlines",
+      ]);
     });
 
     it("stems Polish tokens when lang is pl (Faza 2a)", () => {

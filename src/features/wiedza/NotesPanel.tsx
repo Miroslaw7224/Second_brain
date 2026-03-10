@@ -1,8 +1,8 @@
-import React from 'react';
-import { Plus, Pencil, Trash2 } from 'lucide-react';
-import { cn } from '@/src/lib/cn';
-import { NoteEditor } from '@/src/components/NoteEditor';
-import type { Note } from './useWiedzaData';
+import React from "react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { cn } from "@/src/lib/cn";
+import { NoteEditor } from "@/src/components/NoteEditor";
+import type { Note } from "./useWiedzaData";
 
 export interface NotesPanelProps {
   notes: Note[];
@@ -43,10 +43,10 @@ export function NotesPanel({
         <button
           onClick={() => {
             setSelectedNote({
-              id: '',
-              title: '',
-              content: '',
-              created_at: '',
+              id: "",
+              title: "",
+              content: "",
+              created_at: "",
             });
             setNoteEditMode(true);
           }}
@@ -63,19 +63,17 @@ export function NotesPanel({
               setNoteEditMode(false);
             }}
             className={cn(
-              'w-full text-left p-3 rounded-xl transition-all border',
+              "w-full text-left p-3 rounded-xl transition-all border",
               selectedNote?.id === note.id
-                ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-                : 'bg-[var(--surface)] text-[var(--text)] border-transparent hover:bg-[var(--bg3)]'
+                ? "bg-[var(--accent)] text-white border-[var(--accent)]"
+                : "bg-[var(--surface)] text-[var(--text)] border-transparent hover:bg-[var(--bg3)]"
             )}
           >
-            <p className="text-sm font-bold truncate">{note.title || 'Untitled'}</p>
+            <p className="text-sm font-bold truncate">{note.title || "Untitled"}</p>
             <p
               className={cn(
-                'text-[10px] uppercase font-bold',
-                selectedNote?.id === note.id
-                  ? 'text-white/60'
-                  : 'text-[var(--text3)]'
+                "text-[10px] uppercase font-bold",
+                selectedNote?.id === note.id ? "text-white/60" : "text-[var(--text3)]"
               )}
             >
               {new Date(note.created_at).toLocaleDateString()}
@@ -86,20 +84,18 @@ export function NotesPanel({
       <div className="flex-1 bg-[var(--surface)] p-8 overflow-y-auto min-w-0">
         {selectedNote ? (
           <div className="w-full max-w-full space-y-6">
-            {noteEditMode || selectedNote.id === '' ? (
+            {noteEditMode || selectedNote.id === "" ? (
               <>
                 <div className="flex items-center justify-between">
                   <input
                     type="text"
                     value={selectedNote.title}
-                    onChange={(e) =>
-                      setSelectedNote({ ...selectedNote, title: e.target.value })
-                    }
+                    onChange={(e) => setSelectedNote({ ...selectedNote, title: e.target.value })}
                     placeholder={noteTitlePlaceholder}
                     className="text-3xl font-bold border-none focus:ring-0 w-full p-0"
                   />
                   <div className="flex items-center gap-2">
-                    {selectedNote.id !== '' && (
+                    {selectedNote.id !== "" && (
                       <>
                         <button
                           onClick={() => setNoteEditMode(false)}
@@ -124,11 +120,9 @@ export function NotesPanel({
                   </div>
                 </div>
                 <NoteEditor
-                  key={selectedNote.id || 'new'}
+                  key={selectedNote.id || "new"}
                   content={selectedNote.content}
-                  onContentChange={(html) =>
-                    setSelectedNote({ ...selectedNote, content: html })
-                  }
+                  onContentChange={(html) => setSelectedNote({ ...selectedNote, content: html })}
                   placeholder={noteContentPlaceholder}
                 />
               </>
@@ -159,12 +153,10 @@ export function NotesPanel({
                   className="prose prose-lg max-w-none min-h-[20vh] text-[var(--text)] leading-relaxed prose-p:my-2 prose-headings:font-bold prose-headings:text-[var(--text)]"
                   dangerouslySetInnerHTML={{
                     __html: selectedNote.content
-                      ? selectedNote.content.trim().startsWith('<')
+                      ? selectedNote.content.trim().startsWith("<")
                         ? selectedNote.content
-                        : `<p>${selectedNote.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`
-                      : '<p class="text-[var(--text3)]">' +
-                        noteContentPlaceholder +
-                        '</p>',
+                        : `<p>${selectedNote.content.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`
+                      : '<p class="text-[var(--text3)]">' + noteContentPlaceholder + "</p>",
                   }}
                 />
               </>

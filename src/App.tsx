@@ -3,12 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { Brain, Loader2 } from 'lucide-react';
-import { getFirebaseAuth } from './lib/firebase-client';
-import { translations } from '@/src/translations';
-import WiedzaView from '@/src/features/wiedza/WiedzaView';
-import PlanowanieView from '@/src/features/planowanie/PlanowanieView';
+import React, { useState, useEffect, useCallback } from "react";
+import { Brain, Loader2 } from "lucide-react";
+import { getFirebaseAuth } from "./lib/firebase-client";
+import { translations } from "@/src/translations";
+import WiedzaView from "@/src/features/wiedza/WiedzaView";
+import PlanowanieView from "@/src/features/planowanie/PlanowanieView";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -17,7 +17,7 @@ import {
   signOut,
   onAuthStateChanged,
   updateProfile,
-} from 'firebase/auth';
+} from "firebase/auth";
 
 export interface User {
   id: string;
@@ -32,8 +32,8 @@ function firebaseUserToAppUser(fbUser: {
 }): User {
   return {
     id: fbUser.uid,
-    email: fbUser.email ?? '',
-    name: fbUser.displayName ?? fbUser.email ?? 'User',
+    email: fbUser.email ?? "",
+    name: fbUser.displayName ?? fbUser.email ?? "User",
   };
 }
 
@@ -43,21 +43,21 @@ export interface AppProps {
 }
 
 export default function App({ authenticated = false }: AppProps = {}) {
-  const [lang, setLang] = useState<'en' | 'pl'>('pl');
+  const [lang, setLang] = useState<"en" | "pl">("pl");
   const t = translations[lang];
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [appMode, setAppMode] = useState<'wiedza' | 'planowanie'>('wiedza');
+  const [authMode, setAuthMode] = useState<"login" | "register">("login");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [appMode, setAppMode] = useState<"wiedza" | "planowanie">("wiedza");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingWaitlist, setCheckingWaitlist] = useState(false);
 
   const WAITLIST_ERROR_MSG =
-    'Dostęp tylko dla osób z listy oczekujących. Dołącz do listy na stronie głównej.';
+    "Dostęp tylko dla osób z listy oczekujących. Dołącz do listy na stronie głównej.";
 
   const checkWaitlistAndProceed = async () => {
     setCheckingWaitlist(true);
@@ -65,10 +65,10 @@ export default function App({ authenticated = false }: AppProps = {}) {
       const auth = getFirebaseAuth();
       const token = await auth.currentUser?.getIdToken();
       if (!token) {
-        setAuthError('Nie udało się pobrać tokenu.');
+        setAuthError("Nie udało się pobrać tokenu.");
         return;
       }
-      const res = await fetch('/api/waitlist/check', {
+      const res = await fetch("/api/waitlist/check", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.status === 403) {
@@ -77,12 +77,12 @@ export default function App({ authenticated = false }: AppProps = {}) {
         return;
       }
       if (!res.ok) {
-        setAuthError('Błąd sprawdzania dostępu.');
+        setAuthError("Błąd sprawdzania dostępu.");
         return;
       }
       // User stays logged in; onAuthStateChanged already set user, UI will show app
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Błąd połączenia.');
+      setAuthError(err instanceof Error ? err.message : "Błąd połączenia.");
     } finally {
       setCheckingWaitlist(false);
     }
@@ -98,24 +98,24 @@ export default function App({ authenticated = false }: AppProps = {}) {
   }, []);
 
   const handleGoogleLogin = async () => {
-    setAuthError('');
+    setAuthError("");
     try {
       const auth = getFirebaseAuth();
       await signInWithPopup(auth, new GoogleAuthProvider());
       await checkWaitlistAndProceed();
     } catch (err: unknown) {
-      console.error('Google login failed', err);
-      setAuthError(err instanceof Error ? err.message : 'Google sign-in failed');
+      console.error("Google login failed", err);
+      setAuthError(err instanceof Error ? err.message : "Google sign-in failed");
       setCheckingWaitlist(false);
     }
   };
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
-    setAuthError('');
+    setAuthError("");
     const auth = getFirebaseAuth();
     try {
-      if (authMode === 'register') {
+      if (authMode === "register") {
         const checkRes = await fetch(
           `/api/waitlist/check-email?email=${encodeURIComponent(email.trim())}`
         );
@@ -125,7 +125,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
           return;
         }
       }
-      if (authMode === 'login') {
+      if (authMode === "login") {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -135,7 +135,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
       }
       await checkWaitlistAndProceed();
     } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : 'Authentication failed');
+      setAuthError(err instanceof Error ? err.message : "Authentication failed");
       setCheckingWaitlist(false);
     }
   };
@@ -148,7 +148,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
     const auth = getFirebaseAuth();
     const token = await auth.currentUser?.getIdToken();
     if (!token) {
-      throw new Error('Not authenticated');
+      throw new Error("Not authenticated");
     }
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
@@ -157,7 +157,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
     const res = await fetch(url, { ...options, headers });
     if (res.status === 403) {
       await signOut(auth);
-      window.location.href = '/auth/login';
+      window.location.href = "/auth/login";
       return res;
     }
     return res;
@@ -181,17 +181,25 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 <Brain className="text-white w-6 h-6" />
               </div>
               <div>
-                <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">Second Brain</h1>
-                <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">Freelancer Edition</p>
+                <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">
+                  Second Brain
+                </h1>
+                <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">
+                  Freelancer Edition
+                </p>
               </div>
             </div>
 
-            <h2 className="text-2xl font-bold mb-6 text-[var(--text)]">{authMode === 'login' ? t.login : t.register}</h2>
+            <h2 className="text-2xl font-bold mb-6 text-[var(--text)]">
+              {authMode === "login" ? t.login : t.register}
+            </h2>
 
             <form onSubmit={handleAuth} className="space-y-4">
-              {authMode === 'register' && (
+              {authMode === "register" && (
                 <div>
-                  <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Name</label>
+                  <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+                    Name
+                  </label>
                   <input
                     type="text"
                     value={name}
@@ -202,7 +210,9 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 </div>
               )}
               <div>
-                <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">{t.email}</label>
+                <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+                  {t.email}
+                </label>
                 <input
                   type="email"
                   value={email}
@@ -212,7 +222,9 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">{t.password}</label>
+                <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+                  {t.password}
+                </label>
                 <input
                   type="password"
                   value={password}
@@ -227,7 +239,11 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 disabled={checkingWaitlist}
                 className="w-full py-3 bg-[var(--accent)] text-white rounded-xl font-bold hover:brightness-110 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                {checkingWaitlist ? 'Sprawdzanie dostępu…' : authMode === 'login' ? t.login : t.register}
+                {checkingWaitlist
+                  ? "Sprawdzanie dostępu…"
+                  : authMode === "login"
+                    ? t.login
+                    : t.register}
               </button>
             </form>
 
@@ -267,12 +283,12 @@ export default function App({ authenticated = false }: AppProps = {}) {
             </button>
 
             <p className="text-center mt-8 text-sm text-[var(--text2)]">
-              {authMode === 'login' ? t.noAccount : t.hasAccount}{' '}
+              {authMode === "login" ? t.noAccount : t.hasAccount}{" "}
               <button
-                onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
+                onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
                 className="font-bold text-[var(--text)] hover:underline"
               >
-                {authMode === 'login' ? t.register : t.login}
+                {authMode === "login" ? t.register : t.login}
               </button>
             </p>
           </div>
@@ -283,7 +299,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
 
   return (
     <div className="flex h-screen bg-[var(--bg)] text-[var(--text)] font-sans overflow-hidden">
-      {appMode === 'wiedza' ? (
+      {appMode === "wiedza" ? (
         <WiedzaView
           user={user}
           apiFetch={apiFetch}

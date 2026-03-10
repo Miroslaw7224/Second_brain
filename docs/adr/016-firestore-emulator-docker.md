@@ -28,11 +28,11 @@ Wprowadzamy **uruchomienie emulatora Firestore w kontenerze Docker** jako zaleca
 
 ## Opcje uruchomienia testów integracyjnych (podsumowanie)
 
-| Opcja | Druga baza? | Docker? |
-|-------|-------------|---------|
-| Drugi projekt Firebase | tak (osobny projekt) | nie |
-| Ten sam projekt, użytkownik testowy | nie | nie |
-| **Emulator w Dockerze (zalecane)** | nie (emulator) | **tak** |
+| Opcja                               | Druga baza?          | Docker? |
+| ----------------------------------- | -------------------- | ------- |
+| Drugi projekt Firebase              | tak (osobny projekt) | nie     |
+| Ten sam projekt, użytkownik testowy | nie                  | nie     |
+| **Emulator w Dockerze (zalecane)**  | nie (emulator)       | **tak** |
 
 ## Konsekwencje
 

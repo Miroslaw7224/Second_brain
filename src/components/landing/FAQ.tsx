@@ -23,11 +23,12 @@ export default function FAQ() {
   ];
 
   return (
-    <section className="bg-[var(--bg)] px-6 pt-6 pb-24 sm:px-8 lg:px-12 xl:px-16 lg:pt-8 lg:pb-24" id="faq">
+    <section
+      className="bg-[var(--bg)] px-6 pt-6 pb-24 sm:px-8 lg:px-12 xl:px-16 lg:pt-8 lg:pb-24"
+      id="faq"
+    >
       <div className="mx-auto max-w-7xl">
-        <h2 className="text-center text-3xl font-bold text-[var(--text)] sm:text-4xl">
-          FAQ
-        </h2>
+        <h2 className="text-center text-3xl font-bold text-[var(--text)] sm:text-4xl">FAQ</h2>
         <ul className="mt-12 grid grid-cols-1 gap-6 sm:gap-8 lg:grid-cols-2">
           {items.map((item, i) => (
             <li key={i} className="rounded-xl border border-[var(--border)] bg-[var(--bg2)] p-6">

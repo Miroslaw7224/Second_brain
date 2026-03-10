@@ -7,30 +7,36 @@ Testy w tym katalogu korzystają z **prawdziwego** Firestore i/lub Gemini API. N
 Aby nie używać produkcyjnej bazy, uruchamiaj testy przeciw **emulatorowi Firestore w kontenerze Docker**. Wymagany tylko **Docker** (Docker Compose V2). W starszym środowisku użyj `docker-compose` zamiast `docker compose` w poniższych komendach.
 
 **Uruchomienie emulatora (jedna komenda):**
+
 ```bash
 docker compose -f docker-compose-test.yml up -d
 ```
+
 lub:
+
 ```bash
 npm run emulator:docker
 ```
 
 **Testy w drugim terminalu:**
 
-| Środowisko | Komenda |
-|------------|---------|
-| Unix/Mac | `FIRESTORE_EMULATOR_HOST=localhost:8080 RUN_INTEGRATION_TESTS=1 npm run test:integration` |
+| Środowisko | Komenda                                                                                                 |
+| ---------- | ------------------------------------------------------------------------------------------------------- |
+| Unix/Mac   | `FIRESTORE_EMULATOR_HOST=localhost:8080 RUN_INTEGRATION_TESTS=1 npm run test:integration`               |
 | PowerShell | `$env:FIRESTORE_EMULATOR_HOST="localhost:8080"; $env:RUN_INTEGRATION_TESTS=1; npm run test:integration` |
 
 **Zatrzymanie emulatora:**
+
 ```bash
 docker compose -f docker-compose-test.yml down
 ```
 
 **Pełny cykl w jednym wywołaniu (emulator → testy → down):**
+
 ```bash
 npm run test:integration:docker
 ```
+
 Na Windows długie łańcuchy z `&&` mogą nie działać w jednej komendzie — wtedy uruchom emulator i testy w dwóch terminalach jak wyżej, albo użyj WSL2 / skryptu .ps1.
 
 **Znane ograniczenie:** Przy błędzie testów (exit code 1) skrypt `test:integration:docker` przerywa wykonanie przed `down`, więc kontener pozostaje uruchomiony. Ręcznie zatrzymaj: `docker compose -f docker-compose-test.yml down`. Na CI zwykle nie ma to znaczenia (runner efemeryczny); na maszynie deweloperskiej może być uciążliwe.
@@ -49,9 +55,11 @@ Podsumowanie: to emulator (tymczasowa baza w kontenerze), nie druga prawdziwa ba
 ## Uruchomienie bez emulatora (prawdziwy Firestore)
 
 Jeśli nie używasz emulatora, uruchom testy integracyjne przeciw **prawdziwemu** Firestore z `.env`:
+
 ```bash
 npm run test:integration:local
 ```
+
 Użyj osobnego projektu Firebase tylko do testów (np. w `.env`: `FIREBASE_PROJECT_ID=secondbrain-test` + credentials testowe), żeby nie dotykać produkcji.
 
 - **Z flagą (ręcznie):**  

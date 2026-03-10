@@ -7,15 +7,7 @@ function withTimeout<T>(promise: Promise<T>, ms: number, hint: string): Promise<
   return Promise.race([
     promise,
     new Promise<never>((_, reject) =>
-      setTimeout(
-        () =>
-          reject(
-            new Error(
-              `Integration test timed out after ${ms}ms. ${hint}`
-            )
-          ),
-        ms
-      )
+      setTimeout(() => reject(new Error(`Integration test timed out after ${ms}ms. ${hint}`)), ms)
     ),
   ]);
 }

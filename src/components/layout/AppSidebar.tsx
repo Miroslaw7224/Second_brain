@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React from 'react';
-import { Brain } from 'lucide-react';
-import { motion } from 'motion/react';
+import React from "react";
+import { Brain } from "lucide-react";
+import { motion } from "motion/react";
 
 export interface AppSidebarUser {
   id: string;
@@ -23,8 +23,8 @@ export interface AppSidebarTranslations {
 
 export interface AppSidebarProps {
   isSidebarOpen: boolean;
-  lang: 'en' | 'pl';
-  setLang: (lang: 'en' | 'pl') => void;
+  lang: "en" | "pl";
+  setLang: (lang: "en" | "pl") => void;
   user: AppSidebarUser | null;
   onLogout: () => void;
   documentsCount: number;
@@ -54,27 +54,29 @@ export function AppSidebar({
         </div>
         <div className="flex-1">
           <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">{t.title}</h1>
-          <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">{t.subtitle}</p>
+          <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">
+            {t.subtitle}
+          </p>
         </div>
         <button
-          onClick={() => setLang(lang === 'en' ? 'pl' : 'en')}
+          onClick={() => setLang(lang === "en" ? "pl" : "en")}
           className="px-2 py-1 bg-[var(--toggle-bg)] rounded text-[10px] font-bold hover:bg-[var(--bg3)] transition-colors text-[var(--text2)]"
         >
-          {lang === 'en' ? 'PL' : 'EN'}
+          {lang === "en" ? "PL" : "EN"}
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {children}
-      </div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">{children}</div>
 
       <div className="p-4 border-t border-[var(--border)] space-y-4">
         <div className="flex items-center gap-3 p-3 bg-[var(--bg3)] rounded-xl">
           <div className="w-8 h-8 bg-[var(--accent)] rounded-lg flex items-center justify-center text-[10px] font-bold text-white">
-            {(user?.name ?? user?.email ?? 'U').substring(0, 2).toUpperCase()}
+            {(user?.name ?? user?.email ?? "U").substring(0, 2).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold truncate text-[var(--text)]">{user?.name || user?.email || 'User'}</p>
+            <p className="text-sm font-bold truncate text-[var(--text)]">
+              {user?.name || user?.email || "User"}
+            </p>
             <button
               onClick={onLogout}
               className="text-[10px] font-bold text-[var(--text3)] hover:text-[var(--text)] uppercase tracking-wider"

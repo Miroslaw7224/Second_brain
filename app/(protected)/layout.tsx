@@ -7,11 +7,7 @@ import { Loader2 } from "lucide-react";
 import { getFirebaseAuth } from "@/src/lib/firebase-client";
 import { signOut } from "firebase/auth";
 
-export default function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -40,7 +36,9 @@ export default function ProtectedLayout({
         // ignore
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user, loading, router]);
 
   if (loading)

@@ -3,10 +3,7 @@ import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
 import * as taskService from "@/services/taskService";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await getAuthUserId(request);
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;

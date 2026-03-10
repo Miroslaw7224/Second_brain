@@ -1,11 +1,11 @@
-import React, { type RefObject } from 'react';
-import { Plus, MessageSquare, FileText, Link, Trash2, Loader2 } from 'lucide-react';
-import { cn } from '@/src/lib/cn';
-import type { Document } from './useWiedzaData';
+import React, { type RefObject } from "react";
+import { Plus, MessageSquare, FileText, Link, Trash2, Loader2 } from "lucide-react";
+import { cn } from "@/src/lib/cn";
+import type { Document } from "./useWiedzaData";
 
 export interface WiedzaSidebarContentProps {
-  activeTab: 'chat' | 'notes' | 'resources';
-  setActiveTab: (tab: 'chat' | 'notes' | 'resources') => void;
+  activeTab: "chat" | "notes" | "resources";
+  setActiveTab: (tab: "chat" | "notes" | "resources") => void;
   documents: Document[];
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteDoc: (id: string) => void;
@@ -32,37 +32,29 @@ export function WiedzaSidebarContent({
   knowledge,
   noDocs,
 }: WiedzaSidebarContentProps) {
-  const tabClass = (tab: 'chat' | 'notes' | 'resources') =>
+  const tabClass = (tab: "chat" | "notes" | "resources") =>
     cn(
-      'w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold',
+      "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
       activeTab === tab
-        ? 'bg-[var(--accent)] text-white border-[var(--accent)]'
-        : 'bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]'
+        ? "bg-[var(--accent)] text-white border-[var(--accent)]"
+        : "bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]"
     );
 
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1">
-        <button
-          type="button"
-          onClick={() => setActiveTab('chat')}
-          className={tabClass('chat')}
-        >
+        <button type="button" onClick={() => setActiveTab("chat")} className={tabClass("chat")}>
           <MessageSquare className="w-5 h-5 flex-shrink-0" />
           <span>{chatTab}</span>
         </button>
-        <button
-          type="button"
-          onClick={() => setActiveTab('notes')}
-          className={tabClass('notes')}
-        >
+        <button type="button" onClick={() => setActiveTab("notes")} className={tabClass("notes")}>
           <FileText className="w-5 h-5 flex-shrink-0" />
           <span>{notesTab}</span>
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab('resources')}
-          className={tabClass('resources')}
+          onClick={() => setActiveTab("resources")}
+          className={tabClass("resources")}
         >
           <Link className="w-5 h-5 flex-shrink-0" />
           <span>{tabResources}</span>

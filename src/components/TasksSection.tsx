@@ -36,9 +36,15 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
       .then((data) => {
         if (!cancelled) setTasks(Array.isArray(data) ? data : []);
       })
-      .catch(() => { if (!cancelled) setTasks([]); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setTasks([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [apiFetch]);
 
   const addTask = async () => {
@@ -162,7 +168,9 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 flex-1 min-w-0 w-full content-start">
             <div className="flex flex-col min-w-0 flex-1">
-              <h3 className="text-sm font-bold text-[var(--text2)] uppercase tracking-wider mb-3">{labels.todo}</h3>
+              <h3 className="text-sm font-bold text-[var(--text2)] uppercase tracking-wider mb-3">
+                {labels.todo}
+              </h3>
               <ul className="space-y-0.5 flex-1">
                 {tasks
                   .filter((task) => task.status !== "done")
@@ -171,68 +179,74 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                     const canMoveUp = idx > 0;
                     const canMoveDown = idx >= 0 && idx < orderedIds.length - 1;
                     return (
-                    <li
-                      key={task.id}
-                      className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg"
-                    >
-                      <div className="flex flex-col flex-shrink-0 gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => moveTask(task.id, "up")}
-                          disabled={!canMoveUp}
-                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={labels.moveUp}
-                        >
-                          <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveTask(task.id, "down")}
-                          disabled={!canMoveDown}
-                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={labels.moveDown}
-                        >
-                          <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(task.id, "done")}
-                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
-                        title={labels.done}
+                      <li
+                        key={task.id}
+                        className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg"
                       >
-                        <Circle className="w-4 h-4 text-[var(--text3)]" />
-                      </button>
-                      {editingId === task.id ? (
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onBlur={() => updateTitle(task.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") updateTitle(task.id);
-                            if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
-                          }}
-                          className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
-                          autoFocus
-                        />
-                      ) : (
+                        <div className="flex flex-col flex-shrink-0 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveTask(task.id, "up")}
+                            disabled={!canMoveUp}
+                            className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={labels.moveUp}
+                          >
+                            <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveTask(task.id, "down")}
+                            disabled={!canMoveDown}
+                            className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={labels.moveDown}
+                          >
+                            <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
+                          </button>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-sm font-medium min-w-0 truncate text-[var(--text)]"
+                          onClick={() => updateStatus(task.id, "done")}
+                          className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
+                          title={labels.done}
                         >
-                          {task.title}
+                          <Circle className="w-4 h-4 text-[var(--text3)]" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => deleteTask(task.id)}
-                        className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </li>
+                        {editingId === task.id ? (
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onBlur={() => updateTitle(task.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") updateTitle(task.id);
+                              if (e.key === "Escape") {
+                                setEditingId(null);
+                                setEditTitle("");
+                              }
+                            }}
+                            className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
+                            autoFocus
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingId(task.id);
+                              setEditTitle(task.title);
+                            }}
+                            className="flex-1 text-left text-sm font-medium min-w-0 truncate text-[var(--text)]"
+                          >
+                            {task.title}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteTask(task.id)}
+                          className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
                     );
                   })}
               </ul>
@@ -246,68 +260,74 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                     const canMoveUp = idx > 0;
                     const canMoveDown = idx >= 0 && idx < orderedIds.length - 1;
                     return (
-                    <li
-                      key={task.id}
-                      className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg opacity-90"
-                    >
-                      <div className="flex flex-col flex-shrink-0 gap-0.5">
-                        <button
-                          type="button"
-                          onClick={() => moveTask(task.id, "up")}
-                          disabled={!canMoveUp}
-                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={labels.moveUp}
-                        >
-                          <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => moveTask(task.id, "down")}
-                          disabled={!canMoveDown}
-                          className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
-                          title={labels.moveDown}
-                        >
-                          <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
-                        </button>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => updateStatus(task.id, "todo")}
-                        className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
-                        title={labels.todo}
+                      <li
+                        key={task.id}
+                        className="flex items-center gap-1.5 py-1 px-2 bg-[var(--surface)] border border-[var(--border)] rounded-lg opacity-90"
                       >
-                        <Check className="w-4 h-4 text-emerald-500" />
-                      </button>
-                      {editingId === task.id ? (
-                        <input
-                          type="text"
-                          value={editTitle}
-                          onChange={(e) => setEditTitle(e.target.value)}
-                          onBlur={() => updateTitle(task.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") updateTitle(task.id);
-                            if (e.key === "Escape") { setEditingId(null); setEditTitle(""); }
-                          }}
-                          className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
-                          autoFocus
-                        />
-                      ) : (
+                        <div className="flex flex-col flex-shrink-0 gap-0.5">
+                          <button
+                            type="button"
+                            onClick={() => moveTask(task.id, "up")}
+                            disabled={!canMoveUp}
+                            className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={labels.moveUp}
+                          >
+                            <ChevronUp className="w-3.5 h-3.5 text-[var(--text2)]" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveTask(task.id, "down")}
+                            disabled={!canMoveDown}
+                            className="p-0.5 rounded hover:bg-[var(--bg3)] disabled:opacity-30 disabled:cursor-not-allowed"
+                            title={labels.moveDown}
+                          >
+                            <ChevronDown className="w-3.5 h-3.5 text-[var(--text2)]" />
+                          </button>
+                        </div>
                         <button
                           type="button"
-                          onClick={() => { setEditingId(task.id); setEditTitle(task.title); }}
-                          className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[var(--text3)]"
+                          onClick={() => updateStatus(task.id, "todo")}
+                          className="flex-shrink-0 p-0.5 rounded-full hover:bg-[var(--bg3)]"
+                          title={labels.todo}
                         >
-                          {task.title}
+                          <Check className="w-4 h-4 text-emerald-500" />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => deleteTask(task.id)}
-                        className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </li>
+                        {editingId === task.id ? (
+                          <input
+                            type="text"
+                            value={editTitle}
+                            onChange={(e) => setEditTitle(e.target.value)}
+                            onBlur={() => updateTitle(task.id)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") updateTitle(task.id);
+                              if (e.key === "Escape") {
+                                setEditingId(null);
+                                setEditTitle("");
+                              }
+                            }}
+                            className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
+                            autoFocus
+                          />
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingId(task.id);
+                              setEditTitle(task.title);
+                            }}
+                            className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[var(--text3)]"
+                          >
+                            {task.title}
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => deleteTask(task.id)}
+                          className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </li>
                     );
                   })}
               </ul>

@@ -27,12 +27,14 @@ Wybieramy **Gemini text-embedding-004** do wektoryzacji dokumentów. Wektory 768
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Jeden dostawca (Google) — mniej kluczy, billingów, punktów awarii
 - Niższy koszt niż OpenAI przy porównywalnej jakości dla polskiego/angielskiego
 - Wektory 768-wymiarowe — wystarczające dla Q&A
 - Interfejs embeddingów abstrahowalny — łatwa zamiana dostawcy w przyszłości
 
 **Negatywne:**
+
 - Nieznacznie niższa jakość niż OpenAI dla specjalistycznych domen — nieistotne dla notatek freelancerów
 - Zależność od dostępności Google API — ryzyko łagodzone przez prostotę zamiany
 

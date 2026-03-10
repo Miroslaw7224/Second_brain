@@ -65,19 +65,19 @@ E2E nie zastępują testów jednostkowych; testują „od góry" (UI), podczas g
 Describe per metoda serwisu, GWT w ciele testu gdy setup jest nietrywialny. Struktura describe per metoda pozwala na **lokalny beforeEach specyficzny dla grupy testów danej metody** — bez duplikowania setupu; to uzasadnienie funkcjonalne, nie tylko estetyczne.
 
 ```typescript
-describe('<NazwaSerwisu>', () => {
-  describe('<nazwaMetody>', () => {
+describe("<NazwaSerwisu>", () => {
+  describe("<nazwaMetody>", () => {
     beforeEach(() => {
       // setup mocków specyficzny dla tej metody
-    })
+    });
 
-    it('given <stan>, when <akcja>, then <rezultat>', async () => {
+    it("given <stan>, when <akcja>, then <rezultat>", async () => {
       // GIVEN
       // WHEN
       // THEN
-    })
-  })
-})
+    });
+  });
+});
 ```
 
 ### 6. Zasady mocków i typów
@@ -113,23 +113,21 @@ Gdy treść promptu do Gemini zależy od inputu użytkownika — warto mieć tes
 
 ### 11. Priorytety wdrożenia
 
-| Priorytet     | Zmiana                                           |
-| ------------- | ------------------------------------------------ |
-| Krytyczne     | Izolacja mocków (clearMocks, resetMocks)         |
-| Krytyczne     | environment: 'node' w vitest.config.ts           |
-| Wysokie       | Struktura katalogów tests/, fixtures, DoD       |
-| Średnie       | GWT + describe per metoda, filozofia mocków, it.fails |
-| Średnie       | Testowa baza dla testów integracyjnych (emulator Firestore) |
-| Średnie       | Coverage i opcjonalnie coverageThreshold dla services/ |
-| Średnie       | Coverage i opcjonalnie coverageThreshold dla services/ |
-| Niskie        | Testy smoke, testy prompt injection (security)  |
-| Niskie        | Testy E2E (Playwright) — strona główna, krytyczne flow |
+| Priorytet | Zmiana                                                      |
+| --------- | ----------------------------------------------------------- |
+| Krytyczne | Izolacja mocków (clearMocks, resetMocks)                    |
+| Krytyczne | environment: 'node' w vitest.config.ts                      |
+| Wysokie   | Struktura katalogów tests/, fixtures, DoD                   |
+| Średnie   | GWT + describe per metoda, filozofia mocków, it.fails       |
+| Średnie   | Testowa baza dla testów integracyjnych (emulator Firestore) |
+| Średnie   | Coverage i opcjonalnie coverageThreshold dla services/      |
+| Średnie   | Coverage i opcjonalnie coverageThreshold dla services/      |
+| Niskie    | Testy smoke, testy prompt injection (security)              |
+| Niskie    | Testy E2E (Playwright) — strona główna, krytyczne flow      |
 
 ## Rozważane alternatywy
 
-
 - **Tylko testy E2E:** wolniejsze, mniej precyzyjne przy refaktoringu; dobre uzupełnienie, nie zamiennik testów jednostkowych — odrzucone jako jedyna warstwa.
-
 
 ## Konsekwencje
 
@@ -150,6 +148,6 @@ Gdy treść promptu do Gemini zależy od inputu użytkownika — warto mieć tes
 
 ## Stan aplikacji (luty 2026)
 
-Wdrożone. Vitest w `devDependencies`, skrypty `test`, `test:run`, `test:coverage`, `test:integration`. Konfiguracja: `vitest.config.ts` (environment: node, clearMocks, resetMocks, passWithNoTests, exclude: tests/integration; coverage: provider v8, include: services/**/*.ts, opcjonalnie thresholds dla services/). Zależność `@vitest/coverage-v8`. Struktura: `tests/unit/services/`, `tests/unit/lib/`, `tests/fixtures/`, `tests/integration/services/`, placeholdery: `tests/security/`, `tests/smoke/`. Testy jednostkowe: ragService, documentService, noteService, taskService, planService, tagService, calendarService, lib/errors. Testy integracyjne za flagą `RUN_INTEGRATION_TESTS=1` i skryptem `test:integration`; dokumentacja w `tests/integration/README.md`. **Testowa baza:** testy integracyjne przeciw emulatorowi Firestore w Dockerze (`docker-compose-test.yml`); `lib/firebase-admin.ts` obsługuje `FIRESTORE_EMULATOR_HOST` (tryb emulator-only bez credentials). **Coverage:** `npm run test:coverage`, raport w `coverage/` (gitignore).
+Wdrożone. Vitest w `devDependencies`, skrypty `test`, `test:run`, `test:coverage`, `test:integration`. Konfiguracja: `vitest.config.ts` (environment: node, clearMocks, resetMocks, passWithNoTests, exclude: tests/integration; coverage: provider v8, include: services/**/\*.ts, opcjonalnie thresholds dla services/). Zależność `@vitest/coverage-v8`. Struktura: `tests/unit/services/`, `tests/unit/lib/`, `tests/fixtures/`, `tests/integration/services/`, placeholdery: `tests/security/`, `tests/smoke/`. Testy jednostkowe: ragService, documentService, noteService, taskService, planService, tagService, calendarService, lib/errors. Testy integracyjne za flagą `RUN_INTEGRATION_TESTS=1` i skryptem `test:integration`; dokumentacja w `tests/integration/README.md`. **Testowa baza:** testy integracyjne przeciw emulatorowi Firestore w Dockerze (`docker-compose-test.yml`); `lib/firebase-admin.ts` obsługuje `FIRESTORE_EMULATOR_HOST` (tryb emulator-only bez credentials). **Coverage:\*\* `npm run test:coverage`, raport w `coverage/` (gitignore).
 
 **Testy E2E:** Playwright (`@playwright/test`) w `devDependencies`. Konfiguracja: `playwright.config.ts` — jeden projekt Chromium, `baseURL` i `webServer.url`: `http://localhost:3100`, `webServer.command`: `cross-env PORT=3100 npm run dev`. Testy w `tests/e2e/` (np. `home.spec.ts` — strona główna, ekran logowania). Skrypty: `test:e2e`, `test:e2e:ui`. Przeglądarka: `npx playwright install chromium` (jednorazowo). Artefakty w `.gitignore`: `test-results/`, `playwright-report/`, `playwright/.cache/`, `blob-report/`.

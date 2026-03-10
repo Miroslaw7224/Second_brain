@@ -4,10 +4,7 @@ export async function listNotes(userId: string) {
   return firestoreDb.getNotes(userId);
 }
 
-export async function createNote(
-  userId: string,
-  data: { title: string; content: string }
-) {
+export async function createNote(userId: string, data: { title: string; content: string }) {
   return firestoreDb.createNote(userId, data);
 }
 

@@ -16,10 +16,7 @@ export async function GET(request: NextRequest) {
   const email = request.nextUrl.searchParams.get("email");
   const trimmed = typeof email === "string" ? email.trim() : "";
   if (!trimmed) {
-    return NextResponse.json(
-      { error: "Brak parametru email", allowed: false },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Brak parametru email", allowed: false }, { status: 400 });
   }
   if (!isValidEmail(trimmed)) {
     return NextResponse.json(
@@ -39,9 +36,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ allowed: !snapshot.empty });
   } catch (err) {
     console.error("Waitlist check-email error:", err);
-    return NextResponse.json(
-      { error: "Błąd sprawdzania listy.", allowed: false },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Błąd sprawdzania listy.", allowed: false }, { status: 500 });
   }
 }

@@ -32,7 +32,10 @@ export async function POST(request: NextRequest) {
   }
   const { title, content } = body;
   try {
-    const result = await noteService.createNote(auth.uid, { title: title ?? "", content: content ?? "" });
+    const result = await noteService.createNote(auth.uid, {
+      title: title ?? "",
+      content: content ?? "",
+    });
     return NextResponse.json(result);
   } catch (err) {
     return handleServiceError(err);

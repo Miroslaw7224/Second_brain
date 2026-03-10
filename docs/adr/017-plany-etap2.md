@@ -17,6 +17,7 @@ Second Brain wymaga automatyzacji: emaile powitalne, onboarding (tworzenie struk
 **Decyzja:** **Firebase Cloud Functions** — triggery na zdarzeniach Firestore (`onDocumentCreated`, `onDocumentUpdated`), Auth (`onUserCreate`), oraz HTTPS functions dla webhooków Stripe.
 
 Przypadki użycia:
+
 - Email powitalny — trigger po rejestracji
 - Onboarding — automatyczne tworzenie kolekcji Firestore
 - Alert limitu dokumentów — trigger gdy `documents count >= 45`

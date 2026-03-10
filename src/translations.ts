@@ -44,7 +44,8 @@ export const translations = {
     tabTasks: "Tasks",
     tabTags: "Tags",
     tagsTitle: "Tag list",
-    tagsSubtitle: "Assign a default title to each tag. When you pick a tag in a calendar entry, the title will be filled in.",
+    tagsSubtitle:
+      "Assign a default title to each tag. When you pick a tag in a calendar entry, the title will be filled in.",
     tagsTagLabel: "Tag",
     tagsTitleLabel: "Default title",
     tagsAdd: "Add tag",
@@ -79,7 +80,8 @@ export const translations = {
     tasksDone: "Done",
     tasksMoveUp: "Move up",
     tasksMoveDown: "Move down",
-    planAskPlaceholder: "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
+    planAskPlaceholder:
+      "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
     resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
     resourceUrlPlaceholder: "URL",
     resourceTagsPlaceholder: "Tags (comma-separated, optional)",
@@ -90,8 +92,10 @@ export const translations = {
     resourceNoResources: "No resources yet. Add your first link.",
     resourceSaveNoteFirst: "Save the note first to add resources.",
     resourceBlockFormatLabel: "Or paste in block format:",
-    resourceBlockFormatPlaceholder: "Opis: Short description.\nURL: https://example.com\nTagi: tag1, tag2",
-    resourceBlockFormatHint: "Multiple resources: start each new block on a new line with \"Opis:\" or \"Description:\".",
+    resourceBlockFormatPlaceholder:
+      "Opis: Short description.\nURL: https://example.com\nTagi: tag1, tag2",
+    resourceBlockFormatHint:
+      'Multiple resources: start each new block on a new line with "Opis:" or "Description:".',
     resourceAddFromBlock: "Add from pasted block",
     resourceBlockFormatError: "Could not parse. Required: URL: and Opis: (or Description:).",
     resourceFilterByTags: "Filter by tags",
@@ -112,8 +116,8 @@ export const translations = {
       "What were the terms for the Acme project?",
       "Summarize my latest meeting notes",
       "How much did I quote for logo design?",
-      "Find the deadline for the website launch"
-    ]
+      "Find the deadline for the website launch",
+    ],
   },
   pl: {
     title: "Second Brain",
@@ -155,7 +159,8 @@ export const translations = {
     tabTasks: "Zadania",
     tabTags: "Tagi",
     tagsTitle: "Lista tagów",
-    tagsSubtitle: "Przypisz do każdego tagu domyślny tytuł. Przy wyborze tagu we wpisie kalendarza tytuł zostanie uzupełniony.",
+    tagsSubtitle:
+      "Przypisz do każdego tagu domyślny tytuł. Przy wyborze tagu we wpisie kalendarza tytuł zostanie uzupełniony.",
     tagsTagLabel: "Tag",
     tagsTitleLabel: "Domyślny tytuł",
     tagsAdd: "Dodaj tag",
@@ -190,7 +195,8 @@ export const translations = {
     tasksDone: "Zrobione",
     tasksMoveUp: "W górę",
     tasksMoveDown: "W dół",
-    planAskPlaceholder: "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
+    planAskPlaceholder:
+      "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
     resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
     resourceUrlPlaceholder: "URL",
     resourceTagsPlaceholder: "Tagi (oddzielone przecinkiem, opcjonalnie)",
@@ -201,10 +207,13 @@ export const translations = {
     resourceNoResources: "Brak zasobów. Dodaj pierwszy link.",
     resourceSaveNoteFirst: "Zapisz notatkę, aby dodać zasoby.",
     resourceBlockFormatLabel: "Lub wklej w formacie blokowym:",
-    resourceBlockFormatPlaceholder: "Opis: Krótki opis zasobu.\nURL: https://example.com\nTagi: tag1, tag2",
-    resourceBlockFormatHint: "Wiele zasobów: każdy kolejny blok zacznij w nowej linii od „Opis:” lub „Description:”.",
+    resourceBlockFormatPlaceholder:
+      "Opis: Krótki opis zasobu.\nURL: https://example.com\nTagi: tag1, tag2",
+    resourceBlockFormatHint:
+      "Wiele zasobów: każdy kolejny blok zacznij w nowej linii od „Opis:” lub „Description:”.",
     resourceAddFromBlock: "Dodaj z wklejonego",
-    resourceBlockFormatError: "Nie udało się rozpoznać. Wymagane: URL: oraz Opis: (lub Description:).",
+    resourceBlockFormatError:
+      "Nie udało się rozpoznać. Wymagane: URL: oraz Opis: (lub Description:).",
     resourceFilterByTags: "Filtruj po tagach",
     resourceClearFilters: "Wyczyść filtry",
     resourceNoMatchingTags: "Brak zasobów z wybranymi tagami.",
@@ -223,7 +232,7 @@ export const translations = {
       "Jakie były warunki projektu Acme?",
       "Podsumuj moje ostatnie notatki ze spotkania",
       "Ile wyceniłem projekt logo?",
-      "Znajdź termin uruchomienia strony"
-    ]
-  }
+      "Znajdź termin uruchomienia strony",
+    ],
+  },
 };

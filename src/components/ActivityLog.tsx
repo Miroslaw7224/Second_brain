@@ -48,11 +48,25 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
     apiFetch(`/api/calendar/events?startDate=${startDate}&endDate=${endDate}`)
       .then((r) => r.json())
       .then((data) => {
-        if (!cancelled) setEvents(Array.isArray(data) ? data.sort((a: CalendarEvent, b: CalendarEvent) => a.date.localeCompare(b.date) || a.start_minutes - b.start_minutes) : []);
+        if (!cancelled)
+          setEvents(
+            Array.isArray(data)
+              ? data.sort(
+                  (a: CalendarEvent, b: CalendarEvent) =>
+                    a.date.localeCompare(b.date) || a.start_minutes - b.start_minutes
+                )
+              : []
+          );
       })
-      .catch(() => { if (!cancelled) setEvents([]); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .catch(() => {
+        if (!cancelled) setEvents([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [apiFetch, startDate, endDate]);
 
   const tagHours = useMemo(() => {
@@ -113,7 +127,7 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
       <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)]">
         <h2 className="text-lg font-bold mb-4 text-[var(--text)]">{labels.title}</h2>
         <div className="flex flex-wrap items-center gap-4">
-            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
+          <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
             <span>{labels.from}</span>
             <input
               type="date"
@@ -122,7 +136,7 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
               className="px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm text-[var(--text)]"
             />
           </label>
-            <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
+          <label className="flex items-center gap-2 text-sm font-medium text-[var(--text)]">
             <span>{labels.to}</span>
             <input
               type="date"
@@ -151,9 +165,12 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                     style={{ backgroundColor: ev.color }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm leading-tight text-[var(--text)]">{ev.title}</p>
+                    <p className="font-medium text-sm leading-tight text-[var(--text)]">
+                      {ev.title}
+                    </p>
                     <p className="text-[10px] text-[var(--text3)] uppercase font-bold mt-0.5 leading-tight">
-                      {ev.date} · {formatTime(ev.start_minutes)} · {formatDuration(ev.duration_minutes)}
+                      {ev.date} · {formatTime(ev.start_minutes)} ·{" "}
+                      {formatDuration(ev.duration_minutes)}
                       {ev.tags.length > 0 && ` · ${ev.tags.map((tag) => `#${tag}`).join(" ")}`}
                     </p>
                   </div>

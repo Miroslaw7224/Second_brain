@@ -39,10 +39,7 @@ export async function POST(request: NextRequest) {
       description: description ?? "",
       status: (status ?? "todo") as "todo" | "in_progress" | "done",
       due_date: due_date ?? null,
-      priority:
-        priority !== undefined && priority !== null
-          ? Number(priority)
-          : null,
+      priority: priority !== undefined && priority !== null ? Number(priority) : null,
     });
     return NextResponse.json(task);
   } catch (err) {

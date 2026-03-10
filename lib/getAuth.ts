@@ -9,25 +9,17 @@ const WAITLIST_FORBIDDEN_MESSAGE = "Dostęp tylko dla osób z listy oczekującyc
  * Also enforces waitlist: user must have an email and that email must be in the waitlist collection.
  * Returns { uid } or NextResponse with 401 (invalid/missing token) or 403 (not on waitlist).
  */
-export async function getAuthUserId(
-  request: NextRequest
-): Promise<{ uid: string } | NextResponse> {
+export async function getAuthUserId(request: NextRequest): Promise<{ uid: string } | NextResponse> {
   const authHeader = request.headers.get("authorization");
   if (!authHeader?.startsWith("Bearer ")) {
-    return NextResponse.json(
-      { error: "Missing or invalid Authorization header" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Missing or invalid Authorization header" }, { status: 401 });
   }
   const idToken = authHeader.slice(7);
   let uid: string;
   try {
     uid = await verifyIdToken(idToken);
   } catch {
-    return NextResponse.json(
-      { error: "Invalid or expired token" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
   }
 
   const auth = getAuth();

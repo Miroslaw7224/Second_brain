@@ -29,12 +29,14 @@ Na MVP: jeden plan $19/msc + Free Trial 7 dni bez karty kredytowej.
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Standard branżowy SaaS — dobra dokumentacja, SDK
 - Stripe Checkout — brak własnego formularza, PCI compliance po stronie Stripe
 - Webhooks niezawodne — obsługa przez Cloud Functions
 - Dane klientów zostają przy upgrade z Payment Link do pełnego SDK
 
 **Negatywne:**
+
 - Prowizja 2.9% + $0.30 per transakcja — przy $19/msc ~$0.85, akceptowalne
 - Paddle/LemonSqueezy obsługują VAT globalnie lepiej — rozważyć przy ekspansji poza US/EU
 

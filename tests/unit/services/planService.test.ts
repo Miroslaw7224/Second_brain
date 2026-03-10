@@ -55,7 +55,9 @@ describe("planService", () => {
 
     it("given Gemini returns add_events JSON, when ask is called, then creates events and returns created count (en)", async () => {
       mockGetCalendarEvents.mockResolvedValue([]);
-      mockGetUserTags.mockResolvedValue([{ id: "t1", tag: "testy", title: "Testy", color: "#3B82F6" }]);
+      mockGetUserTags.mockResolvedValue([
+        { id: "t1", tag: "testy", title: "Testy", color: "#3B82F6" },
+      ]);
       const addEventsJson =
         '{"action":"add_events","events":[{"title":"Auth tests","tags":["testy"],"dates":["2025-03-01"],"duration_minutes":60,"start_minutes":540}]}';
       mockGenerateContent.mockResolvedValue(addEventsJson);
@@ -77,7 +79,9 @@ describe("planService", () => {
 
     it("given Gemini returns add_events JSON and lang is pl, when ask is called, then returns Polish reply text", async () => {
       mockGetCalendarEvents.mockResolvedValue([]);
-      mockGetUserTags.mockResolvedValue([{ id: "t1", tag: "tag1", title: "Tag 1", color: "#3B82F6" }]);
+      mockGetUserTags.mockResolvedValue([
+        { id: "t1", tag: "tag1", title: "Tag 1", color: "#3B82F6" },
+      ]);
       const addEventsJson =
         '{"action":"add_events","events":[{"title":"Testy","tags":["tag1"],"dates":["2025-03-02"],"duration_minutes":60,"start_minutes":540}]}';
       mockGenerateContent.mockResolvedValue(addEventsJson);

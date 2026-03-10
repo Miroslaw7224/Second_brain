@@ -8,13 +8,14 @@ Zaakceptowany
 
 Jako solo founder priorytetem jest uniknięcie budowania produktu, za który nikt nie zapłaci. Klasyczny błąd: miesiące developmentu, dopiero potem walidacja rynkowa. Second Brain rozwiązuje problem rozproszonej wiedzy freelancerów — czy ten problem jest na tyle realny, że użytkownicy będą gotowi zapłacić $19/msc?
 
-Kluczowe pytanie: *Czy ktoś za to zapłaci?* Odpowiedź ma przyjść zanim zainwestujemy tygodnie w Next.js + RAG.
+Kluczowe pytanie: _Czy ktoś za to zapłaci?_ Odpowiedź ma przyjść zanim zainwestujemy tygodnie w Next.js + RAG.
 
 ## Decyzja
 
 Wdrażamy **strategię dwuetapową**:
 
 **Etap 1 — Walidacja no-code (5–7 dni):**
+
 - Landing page: Carrd
 - Formularz waitlisty: Tally (zbieranie maili)
 - Baza kontaktów: Firebase Firestore (już docelowa baza — brak migracji; patrz: Firestore od Etapu 1)
@@ -48,12 +49,14 @@ Celowo odrzucamy Airtable (popularny w no-code, prosta integracja z Tally): uży
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Minimalizacja ryzyka — walidacja przed dużym inwestycją czasu
 - Szybki feedback (5–7 dni) — decyzja o dalszym kierunku
 - Firestore od Etapu 1 — brak migracji danych przy przejściu do Etapu 2
 - Glide + Google AI Studio — ten sam ekosystem co docelowy stack (Gemini)
 
 **Negatywne:**
+
 - Etap 1 to throwaway UI (Glide) — celowy koszt
 - Make zostanie zastąpiony przez Cloud Functions — przepisanie logiki (jednorazowe)
 - Opóźnienie docelowego produktu o tydzień — akceptowalne za zmniejszenie ryzyka

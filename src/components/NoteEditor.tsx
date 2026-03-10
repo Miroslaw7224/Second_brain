@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import React, { useEffect } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Underline from '@tiptap/extension-underline';
-import TextAlign from '@tiptap/extension-text-align';
-import { TextStyle } from '@tiptap/extension-text-style';
-import { Color } from '@tiptap/extension-color';
-import { FontFamily } from '@tiptap/extension-font-family';
-import { Extension } from '@tiptap/core';
+import React, { useEffect } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
+import { FontFamily } from "@tiptap/extension-font-family";
+import { Extension } from "@tiptap/core";
 import {
   Bold,
   Italic,
@@ -19,14 +19,14 @@ import {
   AlignCenter,
   AlignRight,
   AlignJustify,
-} from 'lucide-react';
-import { twMerge } from 'tailwind-merge';
+} from "lucide-react";
+import { twMerge } from "tailwind-merge";
 
 // Custom FontSize extension (TipTap 3 TextStyle attribute)
 const FontSize = Extension.create({
-  name: 'fontSize',
+  name: "fontSize",
   addOptions() {
-    return { types: ['textStyle'] };
+    return { types: ["textStyle"] };
   },
   addGlobalAttributes() {
     return [
@@ -35,7 +35,7 @@ const FontSize = Extension.create({
         attributes: {
           fontSize: {
             default: null,
-            parseHTML: (element) => element.style.fontSize?.replace(/['"]+/g, '') || null,
+            parseHTML: (element) => element.style.fontSize?.replace(/['"]+/g, "") || null,
             renderHTML: (attributes) => {
               if (!attributes.fontSize) return {};
               return { style: `font-size: ${attributes.fontSize}` };
@@ -49,31 +49,42 @@ const FontSize = Extension.create({
     return {
       setFontSize:
         (fontSize: string) =>
-        ({ chain }: { chain: () => { setMark: (...a: unknown[]) => { run: () => boolean }; run: () => boolean } }) =>
-          chain().setMark('textStyle', { fontSize }).run(),
+        ({
+          chain,
+        }: {
+          chain: () => { setMark: (...a: unknown[]) => { run: () => boolean }; run: () => boolean };
+        }) =>
+          chain().setMark("textStyle", { fontSize }).run(),
       unsetFontSize:
         () =>
-        ({ chain }: { chain: () => { setMark: (...a: unknown[]) => { removeEmptyTextStyle: () => { run: () => boolean } }; run: () => boolean } }) =>
-          chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run(),
+        ({
+          chain,
+        }: {
+          chain: () => {
+            setMark: (...a: unknown[]) => { removeEmptyTextStyle: () => { run: () => boolean } };
+            run: () => boolean;
+          };
+        }) =>
+          chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
     };
   },
 });
 
-const FONT_SIZES = ['12px', '14px', '16px', '18px', '20px', '24px', '28px', '32px'];
+const FONT_SIZES = ["12px", "14px", "16px", "18px", "20px", "24px", "28px", "32px"];
 const FONT_FAMILIES = [
-  { label: 'Sans', value: '' },
-  { label: 'Serif', value: 'Georgia, serif' },
-  { label: 'Mono', value: 'ui-monospace, monospace' },
+  { label: "Sans", value: "" },
+  { label: "Serif", value: "Georgia, serif" },
+  { label: "Mono", value: "ui-monospace, monospace" },
 ];
 const COLORS = [
-  '#000000',
-  '#374151',
-  '#DC2626',
-  '#EA580C',
-  '#CA8A04',
-  '#16A34A',
-  '#2563EB',
-  '#7C3AED',
+  "#000000",
+  "#374151",
+  "#DC2626",
+  "#EA580C",
+  "#CA8A04",
+  "#16A34A",
+  "#2563EB",
+  "#7C3AED",
 ];
 
 function ToolbarButton({
@@ -98,9 +109,9 @@ function ToolbarButton({
       disabled={disabled}
       title={title}
       className={twMerge(
-        'p-2 rounded-lg transition-colors',
-        active ? 'bg-[var(--accent)] text-white' : 'hover:bg-[var(--bg3)] text-[var(--text)]',
-        disabled && 'opacity-50 cursor-not-allowed',
+        "p-2 rounded-lg transition-colors",
+        active ? "bg-[var(--accent)] text-white" : "hover:bg-[var(--bg3)] text-[var(--text)]",
+        disabled && "opacity-50 cursor-not-allowed",
         className
       )}
     >
@@ -124,21 +135,21 @@ export function NoteEditor({
     extensions: [
       StarterKit,
       Underline,
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
       Color,
-      FontFamily.configure({ types: ['textStyle'] }),
+      FontFamily.configure({ types: ["textStyle"] }),
       FontSize,
     ],
-    content: content || '<p></p>',
+    content: content || "<p></p>",
     editorProps: {
       attributes: {
         class:
-          'prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[var(--text)] leading-relaxed',
+          "prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[var(--text)] leading-relaxed",
       },
       handleDOMEvents: {
         paste: (view, event) => {
-          const text = event.clipboardData?.getData('text/plain');
+          const text = event.clipboardData?.getData("text/plain");
           if (text) {
             event.preventDefault();
             const { state } = view;
@@ -159,7 +170,7 @@ export function NoteEditor({
   useEffect(() => {
     if (!editor) return;
     const current = editor.getHTML();
-    const normalized = content || '<p></p>';
+    const normalized = content || "<p></p>";
     if (current !== normalized) {
       editor.commands.setContent(normalized, { emitUpdate: false });
     }
@@ -167,7 +178,7 @@ export function NoteEditor({
 
   if (!editor) {
     return (
-      <div className={twMerge('min-h-[60vh] bg-[var(--surface)] rounded-lg', className)}>
+      <div className={twMerge("min-h-[60vh] bg-[var(--surface)] rounded-lg", className)}>
         <div className="animate-pulse h-8 bg-[var(--bg3)] rounded mb-4 w-1/3" />
         <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2" />
         <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2 w-5/6" />
@@ -176,33 +187,38 @@ export function NoteEditor({
   }
 
   return (
-    <div className={twMerge('border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface)]', className)}>
+    <div
+      className={twMerge(
+        "border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface)]",
+        className
+      )}
+    >
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[var(--border)] bg-[var(--bg2)]">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
+          active={editor.isActive("bold")}
           title="Pogrubienie"
         >
           <Bold className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
+          active={editor.isActive("italic")}
           title="Kursywa"
         >
           <Italic className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive('underline')}
+          active={editor.isActive("underline")}
           title="Podkreślenie"
         >
           <UnderlineIcon className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive('strike')}
+          active={editor.isActive("strike")}
           title="Przekreślenie"
         >
           <Strikethrough className="w-4 h-4" />
@@ -210,29 +226,29 @@ export function NoteEditor({
         <span className="w-px h-6 bg-[var(--border)] mx-1" />
         {/* Text alignment */}
         <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          active={editor.isActive({ textAlign: 'left' })}
+          onClick={() => editor.chain().focus().setTextAlign("left").run()}
+          active={editor.isActive({ textAlign: "left" })}
           title="Wyrównaj do lewej"
         >
           <AlignLeft className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          active={editor.isActive({ textAlign: 'center' })}
+          onClick={() => editor.chain().focus().setTextAlign("center").run()}
+          active={editor.isActive({ textAlign: "center" })}
           title="Wyśrodkuj"
         >
           <AlignCenter className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          active={editor.isActive({ textAlign: 'right' })}
+          onClick={() => editor.chain().focus().setTextAlign("right").run()}
+          active={editor.isActive({ textAlign: "right" })}
           title="Wyrównaj do prawej"
         >
           <AlignRight className="w-4 h-4" />
         </ToolbarButton>
         <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-          active={editor.isActive({ textAlign: 'justify' })}
+          onClick={() => editor.chain().focus().setTextAlign("justify").run()}
+          active={editor.isActive({ textAlign: "justify" })}
           title="Justowanie"
         >
           <AlignJustify className="w-4 h-4" />
@@ -241,9 +257,7 @@ export function NoteEditor({
         {/* Font size */}
         <select
           title="Rozmiar czcionki"
-          value={
-            (editor.getAttributes('textStyle').fontSize as string) || ''
-          }
+          value={(editor.getAttributes("textStyle").fontSize as string) || ""}
           onChange={(e) => {
             const v = e.target.value;
             if (v) editor.chain().focus().setFontSize(v).run();
@@ -261,7 +275,7 @@ export function NoteEditor({
         {/* Font family */}
         <select
           title="Czcionka"
-          value={(editor.getAttributes('textStyle').fontFamily as string) ?? ''}
+          value={(editor.getAttributes("textStyle").fontFamily as string) ?? ""}
           onChange={(e) => {
             const v = e.target.value;
             if (v) editor.chain().focus().setFontFamily(v).run();
@@ -270,7 +284,7 @@ export function NoteEditor({
           className="h-8 px-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-sm text-[var(--text)] min-w-[5rem]"
         >
           {FONT_FAMILIES.map((f) => (
-            <option key={f.value || 'default'} value={f.value}>
+            <option key={f.value || "default"} value={f.value}>
               {f.label}
             </option>
           ))}
@@ -280,7 +294,7 @@ export function NoteEditor({
         <div className="flex items-center gap-1" title="Kolor">
           <Palette className="w-4 h-4 text-[var(--text2)]" />
           <select
-            value={(editor.getAttributes('textStyle').color as string) ?? ''}
+            value={(editor.getAttributes("textStyle").color as string) ?? ""}
             onChange={(e) => {
               const v = e.target.value;
               if (v) editor.chain().focus().setColor(v).run();

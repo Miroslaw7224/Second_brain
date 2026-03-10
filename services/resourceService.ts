@@ -31,17 +31,20 @@ export async function getResources(userId: string): Promise<NoteResourceRecord[]
   return getResourcesFromFirestore(userId);
 }
 
-export async function deleteResource(
-  userId: string,
-  resourceId: string
-): Promise<void> {
+export async function deleteResource(userId: string, resourceId: string): Promise<void> {
   return deleteResourceFromFirestore(userId, resourceId);
 }
 
 export async function updateResource(
   userId: string,
   resourceId: string,
-  data: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean }
+  data: {
+    title?: string;
+    description?: string;
+    url?: string;
+    tags?: string[];
+    isFavorite?: boolean;
+  }
 ): Promise<void> {
   return updateResourceInFirestore(userId, resourceId, data);
 }
@@ -50,9 +53,7 @@ export async function updateResource(
 // Pobieranie metadanych strony
 // -----------------------------------------------
 
-async function fetchPageMetadata(
-  url: string
-): Promise<{ title: string; thumbnailUrl?: string }> {
+async function fetchPageMetadata(url: string): Promise<{ title: string; thumbnailUrl?: string }> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     const html = await res.text();
@@ -86,8 +87,6 @@ export async function searchResources(
     const desc = (r.description ?? "").toLowerCase();
     const title = (r.title ?? "").toLowerCase();
     const tagStr = (r.tags ?? []).join(" ").toLowerCase();
-    return lowerKeywords.some(
-      (k) => desc.includes(k) || title.includes(k) || tagStr.includes(k)
-    );
+    return lowerKeywords.some((k) => desc.includes(k) || title.includes(k) || tagStr.includes(k));
   });
 }

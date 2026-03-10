@@ -75,7 +75,18 @@ export async function ask(
   const jsonMatch = text.match(/\{[\s\S]*"action"\s*:\s*"add_events"[\s\S]*\}/);
   if (jsonMatch) {
     try {
-      const data = JSON.parse(jsonMatch[0]) as { action?: string; events?: Array<{ title?: string; tags?: string[]; dates?: string[]; date?: string; duration_minutes?: number; start_minutes?: number; color?: string }> };
+      const data = JSON.parse(jsonMatch[0]) as {
+        action?: string;
+        events?: Array<{
+          title?: string;
+          tags?: string[];
+          dates?: string[];
+          date?: string;
+          duration_minutes?: number;
+          start_minutes?: number;
+          color?: string;
+        }>;
+      };
       if (data.action === "add_events" && Array.isArray(data.events)) {
         const unknownTagsSet = new Set<string>();
         const resolveTag = (t: string): string => {
@@ -118,7 +129,8 @@ export async function ask(
           const d = Number(ev.duration_minutes) ?? 60;
           const duration = Math.max(15, Math.round(d / 15) * 15);
           const startMin = Number(ev.start_minutes) ?? 540;
-          const color = getColorForTags(tags) ?? ev.color ?? defaultColors[created % defaultColors.length];
+          const color =
+            getColorForTags(tags) ?? ev.color ?? defaultColors[created % defaultColors.length];
           for (const date of dates) {
             await firestoreDb.createCalendarEvent(userId, {
               date: String(date).slice(0, 10),
@@ -132,7 +144,9 @@ export async function ask(
           }
         }
         const replyText =
-          lang === "pl" ? `Dodano ${created} wpis(ów) do kalendarza.` : `Added ${created} event(s) to calendar.`;
+          lang === "pl"
+            ? `Dodano ${created} wpis(ów) do kalendarza.`
+            : `Added ${created} event(s) to calendar.`;
         return { text: replyText, created };
       }
     } catch {

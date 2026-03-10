@@ -1,11 +1,11 @@
-import React from 'react';
-import { Brain, FileText, Send, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
-import ReactMarkdown from 'react-markdown';
-import { cn } from '@/src/lib/cn';
+import React from "react";
+import { Brain, FileText, Send, Loader2 } from "lucide-react";
+import { motion } from "motion/react";
+import ReactMarkdown from "react-markdown";
+import { cn } from "@/src/lib/cn";
 
 export interface Message {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   sources?: string[];
 }
@@ -66,18 +66,15 @@ export function ChatPanel({
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={i}
-                className={cn(
-                  'flex gap-4',
-                  msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'
-                )}
+                className={cn("flex gap-4", msg.role === "user" ? "flex-row-reverse" : "flex-row")}
               >
                 <div
                   className={cn(
-                    'w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0',
-                    msg.role === 'user' ? 'bg-[var(--accent)]' : 'bg-[var(--bg3)]'
+                    "w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0",
+                    msg.role === "user" ? "bg-[var(--accent)]" : "bg-[var(--bg3)]"
                   )}
                 >
-                  {msg.role === 'user' ? (
+                  {msg.role === "user" ? (
                     <div className="text-[10px] font-bold text-white">ME</div>
                   ) : (
                     <Brain className="w-4 h-4 text-black" />
@@ -85,16 +82,16 @@ export function ChatPanel({
                 </div>
                 <div
                   className={cn(
-                    'flex flex-col gap-2 max-w-[85%]',
-                    msg.role === 'user' ? 'items-end' : 'items-start'
+                    "flex flex-col gap-2 max-w-[85%]",
+                    msg.role === "user" ? "items-end" : "items-start"
                   )}
                 >
                   <div
                     className={cn(
-                      'p-4 rounded-2xl text-sm leading-relaxed',
-                      msg.role === 'user'
-                        ? 'bg-[var(--accent)] text-white'
-                        : 'bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]'
+                      "p-4 rounded-2xl text-sm leading-relaxed",
+                      msg.role === "user"
+                        ? "bg-[var(--accent)] text-white"
+                        : "bg-[var(--surface)] border border-[var(--border)] text-[var(--text)]"
                     )}
                   >
                     <div className="markdown-body">
@@ -144,7 +141,7 @@ export function ChatPanel({
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   onSend();
                 }
@@ -156,10 +153,10 @@ export function ChatPanel({
               onClick={onSend}
               disabled={!input.trim() || isLoading}
               className={cn(
-                'w-10 h-10 rounded-full flex items-center justify-center transition-all',
+                "w-10 h-10 rounded-full flex items-center justify-center transition-all",
                 input.trim() && !isLoading
-                  ? 'bg-[var(--accent)] text-white hover:scale-105'
-                  : 'bg-[var(--bg3)] text-[var(--text3)]'
+                  ? "bg-[var(--accent)] text-white hover:scale-105"
+                  : "bg-[var(--bg3)] text-[var(--text3)]"
               )}
             >
               <Send className="w-5 h-5" />

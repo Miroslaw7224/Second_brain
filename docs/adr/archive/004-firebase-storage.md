@@ -29,12 +29,14 @@ Na MVP limit 10MB per plik i 3 pliki jednocześnie jest wystarczający.
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Zero dodatkowej konfiguracji w kontekście Firebase
 - Reguły bezpieczeństwa zsynchronizowane z Firebase Auth — izolacja per user
 - Brak presigned URL flow — prostszy upload
 - Koszt pomijalny przy skali MVP
 
 **Negatywne:**
+
 - Droższe niż Cloudflare R2 przy dużej skali — nieistotne na MVP
 - Brak edge CDN dla plików — nieistotne dla dokumentów tekstowych
 

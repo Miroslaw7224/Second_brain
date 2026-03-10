@@ -37,7 +37,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "date and duration_minutes required" }, { status: 400 });
   }
   if (duration_minutes % 15 !== 0) {
-    return NextResponse.json({ error: "duration_minutes must be a multiple of 15" }, { status: 400 });
+    return NextResponse.json(
+      { error: "duration_minutes must be a multiple of 15" },
+      { status: 400 }
+    );
   }
   try {
     const event = await calendarService.createCalendarEvent(auth.uid, {

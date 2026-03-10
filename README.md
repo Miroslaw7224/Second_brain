@@ -30,16 +30,15 @@ Docelowo Vercel (`vercel link` + deploy). Zmienne środowiskowe ustaw w panelu V
 
 ## Moduły i kluczowe funkcje
 
+Struktura frontendu (komponenty, hooki, podfoldery `resources/` i `calendar/`) jest opisana w **ADR-018** (moduły Wiedza/Planowanie) i **ADR-019** (refaktoryzacja dużych plików). Wspólna utilita klas CSS: `src/lib/cn.ts`.
+
 - **Wiedza** (`src/features/wiedza/`):
-  - Chat z własną bazą wiedzy (RAG na dokumentach użytkownika).
-  - Notatki z edytorem TipTap (`NoteEditor`).
-  - **Zasoby (`ResourceSection`)**:
-    - Lista linków powiązanych z notatkami / wiedzą, przechowywana w Firestore (`users/{userId}/resources`).
-    - Filtr po tagach + wyszukiwarka w nagłówku zakładki (po tytule, opisie i URL), filtrowanie w czasie rzeczywistym.
-    - Pasek **Ulubionych stron** nad listą — małe kafelki z faviconami działające jak skróty (kliknięcie otwiera stronę w nowej karcie).
-    - Każdy element listy ma akcje: **Ulubione | Open link | Copy URL | Delete**; kliknięcie w treść otwiera modal pełnej edycji (tytuł, opis, URL, tagi, ulubione).
-    - Informacja o ulubionych (`isFavorite`) jest trwale zapisywana w Firestore i ulubione są sortowane na górę listy.
+  - Chat z własną bazą wiedzy (RAG na dokumentach użytkownika) — `ChatPanel`.
+  - Notatki z edytorem TipTap — `NotesPanel`, `NoteEditor`.
+  - **Zasoby** (`src/components/ResourceSection.tsx` + `src/components/resources/`):
+    - Lista linków w Firestore (`users/{userId}/resources`), filtr po tagach + wyszukiwarka (tytuł, opis, URL).
+    - Pasek **Ulubionych stron** (kafelki z faviconami), akcje: **Ulubione | Open link | Copy URL | Delete**, modal edycji. Ulubione (`isFavorite`) zapisywane w Firestore, sortowane na górę.
 
 - **Planowanie** (`src/features/planowanie/`):
-  - Kalendarz pracy, log aktywności, kanban z zadaniami i zarządzanie tagami.
-  - Pasek Plan AI oparty na historii rozmowy (patrz ADR-018).
+  - Kalendarz (`src/components/CalendarView.tsx` + `src/components/calendar/`), log aktywności, zadania, tagi.
+  - Pasek Plan AI z historią rozmowy (patrz ADR-018).

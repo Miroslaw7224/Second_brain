@@ -29,12 +29,8 @@ export default function CookiesPage() {
         </div>
       </header>
       <main className="mx-auto max-w-3xl px-6 py-12 sm:px-8 lg:px-12 flex-1">
-        <h1 className="text-3xl font-bold text-[var(--text)] mb-2">
-          Polityka plików cookies
-        </h1>
-        <p className="text-sm text-[var(--text3)] mb-10">
-          Ostatnia aktualizacja: luty 2025
-        </p>
+        <h1 className="text-3xl font-bold text-[var(--text)] mb-2">Polityka plików cookies</h1>
+        <p className="text-sm text-[var(--text3)] mb-10">Ostatnia aktualizacja: luty 2025</p>
 
         <div className="prose prose-invert max-w-none space-y-8 text-[var(--footer-link)] text-sm leading-relaxed [&_strong]:text-[var(--text)] [&_a]:text-[var(--accent)] [&_a]:underline [&_a]:underline-offset-2">
           <section>
@@ -42,10 +38,9 @@ export default function CookiesPage() {
               1. Czym są pliki cookies
             </h2>
             <p>
-              Pliki cookies to małe pliki tekstowe zapisywane na Twoim urządzeniu
-              podczas odwiedzania strony. Służą m.in. do zapamiętania preferencji,
-              utrzymania sesji logowania oraz analizy ruchu (jeśli korzystamy z
-              narzędzi analitycznych).
+              Pliki cookies to małe pliki tekstowe zapisywane na Twoim urządzeniu podczas
+              odwiedzania strony. Służą m.in. do zapamiętania preferencji, utrzymania sesji
+              logowania oraz analizy ruchu (jeśli korzystamy z narzędzi analitycznych).
             </p>
           </section>
 
@@ -55,19 +50,17 @@ export default function CookiesPage() {
             </h2>
             <ul className="list-disc ml-4 space-y-2">
               <li>
-                <strong>Niezbędne</strong> — umożliwiają działanie strony
-                (np. sesja, uwierzytelnianie). Bez nich nie da się w pełni
-                korzystać z usługi.
+                <strong>Niezbędne</strong> — umożliwiają działanie strony (np. sesja,
+                uwierzytelnianie). Bez nich nie da się w pełni korzystać z usługi.
               </li>
               <li>
-                <strong>Preferencje</strong> — zapisują ustawienia (np. wybór
-                motywu jasny/ciemny), aby nie trzeba było ich wybierać przy
-                każdej wizycie.
+                <strong>Preferencje</strong> — zapisują ustawienia (np. wybór motywu jasny/ciemny),
+                aby nie trzeba było ich wybierać przy każdej wizycie.
               </li>
               <li>
-                <strong>Analityczne</strong> — jeśli są wdrożone, służą do
-                zrozumienia, jak użytkownicy korzystają ze strony (np. Google
-                Analytics). Mogą być powiązane z polityką prywatności dostawcy.
+                <strong>Analityczne</strong> — jeśli są wdrożone, służą do zrozumienia, jak
+                użytkownicy korzystają ze strony (np. Google Analytics). Mogą być powiązane z
+                polityką prywatności dostawcy.
               </li>
             </ul>
           </section>
@@ -77,11 +70,10 @@ export default function CookiesPage() {
               3. Zgoda i zarządzanie cookies
             </h2>
             <p>
-              Zgodnie z obowiązującymi przepisami (w tym Prawem telekomunikacyjnym
-              i RODO) pliki inne niż niezbędne wymagają Twojej zgody. Możesz
-              wyrazić lub wycofać zgodę w ustawieniach cookies (jeśli dostępne na
-              stronie) lub w ustawieniach przeglądarki. Wyłączenie lub usunięcie
-              cookies może ograniczyć funkcjonalność serwisu.
+              Zgodnie z obowiązującymi przepisami (w tym Prawem telekomunikacyjnym i RODO) pliki
+              inne niż niezbędne wymagają Twojej zgody. Możesz wyrazić lub wycofać zgodę w
+              ustawieniach cookies (jeśli dostępne na stronie) lub w ustawieniach przeglądarki.
+              Wyłączenie lub usunięcie cookies może ograniczyć funkcjonalność serwisu.
             </p>
           </section>
 
@@ -90,21 +82,18 @@ export default function CookiesPage() {
               4. Czas przechowywania
             </h2>
             <p>
-              Cookies sesyjne są usuwane po zamknięciu przeglądarki. Cookies
-              stałe pozostają do momentu ich wygaśnięcia (ustawionego w pliku)
-              lub do momentu ich ręcznego usunięcia w przeglądarce.
+              Cookies sesyjne są usuwane po zamknięciu przeglądarki. Cookies stałe pozostają do
+              momentu ich wygaśnięcia (ustawionego w pliku) lub do momentu ich ręcznego usunięcia w
+              przeglądarce.
             </p>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-[var(--text)] mb-3">
-              5. Więcej informacji
-            </h2>
+            <h2 className="text-lg font-semibold text-[var(--text)] mb-3">5. Więcej informacji</h2>
             <p>
               Szczegóły dotyczące przetwarzania danych osobowych znajdziesz w{" "}
-              <Link href="/politika-prywatnosci">Polityce prywatności</Link>.
-              W razie pytań napisz na{" "}
-              <a href="mailto:miro.job7224@gmail.com">miro.job7224@gmail.com</a>.
+              <Link href="/politika-prywatnosci">Polityce prywatności</Link>. W razie pytań napisz
+              na <a href="mailto:miro.job7224@gmail.com">miro.job7224@gmail.com</a>.
             </p>
           </section>
         </div>

@@ -15,19 +15,48 @@ import { FieldValue } from "firebase-admin/firestore";
 
 const DB_PATH = process.argv[2] ?? path.join(process.cwd(), "brain.db");
 
-type SqliteUser = { id: number; email: string | null; password: string | null; name: string | null };
-type SqliteDocument = { id: number; user_id: number; name: string; content: string; type: string; created_at: string };
-type SqliteNote = { id: number; user_id: number; title: string; content: string; created_at: string };
-type SqliteChunk = { id: number; document_id: number | null; note_id: number | null; content: string };
+type SqliteUser = {
+  id: number;
+  email: string | null;
+  password: string | null;
+  name: string | null;
+};
+type SqliteDocument = {
+  id: number;
+  user_id: number;
+  name: string;
+  content: string;
+  type: string;
+  created_at: string;
+};
+type SqliteNote = {
+  id: number;
+  user_id: number;
+  title: string;
+  content: string;
+  created_at: string;
+};
+type SqliteChunk = {
+  id: number;
+  document_id: number | null;
+  note_id: number | null;
+  content: string;
+};
 
 const TEMP_PASSWORD = process.env.MIGRATION_TEMP_PASSWORD ?? "MigrationTemp1!";
 
 async function main() {
   const db = new Database(DB_PATH, { readonly: true });
   const users = db.prepare("SELECT id, email, password, name FROM users").all() as SqliteUser[];
-  const documents = db.prepare("SELECT id, user_id, name, content, type, created_at FROM documents").all() as SqliteDocument[];
-  const notes = db.prepare("SELECT id, user_id, title, content, created_at FROM notes").all() as SqliteNote[];
-  const chunks = db.prepare("SELECT id, document_id, note_id, content FROM chunks").all() as SqliteChunk[];
+  const documents = db
+    .prepare("SELECT id, user_id, name, content, type, created_at FROM documents")
+    .all() as SqliteDocument[];
+  const notes = db
+    .prepare("SELECT id, user_id, title, content, created_at FROM notes")
+    .all() as SqliteNote[];
+  const chunks = db
+    .prepare("SELECT id, document_id, note_id, content FROM chunks")
+    .all() as SqliteChunk[];
   db.close();
 
   const firestore = getFirestore();
@@ -51,11 +80,13 @@ async function main() {
         const created = await auth.createUser({
           email,
           emailVerified: false,
-          password: (u.password && u.password.length > 0) ? u.password : TEMP_PASSWORD,
+          password: u.password && u.password.length > 0 ? u.password : TEMP_PASSWORD,
           displayName: (u.name ?? email).trim() || undefined,
         });
         uid = created.uid;
-        console.log(`User ${email} -> created Firebase uid ${uid} (password: ${(u.password && u.password.length > 0) ? "from SQLite" : "temp"})`);
+        console.log(
+          `User ${email} -> created Firebase uid ${uid} (password: ${u.password && u.password.length > 0 ? "from SQLite" : "temp"})`
+        );
       } catch (err: any) {
         console.error(`Failed to get/create user for ${email}:`, err.message);
         continue;
@@ -105,8 +136,8 @@ async function main() {
     }
 
     for (const c of userChunks) {
-      const documentId = c.document_id != null ? docIdMap.get(c.document_id) ?? null : null;
-      const noteId = c.note_id != null ? noteIdMap.get(c.note_id) ?? null : null;
+      const documentId = c.document_id != null ? (docIdMap.get(c.document_id) ?? null) : null;
+      const noteId = c.note_id != null ? (noteIdMap.get(c.note_id) ?? null) : null;
       if (!documentId && !noteId) continue;
       await chunksCol.add({
         documentId,
@@ -115,7 +146,9 @@ async function main() {
       });
     }
 
-    console.log(`Migrated user ${firebaseUid}: ${userDocs.length} docs, ${userNotes.length} notes, ${userChunks.length} chunks`);
+    console.log(
+      `Migrated user ${firebaseUid}: ${userDocs.length} docs, ${userNotes.length} notes, ${userChunks.length} chunks`
+    );
   }
 
   console.log("Migration done.");

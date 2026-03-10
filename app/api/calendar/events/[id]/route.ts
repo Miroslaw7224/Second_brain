@@ -3,10 +3,7 @@ import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
 import * as calendarService from "@/services/calendarService";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await getAuthUserId(request);
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
@@ -24,7 +21,10 @@ export async function PUT(
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
   if (body.duration_minutes != null && body.duration_minutes % 15 !== 0) {
-    return NextResponse.json({ error: "duration_minutes must be a multiple of 15" }, { status: 400 });
+    return NextResponse.json(
+      { error: "duration_minutes must be a multiple of 15" },
+      { status: 400 }
+    );
   }
   try {
     await calendarService.updateCalendarEvent(auth.uid, id, {

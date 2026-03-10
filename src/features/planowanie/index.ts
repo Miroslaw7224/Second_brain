@@ -1,2 +1,2 @@
-export { default as PlanowanieView } from './PlanowanieView';
-export type { PlanowanieViewProps } from './PlanowanieView';
+export { default as PlanowanieView } from "./PlanowanieView";
+export type { PlanowanieViewProps } from "./PlanowanieView";

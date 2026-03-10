@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
+import { parseBody } from "@/lib/parseBody";
+import { CreateResourceBodySchema } from "@/src/components/resources/resourceTypes";
 import * as resourceService from "@/services/resourceService";
 
 export async function GET(request: NextRequest) {
@@ -17,21 +19,17 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   const auth = await getAuthUserId(request);
   if (auth instanceof NextResponse) return auth;
-  let body: { description?: string; url?: string; tags?: string[] };
-  try {
-    body = await request.json();
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+
+  const parsed = await parseBody(request, CreateResourceBodySchema);
+  if (parsed.success === false) {
+    return parsed.response;
   }
-  const { description, url, tags } = body;
-  if (!description || typeof description !== "string" || !url || typeof url !== "string") {
-    return NextResponse.json({ error: "description and url are required" }, { status: 400 });
-  }
+  const { description, url, tags } = parsed.data;
   try {
     const resource = await resourceService.addResource(auth.uid, {
       description: description.trim(),
       url: url.trim(),
-      tags: Array.isArray(tags) ? tags : tags != null ? [String(tags)] : undefined,
+      tags: tags ?? [],
     });
     return NextResponse.json(resource, { status: 201 });
   } catch (err) {

@@ -23,12 +23,14 @@ Wybieramy **Firebase Auth** jako system autentykacji. Email + Google OAuth, bez 
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Czas wdrożenia < 1 godzina — krytyczne na MVP
 - Natywna integracja z Firestore — reguły bezpieczeństwa bez dodatkowego kodu
 - Brak własnej bazy users — Firebase zarządza sesjami
 - Izolacja danych per `uid` wbudowana w ekosystem
 
 **Negatywne:**
+
 - Silny lock-in w ekosystem Google — celowy wybór na MVP
 - Migracja do własnego auth w przyszłości wymagałaby pracy — akceptowalne
 

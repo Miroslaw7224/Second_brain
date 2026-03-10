@@ -3,10 +3,7 @@ import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
 import * as tagService from "@/services/tagService";
 
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await getAuthUserId(request);
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
@@ -21,7 +18,8 @@ export async function PUT(
     await tagService.updateUserTag(auth.uid, id, {
       tag: typeof tag === "string" ? tag.trim() : undefined,
       title: typeof title === "string" ? title.trim() : undefined,
-      color: color !== undefined ? (typeof color === "string" ? color.trim() || null : null) : undefined,
+      color:
+        color !== undefined ? (typeof color === "string" ? color.trim() || null : null) : undefined,
     });
     return NextResponse.json({ success: true });
   } catch (err) {

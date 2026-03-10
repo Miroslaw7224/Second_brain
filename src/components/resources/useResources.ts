@@ -31,33 +31,39 @@ export interface UseResourcesLabels {
 
 function resolveLabels(t: TranslationDict): UseResourcesLabels {
   return {
-    resourceDescriptionPlaceholder: (t.resourceDescriptionPlaceholder as string) ?? "Description (e.g. Color picker for project)",
+    resourceDescriptionPlaceholder:
+      (t.resourceDescriptionPlaceholder as string) ?? "Description (e.g. Color picker for project)",
     resourceUrlPlaceholder: (t.resourceUrlPlaceholder as string) ?? "URL",
-    resourceTagsPlaceholder: (t.resourceTagsPlaceholder as string) ?? "Tags (comma-separated, optional)",
+    resourceTagsPlaceholder:
+      (t.resourceTagsPlaceholder as string) ?? "Tags (comma-separated, optional)",
     addResource: (t.addResource as string) ?? "Add resource",
     resourceCopied: (t.resourceCopied as string) ?? "Copied!",
     resourceTitleUnavailable: (t.resourceTitleUnavailable as string) ?? "(title unavailable)",
     resourceDeleteConfirm: (t.resourceDeleteConfirm as string) ?? "Delete this resource?",
-    resourceNoResources: (t.resourceNoResources as string) ?? "No resources yet. Add your first link.",
+    resourceNoResources:
+      (t.resourceNoResources as string) ?? "No resources yet. Add your first link.",
     resourceBlockFormatLabel: (t.resourceBlockFormatLabel as string) ?? "Or paste in block format:",
     resourceBlockFormatPlaceholder:
       (t.resourceBlockFormatPlaceholder as string) ??
       "Opis: Short description of the resource.\nURL: https://example.com\nTagi: tag1, tag2, tag3",
     resourceBlockFormatHint:
       (t.resourceBlockFormatHint as string) ??
-      "Multiple resources: start each new block on a new line with \"Opis:\" or \"Description:\".",
+      'Multiple resources: start each new block on a new line with "Opis:" or "Description:".',
     resourceAddFromBlock: (t.resourceAddFromBlock as string) ?? "Add from pasted block",
     resourceBlockFormatError:
-      (t.resourceBlockFormatError as string) ?? "Could not parse. Required: URL: and Opis: (or Description:).",
+      (t.resourceBlockFormatError as string) ??
+      "Could not parse. Required: URL: and Opis: (or Description:).",
     resourceFilterByTags: (t.resourceFilterByTags as string) ?? "Filter by tags",
     resourceClearFilters: (t.resourceClearFilters as string) ?? "Clear filters",
-    resourceNoMatchingTags: (t.resourceNoMatchingTags as string) ?? "No resources match the selected tags.",
+    resourceNoMatchingTags:
+      (t.resourceNoMatchingTags as string) ?? "No resources match the selected tags.",
     resourceFavorite: (t.resourceFavorite as string) ?? "Favorite",
     resourceEdit: (t.resourceEdit as string) ?? "Edit",
     resourceSaveEdit: (t.resourceSaveEdit as string) ?? "Save",
     resourceEditModalTitle: (t.resourceEditModalTitle as string) ?? "Edit resource",
     tabResources: (t.tabResources as string) ?? "Zasoby",
-    resourceSearchPlaceholder: (t.resourceSearchPlaceholder as string) ?? "Search by title, description or URL",
+    resourceSearchPlaceholder:
+      (t.resourceSearchPlaceholder as string) ?? "Search by title, description or URL",
     resourceFavoritesSectionTitle: (t.resourceFavoritesSectionTitle as string) ?? "Favorite links",
     noteCancelEdit: (t.noteCancelEdit as string) ?? "Cancel",
   };
@@ -108,13 +114,15 @@ export interface UseResourcesResult {
     tags: string;
     isFavorite: boolean;
   };
-  setEditForm: React.Dispatch<React.SetStateAction<{
-    title: string;
-    description: string;
-    url: string;
-    tags: string;
-    isFavorite: boolean;
-  }>>;
+  setEditForm: React.Dispatch<
+    React.SetStateAction<{
+      title: string;
+      description: string;
+      url: string;
+      tags: string;
+      isFavorite: boolean;
+    }>
+  >;
   closeEditModal: () => void;
   handleSaveEdit: () => Promise<void>;
 }
@@ -155,9 +163,7 @@ export function useResources(
   const filteredResources = useMemo(() => {
     let list = resources;
     if (selectedTags.length > 0) {
-      list = list.filter((r) =>
-        (r.tags || []).some((tag) => selectedTags.includes(tag))
-      );
+      list = list.filter((r) => (r.tags || []).some((tag) => selectedTags.includes(tag)));
     }
     const q = searchQuery.trim().toLowerCase();
     if (q) {
@@ -352,9 +358,7 @@ export function useResources(
       if (res.ok) {
         const updated = await res.json();
         setResources((prev) =>
-          prev.map((r) =>
-            r.id === editingResource.id ? { ...r, ...updated, id: r.id } : r
-          )
+          prev.map((r) => (r.id === editingResource.id ? { ...r, ...updated, id: r.id } : r))
         );
         closeEditModal();
       }
@@ -373,9 +377,7 @@ export function useResources(
       });
       if (res.ok) {
         setResources((prev) =>
-          prev.map((item) =>
-            item.id === r.id ? { ...item, isFavorite: next } : item
-          )
+          prev.map((item) => (item.id === r.id ? { ...item, isFavorite: next } : item))
         );
       }
     } catch (err) {

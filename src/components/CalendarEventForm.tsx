@@ -85,11 +85,13 @@ export function CalendarEventForm({
 
   const hourOptions = Array.from({ length: 96 }, (_, i) => i * 15); // 0–23:45 co 15 min
   const tagInputNormalized = tagInput.trim().replace(/^#/, "").toLowerCase();
-  const filteredExistingTags = existingTags.filter((t) => {
-    if (tags.includes(t)) return false;
-    if (!tagInputNormalized) return true;
-    return t.toLowerCase().includes(tagInputNormalized);
-  }).slice(0, 10);
+  const filteredExistingTags = existingTags
+    .filter((t) => {
+      if (tags.includes(t)) return false;
+      if (!tagInputNormalized) return true;
+      return t.toLowerCase().includes(tagInputNormalized);
+    })
+    .slice(0, 10);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -115,7 +117,9 @@ export function CalendarEventForm({
           />
         </div>
         <div>
-          <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Start time</label>
+          <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+            Start time
+          </label>
           <select
             value={startMinutes}
             onChange={(e) => setStartMinutes(Number(e.target.value))}
@@ -130,7 +134,9 @@ export function CalendarEventForm({
         </div>
       </div>
       <div>
-        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Duration (15 min steps)</label>
+        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+          Duration (15 min steps)
+        </label>
         <select
           value={durationMinutes}
           onChange={(e) => setDurationMinutes(Number(e.target.value))}
@@ -144,7 +150,9 @@ export function CalendarEventForm({
         </select>
       </div>
       <div>
-        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">Tags (#testy, #nauka…)</label>
+        <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
+          Tags (#testy, #nauka…)
+        </label>
         <div className="flex gap-2 flex-wrap">
           {tags.map((t) => (
             <span
@@ -165,7 +173,10 @@ export function CalendarEventForm({
               onFocus={() => setTagInputFocused(true)}
               onBlur={() => {
                 setTimeout(() => {
-                  if (tagContainerRef.current && !tagContainerRef.current.contains(document.activeElement)) {
+                  if (
+                    tagContainerRef.current &&
+                    !tagContainerRef.current.contains(document.activeElement)
+                  ) {
                     setTagInputFocused(false);
                   }
                 }, 180);
@@ -174,12 +185,18 @@ export function CalendarEventForm({
               placeholder="#tag lub wybierz poniżej"
               className="flex-1 px-2 py-1 bg-[var(--bg3)] border-none rounded text-sm"
             />
-            <button type="button" onClick={addTag} className="px-2 py-1 bg-[var(--accent)] text-white rounded text-sm">
+            <button
+              type="button"
+              onClick={addTag}
+              className="px-2 py-1 bg-[var(--accent)] text-white rounded text-sm"
+            >
               +
             </button>
             {(tagInputFocused || tagInput) && filteredExistingTags.length > 0 && (
               <div className="absolute left-0 right-0 top-full z-20 mt-1 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                <p className="px-2 py-0.5 text-[10px] font-bold text-[var(--text3)] uppercase">Propozycje</p>
+                <p className="px-2 py-0.5 text-[10px] font-bold text-[var(--text3)] uppercase">
+                  Propozycje
+                </p>
                 {filteredExistingTags.map((t) => (
                   <button
                     key={t}
@@ -204,10 +221,17 @@ export function CalendarEventForm({
         </div>
       </div>
       <div className="flex gap-2 justify-end pt-2">
-        <button type="button" onClick={onCancel} className="px-4 py-2 bg-[var(--bg3)] rounded-xl text-sm font-semibold">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="px-4 py-2 bg-[var(--bg3)] rounded-xl text-sm font-semibold"
+        >
           Cancel
         </button>
-        <button type="submit" className="px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold">
+        <button
+          type="submit"
+          className="px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold"
+        >
           {submitLabel}
         </button>
       </div>

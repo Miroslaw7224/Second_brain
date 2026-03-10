@@ -17,6 +17,7 @@ Alternatywy to dedykowane serwisy vector search (Pinecone, Weaviate, pgvector, Q
 ## Decyzja
 
 Wybieramy **własną implementację cosine similarity** w Next.js API Route. Algorytm:
+
 1. Pobierz wszystkie chunki użytkownika z Firestore (kolekcja `users/{userId}/chunks`)
 2. Oblicz cosine similarity między wektorem zapytania a każdym wektorem chunka
 3. Zwróć top-k najbardziej podobnych chunków
@@ -35,12 +36,14 @@ Bez dodatkowego serwisu — zero nowego konta, billingów i punktów awarii. Na 
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Zero dodatkowego serwisu — minimalna liczba zależności
 - Brak dodatkowego billingu na MVP
 - Prosty algorytm — łatwy do debugowania i modyfikacji
 - Dane już w Firestore — brak migracji bazy przy ewentualnym przejściu na vector store
 
 **Negatywne:**
+
 - Wolniejsze przy dużej liczbie chunków — celowo odroczona optymalizacja
 - Brak zaawansowanego filtrowania metadanych — wystarczające na MVP
 - Pełne pobieranie chunków usera przy każdym zapytaniu — przy > 2000 chunków może być bottleneck

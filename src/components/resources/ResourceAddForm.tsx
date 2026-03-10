@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Plus, Loader2, ChevronDown } from "lucide-react";
+import { CreateResourceBodySchema } from "./resourceTypes";
 
 export interface ResourceAddFormProps {
   resourceDescriptionPlaceholder: string;
@@ -58,6 +59,31 @@ export function ResourceAddForm({
   blockFormatError,
   copyMessage,
 }: ResourceAddFormProps) {
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  const handleSubmit = async () => {
+    const tags = addTags
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const result = CreateResourceBodySchema.safeParse({
+      description: addDescription.trim(),
+      url: addUrl.trim(),
+      tags,
+    });
+    if (!result.success) {
+      const errors: Record<string, string> = {};
+      const flat = result.error.flatten().fieldErrors;
+      for (const [key, messages] of Object.entries(flat)) {
+        if (messages && messages[0]) errors[key] = messages[0];
+      }
+      setFieldErrors(errors);
+      return;
+    }
+    setFieldErrors({});
+    await handleAdd();
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 space-y-0">
@@ -73,38 +99,56 @@ export function ResourceAddForm({
         </button>
         {formExpanded && (
           <div className="space-y-3 pt-1">
-            <input
-              type="text"
-              value={addDescription}
-              onChange={(e) => setAddDescription(e.target.value)}
-              placeholder={resourceDescriptionPlaceholder}
-              className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
-            />
-            <input
-              type="url"
-              value={addUrl}
-              onChange={(e) => setAddUrl(e.target.value)}
-              placeholder={resourceUrlPlaceholder}
-              className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
-            />
-            <input
-              type="text"
-              value={addTags}
-              onChange={(e) => setAddTags(e.target.value)}
-              placeholder={resourceTagsPlaceholder}
-              className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
-            />
+            <div>
+              <input
+                type="text"
+                value={addDescription}
+                onChange={(e) => {
+                  setAddDescription(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, description: undefined }));
+                }}
+                placeholder={resourceDescriptionPlaceholder}
+                className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
+                aria-invalid={!!fieldErrors.description}
+              />
+              {fieldErrors.description && (
+                <p className="text-sm text-red-600 mt-1">{fieldErrors.description}</p>
+              )}
+            </div>
+            <div>
+              <input
+                type="url"
+                value={addUrl}
+                onChange={(e) => {
+                  setAddUrl(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, url: undefined }));
+                }}
+                placeholder={resourceUrlPlaceholder}
+                className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
+                aria-invalid={!!fieldErrors.url}
+              />
+              {fieldErrors.url && <p className="text-sm text-red-600 mt-1">{fieldErrors.url}</p>}
+            </div>
+            <div>
+              <input
+                type="text"
+                value={addTags}
+                onChange={(e) => {
+                  setAddTags(e.target.value);
+                  setFieldErrors((prev) => ({ ...prev, tags: undefined }));
+                }}
+                placeholder={resourceTagsPlaceholder}
+                className="w-full px-4 py-2 bg-[var(--bg3)] border-none rounded-xl text-base focus:ring-2 focus:ring-[var(--accent)]"
+              />
+              {fieldErrors.tags && <p className="text-sm text-red-600 mt-1">{fieldErrors.tags}</p>}
+            </div>
             <button
               type="button"
-              onClick={handleAdd}
+              onClick={handleSubmit}
               disabled={adding || !addDescription.trim() || !addUrl.trim()}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--accent)] text-white rounded-xl text-sm font-semibold hover:scale-105 transition-all disabled:opacity-50 disabled:hover:scale-100"
             >
-              {adding ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
+              {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               {addResourceLabel}
             </button>
           </div>
@@ -141,11 +185,7 @@ export function ResourceAddForm({
               disabled={adding || !blockFormatText.trim()}
               className="flex items-center gap-2 px-4 py-2 bg-[var(--text2)] text-white rounded-xl text-sm font-semibold hover:bg-[var(--text)] transition-all disabled:opacity-50 disabled:hover:bg-[var(--text2)]"
             >
-              {adding ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Plus className="w-4 h-4" />
-              )}
+              {adding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
               {addFromBlockLabel}
             </button>
             {blockFormatError && (
@@ -155,9 +195,7 @@ export function ResourceAddForm({
         )}
       </div>
 
-      {copyMessage && (
-        <p className="text-sm text-green-600 font-medium">{copyMessage}</p>
-      )}
+      {copyMessage && <p className="text-sm text-green-600 font-medium">{copyMessage}</p>}
     </div>
   );
 }

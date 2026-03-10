@@ -26,10 +26,7 @@ interface StartSessionModalProps {
   suggestionsLabel: string;
 }
 
-function getColorForTag(
-  tag: string,
-  tagColors: Record<string, string>
-): string | undefined {
+function getColorForTag(tag: string, tagColors: Record<string, string>): string | undefined {
   if (tagColors[tag]) return tagColors[tag];
   const lower = tag.toLowerCase();
   const key = Object.keys(tagColors).find((k) => k.toLowerCase() === lower);
@@ -118,11 +115,7 @@ export function StartSessionModal({
               className="inline-flex items-center gap-1 px-2 py-0.5 bg-[var(--border)] rounded-md text-xs font-medium"
             >
               #{t}
-              <button
-                type="button"
-                onClick={() => removeTag(t)}
-                className="hover:text-red-500"
-              >
+              <button type="button" onClick={() => removeTag(t)} className="hover:text-red-500">
                 ×
               </button>
             </span>
@@ -143,9 +136,7 @@ export function StartSessionModal({
                   }
                 }, 180);
               }}
-              onKeyDown={(e) =>
-                e.key === "Enter" && (e.preventDefault(), addTag())
-              }
+              onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addTag())}
               placeholder={tagPlaceholder}
               className="flex-1 px-2 py-1 bg-[var(--bg3)] border-none rounded text-sm"
             />
@@ -156,32 +147,31 @@ export function StartSessionModal({
             >
               +
             </button>
-            {(tagInputFocused || tagInput) &&
-              filteredExistingTags.length > 0 && (
-                <div className="absolute left-0 right-0 top-full z-20 mt-1 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg max-h-40 overflow-y-auto">
-                  <p className="px-2 py-0.5 text-[10px] font-bold text-[var(--text3)] uppercase">
-                    {suggestionsLabel}
-                  </p>
-                  {filteredExistingTags.map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      tabIndex={-1}
-                      onMouseDown={(e) => {
-                        e.preventDefault();
-                        if (!tags.includes(t)) setTags([...tags, t]);
-                        setTagInput("");
-                        const assignedTitle = tagTitles[t];
-                        if (assignedTitle) setTitle(assignedTitle);
-                      }}
-                      className="w-full text-left text-sm px-3 py-1.5 hover:bg-[var(--bg3)] flex items-center gap-1"
-                    >
-                      <span className="text-[var(--text2)]">#</span>
-                      {t}
-                    </button>
-                  ))}
-                </div>
-              )}
+            {(tagInputFocused || tagInput) && filteredExistingTags.length > 0 && (
+              <div className="absolute left-0 right-0 top-full z-20 mt-1 py-1 bg-[var(--surface)] border border-[var(--border)] rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                <p className="px-2 py-0.5 text-[10px] font-bold text-[var(--text3)] uppercase">
+                  {suggestionsLabel}
+                </p>
+                {filteredExistingTags.map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    tabIndex={-1}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      if (!tags.includes(t)) setTags([...tags, t]);
+                      setTagInput("");
+                      const assignedTitle = tagTitles[t];
+                      if (assignedTitle) setTitle(assignedTitle);
+                    }}
+                    className="w-full text-left text-sm px-3 py-1.5 hover:bg-[var(--bg3)] flex items-center gap-1"
+                  >
+                    <span className="text-[var(--text2)]">#</span>
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

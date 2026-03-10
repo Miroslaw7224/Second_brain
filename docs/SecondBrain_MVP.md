@@ -1,6 +1,6 @@
 **🧠 Second Brain dla Freelancerów**
 
-*Plan MVP · Solo Founder · Etap: HOW · Timeline: 5--7 dni*
+_Plan MVP · Solo Founder · Etap: HOW · Timeline: 5--7 dni_
 
 **Stack: Carrd + Google AI Studio + Airtable + Glide**
 
@@ -11,40 +11,42 @@ notatkami, dokumentami i historią projektów klientów.
 
 **Dla kogo**
 
--   Aktywni freelancerzy obsługujący wielu klientów jednocześnie
+- Aktywni freelancerzy obsługujący wielu klientów jednocześnie
 
--   Osoby, które gubią kontekst między projektami, mailami i ustaleniami
+- Osoby, które gubią kontekst między projektami, mailami i ustaleniami
 
 **Ból użytkownika**
 
--   \"Gdzie ja to zapisałem\... chyba w jakimś mailu z marca\...\"
+- \"Gdzie ja to zapisałem\... chyba w jakimś mailu z marca\...\"
 
--   Tracą czas na szukanie ustaleń, wycen i historii rozmów
+- Tracą czas na szukanie ustaleń, wycen i historii rozmów
 
--   Brak jednego miejsca, gdzie siedzi cała wiedza o klientach
+- Brak jednego miejsca, gdzie siedzi cała wiedza o klientach
 
 **Przed → Po**
 
-  ----------------------------------- -----------------------------------
-  **PRZED**                           **PO**
+---
 
-  Freelancer przekopuje stare maile i Pyta \"Co ustaliliśmy z klientem X
-  notatki przez 30 minut szukając     w marcu?\" i dostaje konkretną
-  ustaleń z klientem.                 odpowiedź w 3 sekundy.
-  ----------------------------------- -----------------------------------
+**PRZED** **PO**
+
+Freelancer przekopuje stare maile i Pyta \"Co ustaliliśmy z klientem X
+notatki przez 30 minut szukając w marcu?\" i dostaje konkretną
+ustaleń z klientem. odpowiedź w 3 sekundy.
+
+---
 
 **Sukces po MVP**
 
--   5 freelancerów używa regularnie przez 2 tygodnie
+- 5 freelancerów używa regularnie przez 2 tygodnie
 
--   Co najmniej 2 osoby mówią: \"zapłaciłbym za to \$15--20/msc\"
+- Co najmniej 2 osoby mówią: \"zapłaciłbym za to \$15--20/msc\"
 
--   Przynajmniej 1 płatny użytkownik przed końcem miesiąca
+- Przynajmniej 1 płatny użytkownik przed końcem miesiąca
 
 **2. Mapa Przepływu MVP --- Diagram Mermaid**
 
-*Poniżej logiczny flow aplikacji. Skopiuj kod do mermaid.live lub
-Notion, żeby zobaczyć wizualizację:*
+_Poniżej logiczny flow aplikacji. Skopiuj kod do mermaid.live lub
+Notion, żeby zobaczyć wizualizację:_
 
 > flowchart TD
 >
@@ -67,175 +69,185 @@ Notion, żeby zobaczyć wizualizację:*
 Priorytet: prostota i szybkość. Żadnej linii kodu --- walidujemy pomysł,
 nie budujemy produktu.
 
-  ---------------- ---------------- -------------------------------------
-  **Potrzeba**     **Narzędzie**    **Dlaczego**
+---
 
-  Landing Page     Carrd.co         Gotowy w 1 godzinę, bez konfiguracji
+**Potrzeba** **Narzędzie** **Dlaczego**
 
-  Formularz        Tally.so         Darmowy, piękny, łączy się z Airtable
-  waitlisty                         
+Landing Page Carrd.co Gotowy w 1 godzinę, bez konfiguracji
 
-  Baza danych /    Airtable         Elastyczna, zero kodu, wizualna
-  CRM                               
+Formularz Tally.so Darmowy, piękny, łączy się z Airtable
+waitlisty
 
-  Aplikacja dla    Glide            Buduje appkę z Google Sheets w 2h
-  użytkowników                      
+Baza danych / Airtable Elastyczna, zero kodu, wizualna
+CRM
 
-  Logika AI / Q&A  Google AI Studio Darmowe do testów, szybkie, API-ready
+Aplikacja dla Glide Buduje appkę z Google Sheets w 2h
+użytkowników
 
-  Automatyzacje    Make             Łączy wszystkie narzędzia bez kodu
-                   (Integromat)     
+Logika AI / Q&A Google AI Studio Darmowe do testów, szybkie, API-ready
 
-  Płatności (po    Stripe Payment   Link do płatności bez integracji
-  walidacji)       Link             
-  ---------------- ---------------- -------------------------------------
+Automatyzacje Make Łączy wszystkie narzędzia bez kodu
+(Integromat)
+
+Płatności (po Stripe Payment Link do płatności bez integracji
+walidacji) Link
+
+---
 
 **4. Zakres MVP --- tylko to, co konieczne**
 
 **Funkcje na MVP**
 
--   Landing page z opisem problemu i formularzem zapisu na waitlistę
+- Landing page z opisem problemu i formularzem zapisu na waitlistę
 
--   Prosta appka Glide: wklejanie notatek i dokumentów tekstowych
+- Prosta appka Glide: wklejanie notatek i dokumentów tekstowych
 
--   Chat z własną bazą wiedzy przez Google AI Studio (prompt + kontekst)
+- Chat z własną bazą wiedzy przez Google AI Studio (prompt + kontekst)
 
--   Ręczne zapraszanie pierwszych 5 użytkowników
+- Ręczne zapraszanie pierwszych 5 użytkowników
 
 **Wyrzucamy na później**
 
--   Automatyczne indeksowanie i embeddingi (RAG)
+- Automatyczne indeksowanie i embeddingi (RAG)
 
--   Upload PDF i plików --- na start tylko tekst wklejany ręcznie
+- Upload PDF i plików --- na start tylko tekst wklejany ręcznie
 
--   Integracje z mailem, Notion, Google Drive
+- Integracje z mailem, Notion, Google Drive
 
--   Aplikacja mobilna, wersjonowanie, dashboard analityczny
+- Aplikacja mobilna, wersjonowanie, dashboard analityczny
 
--   Własny backend --- dodajemy gdy pojawi się popyt
+- Własny backend --- dodajemy gdy pojawi się popyt
 
 **5. Timeline --- 5--7 dni**
 
-  ----------- ---------------------- -------------------- ------------------
-  **Dzień**   **Zadanie**            **Cel**              **Narzędzie**
+---
 
-  Dzień 1     Landing page +         Strona online,       Carrd + Tally
-              formularz waitlisty    zbieramy maile       
+**Dzień** **Zadanie** **Cel** **Narzędzie**
 
-  Dzień 2     Post na Reddit +       20 maili na liście   Ręcznie
-              LinkedIn + cold        przed budowaniem     
-              outreach                                    
+Dzień 1 Landing page + Strona online, Carrd + Tally
+formularz waitlisty zbieramy maile
 
-  Dzień 3     Baza w Airtable +      Działający prototyp  Airtable + Glide
-              prosta appka Glide     appki                
+Dzień 2 Post na Reddit + 20 maili na liście Ręcznie
+LinkedIn + cold przed budowaniem  
+ outreach
 
-  Dzień 4     Integracja Google AI   Można zadać pytanie  Google AI Studio +
-              Studio z Glide         i dostać odpowiedź   Make
+Dzień 3 Baza w Airtable + Działający prototyp Airtable + Glide
+prosta appka Glide appki
 
-  Dzień 5     Testy na własnych      Produkt działa bez   Glide
-              danych, poprawki UX    wiedzy technicznej   
+Dzień 4 Integracja Google AI Można zadać pytanie Google AI Studio +
+Studio z Glide i dostać odpowiedź Make
 
-  Dzień 6     5 osób z waitlisty     Pierwsze dane        Email ręczny
-              dostaje dostęp         walidacyjne i        
-                                     feedback             
+Dzień 5 Testy na własnych Produkt działa bez Glide
+danych, poprawki UX wiedzy technicznej
 
-  Dzień 7     Rozmowy z              Walidacja lub pivot  Zoom/Meet
-              użytkownikami, decyzja                      
-              o kolejnym kroku                            
-  ----------- ---------------------- -------------------- ------------------
+Dzień 6 5 osób z waitlisty Pierwsze dane Email ręczny
+dostaje dostęp walidacyjne i  
+ feedback
+
+Dzień 7 Rozmowy z Walidacja lub pivot Zoom/Meet
+użytkownikami, decyzja  
+ o kolejnym kroku
+
+---
 
 **6. Model Cenowy**
 
-  ----------- ------------- -------------------------- -------------------
-  **Plan**    **Cena**      **Zawartość**              **Cel**
+---
 
-  Free Trial  0 zł / 7 dni  Pełny dostęp, bez karty    Usuwa barierę
-                            kredytowej                 wejścia
+**Plan** **Cena** **Zawartość** **Cel**
 
-  Solo        \$19 / msc    Do 50 dokumentów,          Główny plan na MVP
-                            nielimitowany chat         
+Free Trial 0 zł / 7 dni Pełny dostęp, bez karty Usuwa barierę
+kredytowej wejścia
 
-  Pro         \$39 / msc    Nielimitowane dokumenty +  Gdy pojawi się
-  (później)                 integracje                 popyt
-  ----------- ------------- -------------------------- -------------------
+Solo \$19 / msc Do 50 dokumentów, Główny plan na MVP
+nielimitowany chat
 
-*Zasada: jeden prosty plan na start. Nie komplikuj cen zanim nie wiesz,
-czego chcą klienci.*
+Pro \$39 / msc Nielimitowane dokumenty + Gdy pojawi się
+(później) integracje popyt
+
+---
+
+_Zasada: jeden prosty plan na start. Nie komplikuj cen zanim nie wiesz,
+czego chcą klienci._
 
 **7. Strategia Startu**
 
 **Zanim zbudujesz cokolwiek**
 
--   Postaw stronę na Carrd.co (1 godzina) z opisem problemu i
-    formularzem waitlisty
+- Postaw stronę na Carrd.co (1 godzina) z opisem problemu i
+  formularzem waitlisty
 
--   Zbierz minimum 20 maili zanim zaczniesz budować
+- Zbierz minimum 20 maili zanim zaczniesz budować
 
--   Napisz post na Reddit (r/freelance) opisując problem --- NIE produkt
+- Napisz post na Reddit (r/freelance) opisując problem --- NIE produkt
 
 **Kanały promocji**
 
--   Reddit: r/freelance, r/productivity, r/SaaS --- opisuj problem,
-    pytaj o opinię
+- Reddit: r/freelance, r/productivity, r/SaaS --- opisuj problem,
+  pytaj o opinię
 
--   IndieHackers --- pokaż co budujesz, społeczność lubi przejrzystość
+- IndieHackers --- pokaż co budujesz, społeczność lubi przejrzystość
 
--   LinkedIn --- post: \"Buduję to narzędzie, czy masz ten problem?\"
+- LinkedIn --- post: \"Buduję to narzędzie, czy masz ten problem?\"
 
--   Cold outreach --- napisz do 10 freelancerów na LinkedIn z prośbą o
-    15 minut rozmowy
+- Cold outreach --- napisz do 10 freelancerów na LinkedIn z prośbą o
+  15 minut rozmowy
 
 **Pytania do pierwszych użytkowników**
 
--   Czy to rozwiązuje Twój problem?
+- Czy to rozwiązuje Twój problem?
 
--   Zapłaciłbyś za to? Jeśli nie --- dlaczego?
+- Zapłaciłbyś za to? Jeśli nie --- dlaczego?
 
--   Co jest dla Ciebie najważniejszą funkcją?
+- Co jest dla Ciebie najważniejszą funkcją?
 
--   Czego Ci tutaj brakuje?
+- Czego Ci tutaj brakuje?
 
 **8. Ryzyka i jak je ograniczyć**
 
-  ------------------------------ ----------------------------------------
-  **Ryzyko**                     **Jak ograniczyć**
+---
 
-  Koszty Google AI Studio        Ustaw limit \$10/msc w Google Cloud od
-  wymykają się                   dnia 1
+**Ryzyko** **Jak ograniczyć**
 
-  Glide nie wystarczy do         Na MVP wystarczy prompt + wklejony tekst
-  złożonego RAG                  --- RAG dodaj później
+Koszty Google AI Studio Ustaw limit \$10/msc w Google Cloud od
+wymykają się dnia 1
 
-  Brak użytkowników po launchu   Pokaż działające demo już w dniu 4, nie
-                                 czekaj na gotowy produkt
+Glide nie wystarczy do Na MVP wystarczy prompt + wklejony tekst
+złożonego RAG --- RAG dodaj później
 
-  Złe odpowiedzi AI              Testuj prompt na własnych dokumentach od
-                                 dnia 3
+Brak użytkowników po launchu Pokaż działające demo już w dniu 4, nie
+czekaj na gotowy produkt
 
-  Nikt nie płaci \$19/msc        Zwaliduj cenę zanim zbudujesz Stripe ---
-                                 zapytaj 10 osób wprost
-  ------------------------------ ----------------------------------------
+Złe odpowiedzi AI Testuj prompt na własnych dokumentach od
+dnia 3
+
+Nikt nie płaci \$19/msc Zwaliduj cenę zanim zbudujesz Stripe ---
+zapytaj 10 osób wprost
+
+---
 
 **9. Kolejne Kroki**
 
-  --------------- ------------------------------------- ---------------------
-  **Priorytet**   **Akcja**                             **Kiedy**
+---
 
-  🔴 Dziś         Postaw Carrd z waitlistą i zacznij    Przed pisaniem kodu
-                  zbierać maile                         
+**Priorytet** **Akcja** **Kiedy**
 
-  🟡 Ten tydzień  Zbierz 20 maili i przeprowadź 3       Przed budowaniem
-                  rozmowy z freelancerami               
+🔴 Dziś Postaw Carrd z waitlistą i zacznij Przed pisaniem kodu
+zbierać maile
 
-  🟢 Dzień 3--4   Zbuduj prototyp w Glide + Google AI   Po potwierdzeniu bólu
-                  Studio                                
+🟡 Ten tydzień Zbierz 20 maili i przeprowadź 3 Przed budowaniem
+rozmowy z freelancerami
 
-  🟢 Dzień 5--6   Daj dostęp 5 osobom z waitlisty za    Demo gotowe
-                  feedback                              
+🟢 Dzień 3--4 Zbuduj prototyp w Glide + Google AI Po potwierdzeniu bólu
+Studio
 
-  📊 Po launchu   Zbierz feedback i zdecyduj: budować   Dzień 7+
-                  dalej czy pivot?                      
-  --------------- ------------------------------------- ---------------------
+🟢 Dzień 5--6 Daj dostęp 5 osobom z waitlisty za Demo gotowe
+feedback
 
-***Pamiętaj: MVP ma odpowiedzieć na jedno pytanie --- czy ktoś za to
-zapłaci?***
+📊 Po launchu Zbierz feedback i zdecyduj: budować Dzień 7+
+dalej czy pivot?
+
+---
+
+**_Pamiętaj: MVP ma odpowiedzieć na jedno pytanie --- czy ktoś za to
+zapłaci?_**

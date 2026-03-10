@@ -18,16 +18,10 @@ export async function POST(request: NextRequest) {
 
   const email = typeof body?.email === "string" ? body.email.trim() : "";
   if (!email) {
-    return NextResponse.json(
-      { error: "Adres e-mail jest wymagany" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Adres e-mail jest wymagany" }, { status: 400 });
   }
   if (!isValidEmail(email)) {
-    return NextResponse.json(
-      { error: "Nieprawidłowy format adresu e-mail" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "Nieprawidłowy format adresu e-mail" }, { status: 400 });
   }
 
   const emailLower = email.toLowerCase();

@@ -1,11 +1,7 @@
 import React from "react";
 import { Pencil, Square } from "lucide-react";
 import type { CalendarEvent } from "./calendarUtils";
-import {
-  assignLanes,
-  getOverlapCounts,
-  CALENDAR_MAX_STACK,
-} from "./calendarUtils";
+import { assignLanes, getOverlapCounts, CALENDAR_MAX_STACK } from "./calendarUtils";
 import { formatDuration } from "../calendarConstants";
 import type { ActiveSession } from "@/src/lib/activeSession";
 
@@ -103,52 +99,52 @@ export function CalendarDayColumn({
             </div>
           );
         })}
-        {activeSession && day.date === todayStr && (() => {
-          const started = new Date(activeSession.startedAt);
-          const sessionStartMinutes =
-            started.getHours() * 60 + started.getMinutes();
-          const sessionEndMinutes = nowMinutes;
-          if (sessionEndMinutes <= sessionStartMinutes) return null;
-          const leftPx = (sessionStartMinutes / 60) * cellWidth;
-          const widthPx = Math.max(
-            24,
-            ((sessionEndMinutes - sessionStartMinutes) / 60) * cellWidth
-          );
-          const sessionTimeStr = `${String(started.getHours()).padStart(2, "0")}:${String(started.getMinutes()).padStart(2, "0")}`;
-          const sessionInProgressSince =
-            (t.sessionInProgressSince as string)?.replace("{time}", sessionTimeStr) ??
-            "In progress";
-          const sessionEndButton =
-            (t.sessionEndButton as string) ?? "End work";
-          return (
-            <div
-              data-event
-              data-active-session
-              onClick={(e) => {
-                e.stopPropagation();
-                onEndSession?.();
-              }}
-              className="absolute rounded overflow-hidden cursor-pointer border-2 border-dashed border-white/80 shadow-sm flex items-center gap-1 group hover:ring-2 hover:ring-white/80 z-10"
-              style={{
-                left: leftPx,
-                width: widthPx,
-                top: "2%",
-                height: "96%",
-                backgroundColor: activeSession.color,
-                opacity: 0.85,
-              }}
-              title={`${activeSession.title} · ${sessionInProgressSince} – ${sessionEndButton}`}
-            >
-              <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
-                {activeSession.title}
-              </span>
-              <Square
-                className="w-3 h-3 text-white/90 flex-shrink-0 opacity-70 group-hover:opacity-100 mr-1"
-                aria-hidden
-              />
-            </div>
-          );
-        })()}
+        {activeSession &&
+          day.date === todayStr &&
+          (() => {
+            const started = new Date(activeSession.startedAt);
+            const sessionStartMinutes = started.getHours() * 60 + started.getMinutes();
+            const sessionEndMinutes = nowMinutes;
+            if (sessionEndMinutes <= sessionStartMinutes) return null;
+            const leftPx = (sessionStartMinutes / 60) * cellWidth;
+            const widthPx = Math.max(
+              24,
+              ((sessionEndMinutes - sessionStartMinutes) / 60) * cellWidth
+            );
+            const sessionTimeStr = `${String(started.getHours()).padStart(2, "0")}:${String(started.getMinutes()).padStart(2, "0")}`;
+            const sessionInProgressSince =
+              (t.sessionInProgressSince as string)?.replace("{time}", sessionTimeStr) ??
+              "In progress";
+            const sessionEndButton = (t.sessionEndButton as string) ?? "End work";
+            return (
+              <div
+                data-event
+                data-active-session
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEndSession?.();
+                }}
+                className="absolute rounded overflow-hidden cursor-pointer border-2 border-dashed border-white/80 shadow-sm flex items-center gap-1 group hover:ring-2 hover:ring-white/80 z-10"
+                style={{
+                  left: leftPx,
+                  width: widthPx,
+                  top: "2%",
+                  height: "96%",
+                  backgroundColor: activeSession.color,
+                  opacity: 0.85,
+                }}
+                title={`${activeSession.title} · ${sessionInProgressSince} – ${sessionEndButton}`}
+              >
+                <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
+                  {activeSession.title}
+                </span>
+                <Square
+                  className="w-3 h-3 text-white/90 flex-shrink-0 opacity-70 group-hover:opacity-100 mr-1"
+                  aria-hidden
+                />
+              </div>
+            );
+          })()}
       </div>
     </div>
   );

@@ -29,12 +29,14 @@ App Router upraszcza routing, a server components redukują ilość JS wysyłane
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Jeden repo, jeden deployment — brak context switching
 - RAG pipeline w Route Handlers — zero oddzielnego serwera
 - Server components — szybszy pierwszy load chat UI
 - Naturalna integracja z Vercel — zero konfiguracji deployu
 
 **Negatywne:**
+
 - App Router ma stromą krzywą uczenia dla osób znających tylko Pages Router
 - SSR może komplikować real-time UI czatu — rozwiązanie: Streaming Response z Gemini API
 

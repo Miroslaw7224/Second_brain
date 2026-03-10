@@ -7,6 +7,7 @@ Zaakceptowany
 ## Kontekst
 
 Second Brain potrzebuje bazy danych do przechowywania:
+
 - metadanych dokumentów użytkownika,
 - chunków tekstu z wektorami embeddingów,
 - danych waitlisty i użytkowników (integracja z Firebase Auth).
@@ -20,6 +21,7 @@ Kluczowy wymóg: wektory embeddingów muszą być przechowywane w sposób umożl
 Wybieramy **Firestore (NoSQL)** jako główną bazę danych.
 
 Struktura kolekcji:
+
 ```
 users/{userId}/documents/{docId}  → metadane dokumentu
 users/{userId}/notes/{noteId}     → notatki użytkownika
@@ -49,12 +51,14 @@ W przyszłości możliwa jest konfiguracja **Firebase Functions** (Cloud Functio
 ## Konsekwencje
 
 **Pozytywne:**
+
 - Serverless — brak DevOps
 - Natywne reguły bezpieczeństwa z Firebase Auth (`request.auth.uid`) — izolacja danych per user
 - Elastyczna struktura dokumentów — zmiany bez migracji
 - Embeddingi jako pola w Firestore — jeden serwis, brak dodatkowego vector store na MVP
 
 **Negatywne:**
+
 - Cosine similarity w kodzie aplikacji wolniejsze niż dedykowany vector store — akceptowalne do ~2000 chunków/user
 - Przy skalowaniu (10k+ chunków/user) konieczna migracja do Pinecone lub pgvector — świadomy wybór z progiem migracji
 

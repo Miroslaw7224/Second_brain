@@ -88,7 +88,13 @@ export async function getDocuments(userId: string): Promise<DocumentRecord[]> {
   const snap = await documentsCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? { toDate: () => new Date(data.created_at) }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       name: data.name ?? "",
@@ -110,7 +116,13 @@ export async function getNotes(userId: string): Promise<NoteRecord[]> {
   const snap = await notesCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? { toDate: () => new Date(data.created_at) }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       title: data.title ?? "",
@@ -254,13 +266,17 @@ export async function addResourceToFirestore(
   };
 }
 
-export async function getResourcesFromFirestore(
-  userId: string
-): Promise<NoteResourceRecord[]> {
+export async function getResourcesFromFirestore(userId: string): Promise<NoteResourceRecord[]> {
   const snap = await userResourcesCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? { toDate: () => new Date(data.created_at) }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       noteId: data.noteId,
@@ -276,8 +292,18 @@ export async function getResourcesFromFirestore(
     };
   });
   list.sort((a, b) => {
-    const tA = a.createdAt?.toMillis?.() ?? (a.createdAt && typeof (a.createdAt as unknown as { toDate?: () => Date }).toDate === "function" ? (a.createdAt as unknown as { toDate: () => Date }).toDate().getTime() : 0);
-    const tB = b.createdAt?.toMillis?.() ?? (b.createdAt && typeof (b.createdAt as unknown as { toDate?: () => Date }).toDate === "function" ? (b.createdAt as unknown as { toDate: () => Date }).toDate().getTime() : 0);
+    const tA =
+      a.createdAt?.toMillis?.() ??
+      (a.createdAt &&
+      typeof (a.createdAt as unknown as { toDate?: () => Date }).toDate === "function"
+        ? (a.createdAt as unknown as { toDate: () => Date }).toDate().getTime()
+        : 0);
+    const tB =
+      b.createdAt?.toMillis?.() ??
+      (b.createdAt &&
+      typeof (b.createdAt as unknown as { toDate?: () => Date }).toDate === "function"
+        ? (b.createdAt as unknown as { toDate: () => Date }).toDate().getTime()
+        : 0);
     return tB - tA;
   });
   return list;
@@ -293,7 +319,13 @@ export async function deleteResourceFromFirestore(
 export async function updateResourceInFirestore(
   userId: string,
   resourceId: string,
-  data: { title?: string; description?: string; url?: string; tags?: string[]; isFavorite?: boolean }
+  data: {
+    title?: string;
+    description?: string;
+    url?: string;
+    tags?: string[];
+    isFavorite?: boolean;
+  }
 ): Promise<void> {
   const updateData: Record<string, unknown> = {
     updatedAt: FieldValue.serverTimestamp(),
@@ -399,14 +431,20 @@ export async function getCalendarEvents(
   const snap = await calendarEventsCol(userId).get();
   let list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? { toDate: () => new Date(data.created_at) }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       date: data.date ?? "",
       start_minutes: data.start_minutes ?? 0,
       duration_minutes: data.duration_minutes ?? 0,
       title: data.title ?? "",
-      tags: Array.isArray(data.tags) ? data.tags : (data.tags ? [data.tags] : []),
+      tags: Array.isArray(data.tags) ? data.tags : data.tags ? [data.tags] : [],
       color: data.color ?? "#3B82F6",
       created_at: createdAt?.toDate?.()?.toISOString?.(),
       createdAt: data.createdAt ?? createdAt,
@@ -516,7 +554,16 @@ export async function getTasks(userId: string): Promise<TaskRecord[]> {
   const snap = await tasksCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at), toMillis: () => new Date(data.created_at).getTime() } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? {
+              toDate: () => new Date(data.created_at),
+              toMillis: () => new Date(data.created_at).getTime(),
+            }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       title: data.title ?? "",
@@ -544,7 +591,13 @@ export async function getTasks(userId: string): Promise<TaskRecord[]> {
 
 export async function createTask(
   userId: string,
-  data: { title: string; description?: string; status?: TaskRecord["status"]; due_date?: string | null; priority?: number | null }
+  data: {
+    title: string;
+    description?: string;
+    status?: TaskRecord["status"];
+    due_date?: string | null;
+    priority?: number | null;
+  }
 ): Promise<TaskRecord> {
   const ref = await tasksCol(userId).add({
     title: data.title ?? "",
@@ -576,7 +629,14 @@ export async function createTask(
 export async function updateTask(
   userId: string,
   taskId: string,
-  data: Partial<{ title: string; description: string; status: TaskRecord["status"]; due_date: string | null; priority: number | null; order: number }>
+  data: Partial<{
+    title: string;
+    description: string;
+    status: TaskRecord["status"];
+    due_date: string | null;
+    priority: number | null;
+    order: number;
+  }>
 ): Promise<void> {
   const update: Record<string, unknown> = { updatedAt: FieldValue.serverTimestamp() };
   if (data.title !== undefined) update.title = data.title;
@@ -621,7 +681,13 @@ export async function getUserTags(userId: string): Promise<UserTagRecord[]> {
   const snap = await userTagsCol(userId).get();
   const list = snap.docs.map((d) => {
     const data = d.data();
-    const createdAt = data.createdAt ?? (data.created_at != null ? (typeof data.created_at === "string" ? { toDate: () => new Date(data.created_at) } : data.created_at) : null);
+    const createdAt =
+      data.createdAt ??
+      (data.created_at != null
+        ? typeof data.created_at === "string"
+          ? { toDate: () => new Date(data.created_at) }
+          : data.created_at
+        : null);
     return {
       id: d.id,
       tag: (data.tag ?? "").trim().replace(/^#/, "") || "",
@@ -669,7 +735,8 @@ export async function updateUserTag(
   const update: Record<string, unknown> = {};
   if (data.tag !== undefined) update.tag = (data.tag ?? "").trim().replace(/^#/, "") || "";
   if (data.title !== undefined) update.title = (data.title ?? "").trim() || "";
-  if (data.color !== undefined) update.color = typeof data.color === "string" && data.color.trim() ? data.color.trim() : null;
+  if (data.color !== undefined)
+    update.color = typeof data.color === "string" && data.color.trim() ? data.color.trim() : null;
   if (Object.keys(update).length > 0) {
     await userTagsCol(userId).doc(tagId).update(update);
   }

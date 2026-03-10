@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 
 export interface Document {
   id: string;
@@ -29,22 +29,22 @@ export function useWiedzaData(
 
   const fetchDocuments = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/documents');
+      const res = await apiFetch("/api/documents");
       const data = await res.json();
       setDocuments(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch documents', err);
+      console.error("Failed to fetch documents", err);
       setDocuments([]);
     }
   }, [apiFetch]);
 
   const fetchNotes = useCallback(async () => {
     try {
-      const res = await apiFetch('/api/notes');
+      const res = await apiFetch("/api/notes");
       const data = await res.json();
       setNotes(Array.isArray(data) ? data : []);
     } catch (err) {
-      console.error('Failed to fetch notes', err);
+      console.error("Failed to fetch notes", err);
       setNotes([]);
     }
   }, [apiFetch]);

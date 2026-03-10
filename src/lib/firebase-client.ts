@@ -1,5 +1,5 @@
-import { initializeApp, getApps, type FirebaseApp } from 'firebase/app';
-import { getAuth, type Auth } from 'firebase/auth';
+import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
+import { getAuth, type Auth } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -13,7 +13,7 @@ const firebaseConfig = {
 function ensureFirebaseConfig(): void {
   if (!firebaseConfig.apiKey || !firebaseConfig.authDomain) {
     throw new Error(
-      'Firebase client config missing. In Next.js set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN in .env (see .env.example). Restart the dev server after changing .env.',
+      "Firebase client config missing. In Next.js set NEXT_PUBLIC_FIREBASE_API_KEY and NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN in .env (see .env.example). Restart the dev server after changing .env."
     );
   }
 }
