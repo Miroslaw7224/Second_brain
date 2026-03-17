@@ -80,6 +80,8 @@ export const translations = {
     tasksDone: "Done",
     tasksMoveUp: "Move up",
     tasksMoveDown: "Move down",
+    tasksStartDateLabel: "Start",
+    tasksDeadlineLabel: "Due",
     planAskPlaceholder:
       "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
     resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
@@ -195,6 +197,8 @@ export const translations = {
     tasksDone: "Zrobione",
     tasksMoveUp: "W górę",
     tasksMoveDown: "W dół",
+    tasksStartDateLabel: "Start",
+    tasksDeadlineLabel: "Do",
     planAskPlaceholder:
       "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
     resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",

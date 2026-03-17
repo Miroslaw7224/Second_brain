@@ -28,6 +28,13 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
 
+  const formatDate = (iso: string | null | undefined) => {
+    if (!iso) return "";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "";
+    return d.toLocaleDateString(lang === "pl" ? "pl-PL" : "en-US");
+  };
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -129,6 +136,18 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
     }
   };
 
+  const updateDueDate = async (id: string, due: string | null) => {
+    try {
+      await apiFetch(`/api/tasks/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ due_date: due }),
+      });
+      setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, due_date: due } : t)));
+    } catch (err) {
+      console.error("Update task due_date failed", err);
+    }
+  };
   const labels = {
     addPlaceholder: (t.tasksNewPlaceholder as string) ?? "New task...",
     todo: (t.tasksTodo as string) ?? "To do",
@@ -137,6 +156,8 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
     noTasks: (t.tasksNoTasks as string) ?? "No tasks. Add your first.",
     moveUp: (t.tasksMoveUp as string) ?? "Move up",
     moveDown: (t.tasksMoveDown as string) ?? "Move down",
+    startDateLabel: (t.tasksStartDateLabel as string) ?? "Start",
+    deadlineLabel: (t.tasksDeadlineLabel as string) ?? "Due",
   };
 
   return (
@@ -211,34 +232,55 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                         >
                           <Circle className="w-4 h-4 text-[var(--text3)]" />
                         </button>
-                        {editingId === task.id ? (
-                          <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onBlur={() => updateTitle(task.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") updateTitle(task.id);
-                              if (e.key === "Escape") {
-                                setEditingId(null);
-                                setEditTitle("");
-                              }
-                            }}
-                            className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
-                            autoFocus
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingId(task.id);
-                              setEditTitle(task.title);
-                            }}
-                            className="flex-1 text-left text-sm font-medium min-w-0 truncate text-[var(--text)]"
-                          >
-                            {task.title}
-                          </button>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          {editingId === task.id ? (
+                            <input
+                              type="text"
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              onBlur={() => updateTitle(task.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") updateTitle(task.id);
+                                if (e.key === "Escape") {
+                                  setEditingId(null);
+                                  setEditTitle("");
+                                }
+                              }}
+                              className="w-full px-2 py-0.5 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
+                              autoFocus
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingId(task.id);
+                                setEditTitle(task.title);
+                              }}
+                              className="w-full text-left text-sm font-medium truncate text-[var(--text)]"
+                            >
+                              {task.title}
+                            </button>
+                          )}
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-[var(--text3)]">
+                            {task.created_at && (
+                              <span>
+                                {labels.startDateLabel}: {formatDate(task.created_at)}
+                              </span>
+                            )}
+                            <label className="inline-flex items-center gap-1">
+                              <span>{labels.deadlineLabel}:</span>
+                              <input
+                                type="date"
+                                value={task.due_date ?? ""}
+                                onChange={(e) => {
+                                  const v = e.target.value.trim();
+                                  updateDueDate(task.id, v === "" ? null : v);
+                                }}
+                                className="rounded border border-[var(--border)] bg-[var(--bg3)] px-1 py-0.5 text-[10px] text-[var(--text)]"
+                              />
+                            </label>
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => deleteTask(task.id)}
@@ -292,34 +334,55 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                         >
                           <Check className="w-4 h-4 text-emerald-500" />
                         </button>
-                        {editingId === task.id ? (
-                          <input
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onBlur={() => updateTitle(task.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") updateTitle(task.id);
-                              if (e.key === "Escape") {
-                                setEditingId(null);
-                                setEditTitle("");
-                              }
-                            }}
-                            className="flex-1 px-2 py-0.5 border border-[var(--border)] rounded text-sm min-w-0 bg-[var(--surface)] text-[var(--text)]"
-                            autoFocus
-                          />
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingId(task.id);
-                              setEditTitle(task.title);
-                            }}
-                            className="flex-1 text-left text-sm font-medium min-w-0 truncate line-through text-[var(--text3)]"
-                          >
-                            {task.title}
-                          </button>
-                        )}
+                        <div className="flex-1 min-w-0">
+                          {editingId === task.id ? (
+                            <input
+                              type="text"
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              onBlur={() => updateTitle(task.id)}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") updateTitle(task.id);
+                                if (e.key === "Escape") {
+                                  setEditingId(null);
+                                  setEditTitle("");
+                                }
+                              }}
+                              className="w-full px-2 py-0.5 border border-[var(--border)] rounded text-sm bg-[var(--surface)] text-[var(--text)]"
+                              autoFocus
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingId(task.id);
+                                setEditTitle(task.title);
+                              }}
+                              className="w-full text-left text-sm font-medium truncate line-through text-[var(--text3)]"
+                            >
+                              {task.title}
+                            </button>
+                          )}
+                          <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-[var(--text3)]">
+                            {task.created_at && (
+                              <span>
+                                {labels.startDateLabel}: {formatDate(task.created_at)}
+                              </span>
+                            )}
+                            <label className="inline-flex items-center gap-1">
+                              <span>{labels.deadlineLabel}:</span>
+                              <input
+                                type="date"
+                                value={task.due_date ?? ""}
+                                onChange={(e) => {
+                                  const v = e.target.value.trim();
+                                  updateDueDate(task.id, v === "" ? null : v);
+                                }}
+                                className="rounded border border-[var(--border)] bg-[var(--bg3)] px-1 py-0.5 text-[10px] text-[var(--text)]"
+                              />
+                            </label>
+                          </div>
+                        </div>
                         <button
                           type="button"
                           onClick={() => deleteTask(task.id)}
