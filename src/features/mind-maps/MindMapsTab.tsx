@@ -30,8 +30,10 @@ import {
 } from "@/src/lib/mindMapUtils";
 import { NoteEditor } from "@/src/components/NoteEditor";
 import { MindMapTree } from "@/src/features/mind-maps/MindMapTree";
+import type { translations } from "@/src/translations";
 
 type AINodeResult = { label: string; description: string };
+type T = (typeof translations)["en"];
 
 const ROW_H = 38;
 const GAP_H = 8;
@@ -64,9 +66,11 @@ function formatDateLike(d: unknown): string {
 export function MindMapsTab({
   apiFetch,
   title,
+  t,
 }: {
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   title: string;
+  t: T;
 }) {
   const [maps, setMaps] = useState<MindMap[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -149,6 +153,16 @@ export function MindMapsTab({
     <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
       <div className="p-6 border-b border-[var(--border)] bg-[var(--surface)] flex items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
+          {selectedMap ? (
+            <button
+              type="button"
+              onClick={() => setSelectedId(null)}
+              className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] inline-flex items-center gap-2 flex-shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              {t.mindMapsList as string}
+            </button>
+          ) : null}
           <div className="w-10 h-10 bg-[var(--bg3)] rounded-2xl flex items-center justify-center flex-shrink-0">
             <Network className="w-5 h-5 text-[var(--text)]" />
           </div>
@@ -156,8 +170,8 @@ export function MindMapsTab({
             <h2 className="text-lg font-bold truncate">{title}</h2>
             <p className="text-xs text-[var(--text3)]">
               {selectedMap
-                ? "Edytuj drzewo i notatki węzłów. Zmiany zapisują się automatycznie."
-                : "Wybierz mapę lub utwórz nową."}
+                ? (t.mindMapsHeaderSubtitleWithMap as string)
+                : (t.mindMapsHeaderSubtitleNoMap as string)}
             </p>
           </div>
         </div>
@@ -175,31 +189,23 @@ export function MindMapsTab({
               ) : (
                 <Plus className="w-4 h-4" />
               )}
-              Nowa mapa
+              {t.mindMapsNewMap as string}
             </button>
           ) : (
             <>
               <button
                 type="button"
-                onClick={() => setSelectedId(null)}
-                className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] inline-flex items-center gap-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                Lista
-              </button>
-              <button
-                type="button"
                 onClick={deleteMap}
                 disabled={isDeletingMap}
                 className="px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 font-semibold text-sm hover:bg-red-100 disabled:opacity-60 inline-flex items-center gap-2"
-                title="Usuń mapę"
+                title={t.mindMapsDeleteMapTitle as string}
               >
                 {isDeletingMap ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}
-                Usuń
+                {t.mindMapsDelete as string}
               </button>
             </>
           )}
@@ -217,11 +223,12 @@ export function MindMapsTab({
             onOpen={(id) => setSelectedId(id)}
             onCreatedNew={(id) => setSelectedId(id)}
             onRefreshList={refreshList}
+            t={t}
           />
         ) : isLoadingMap ? (
           <div className="h-full flex items-center justify-center text-[var(--text3)]">
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
-            Ładowanie mapy…
+            {t.mindMapsLoadingMap as string}
           </div>
         ) : (
           <MindMapEditor
@@ -229,6 +236,7 @@ export function MindMapsTab({
             map={selectedMap}
             onChanged={setSelectedMap}
             onRefreshList={refreshList}
+            t={t}
           />
         )}
       </div>
@@ -245,6 +253,7 @@ function MindMapList({
   onOpen,
   onCreatedNew,
   onRefreshList,
+  t,
 }: {
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   maps: MindMap[];
@@ -254,11 +263,12 @@ function MindMapList({
   onOpen: (id: string) => void;
   onCreatedNew: (id: string) => void;
   onRefreshList: () => Promise<void>;
+  t: T;
 }) {
   const [isImportOpen, setIsImportOpen] = useState(false);
   return (
     <div className="h-full overflow-auto p-6">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <button
           type="button"
           onClick={onCreate}
@@ -274,8 +284,10 @@ function MindMapList({
               )}
             </div>
             <div>
-              <div className="font-bold">Utwórz nową mapę</div>
-              <div className="text-xs text-[var(--text3)]">Pusta struktura z rootem po lewej</div>
+              <div className="font-bold">{t.mindMapsCreateCardTitle as string}</div>
+              <div className="text-xs text-[var(--text3)]">
+                {t.mindMapsCreateCardSubtitle as string}
+              </div>
             </div>
           </div>
         </button>
@@ -290,23 +302,25 @@ function MindMapList({
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold">Importuj mapę</div>
+              <div className="font-bold">{t.mindMapsImportCardTitle as string}</div>
               <div className="text-xs text-[var(--text3)]">
-                Wklej strukturę (opcjonalnie screenshot)
+                {t.mindMapsImportCardSubtitle as string}
               </div>
             </div>
           </div>
         </button>
+      </div>
 
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {isLoading ? (
           <div className="border border-[var(--border)] rounded-2xl p-5 bg-[var(--surface)]">
             <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2 w-2/3" />
             <div className="animate-pulse h-3 bg-[var(--bg3)] rounded w-1/2" />
           </div>
         ) : maps.length === 0 ? (
-          <div className="sm:col-span-2 lg:col-span-2 border border-[var(--border)] rounded-2xl p-8 bg-[var(--surface)]">
+          <div className="sm:col-span-2 lg:col-span-3 border border-[var(--border)] rounded-2xl p-8 bg-[var(--surface)]">
             <div className="text-sm text-[var(--text3)] font-semibold">
-              Brak map. Utwórz pierwszą i zacznij budować drzewo.
+              {t.mindMapsNoMaps as string}
             </div>
           </div>
         ) : (
@@ -335,6 +349,7 @@ function MindMapList({
         onClose={() => setIsImportOpen(false)}
         onCreatedNew={onCreatedNew}
         onRefreshList={onRefreshList}
+        t={t}
       />
     </div>
   );
@@ -345,11 +360,13 @@ function MindMapEditor({
   map,
   onChanged,
   onRefreshList,
+  t,
 }: {
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   map: MindMap;
   onChanged: (next: MindMap) => void;
   onRefreshList: () => Promise<void>;
+  t: T;
 }) {
   const [rootNode, setRootNode] = useState<MindMapNode>(map.rootNode);
   const [colWidths, setColWidths] = useState<Record<number, number>>(map.colWidths ?? {});
@@ -650,9 +667,11 @@ function MindMapEditor({
     <div className="h-full flex flex-col overflow-hidden">
       <div className="px-6 py-4 border-b border-[var(--border)] bg-[var(--surface)] flex items-center gap-3">
         <div className="text-sm text-[var(--text3)] flex items-center gap-2 min-w-0">
-          <span className="font-semibold text-[var(--accent)]">Drugi Mózg</span>
+          <span className="font-semibold text-[var(--accent)]">
+            {t.mindMapsBreadcrumbApp as string}
+          </span>
           <ChevronRight className="w-4 h-4" />
-          <span>Mapy myśli</span>
+          <span>{t.mindMapsBreadcrumbMindMaps as string}</span>
           <ChevronRight className="w-4 h-4" />
           <span className="font-semibold text-[var(--text)] truncate">{rootNode.label}</span>
         </div>
@@ -664,7 +683,7 @@ function MindMapEditor({
             className="px-3 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text2)] text-sm font-semibold hover:bg-[var(--bg2)] inline-flex items-center gap-2"
           >
             <ChevronsDownUp className="w-4 h-4" />
-            Zwiń wszystko
+            {t.mindMapsCollapseAll as string}
           </button>
           <button
             type="button"
@@ -672,16 +691,16 @@ function MindMapEditor({
             className="px-3 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text2)] text-sm font-semibold hover:bg-[var(--bg2)] inline-flex items-center gap-2"
           >
             <ChevronsUpDown className="w-4 h-4" />
-            Rozwiń wszystko
+            {t.mindMapsExpandAll as string}
           </button>
           <button
             type="button"
             onClick={resetWidths}
             className="px-3 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text2)] text-sm font-semibold hover:bg-[var(--bg2)] inline-flex items-center gap-2"
-            title="Reset szerokości"
+            title={t.mindMapsResetWidthsTitle as string}
           >
             <RotateCcw className="w-4 h-4" />
-            Reset
+            {t.mindMapsReset as string}
           </button>
           <button
             type="button"
@@ -689,7 +708,7 @@ function MindMapEditor({
             className="px-3 py-2 rounded-xl bg-[var(--accent)] text-white text-sm font-semibold hover:opacity-95 inline-flex items-center gap-2"
           >
             <Plus className="w-4 h-4" />
-            Nowy węzeł
+            {t.mindMapsNewNode as string}
           </button>
         </div>
       </div>
@@ -702,6 +721,7 @@ function MindMapEditor({
               rootNode={rootNode}
               getColW={getColW}
               startResize={startResize}
+              t={t}
               selId={selId}
               editId={editId}
               ctxId={ctxId}
@@ -734,17 +754,20 @@ function MindMapEditor({
           <div className="w-60 flex-shrink-0 border-r border-[var(--border)] p-4 overflow-hidden">
             {!selectedNode ? (
               <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
-                Kliknij węzeł aby zobaczyć i edytować notatki
+                {t.mindMapsClickNodeHint as string}
               </div>
             ) : (
               <div className="flex flex-col gap-3">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold">
-                    Wybrany węzeł
+                    {t.mindMapsSelectedNode as string}
                   </div>
                   <div className="font-bold truncate">{selectedNode.label}</div>
                   <div className="text-xs text-[var(--text3)]">
-                    {selectedNode.children.length} elementów
+                    {(t.mindMapsItemsCount as string).replace(
+                      "{n}",
+                      String(selectedNode.children.length)
+                    )}
                   </div>
                 </div>
                 <button
@@ -753,7 +776,7 @@ function MindMapEditor({
                   className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] text-sm font-semibold hover:bg-[var(--bg3)] inline-flex items-center gap-2"
                 >
                   <Plus className="w-4 h-4" />
-                  Dodaj dziecko
+                  {t.mindMapsAddChild as string}
                 </button>
                 {selectedNode.id !== "root" && (
                   <button
@@ -762,7 +785,7 @@ function MindMapEditor({
                     className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] text-sm font-semibold hover:bg-[var(--bg3)] inline-flex items-center gap-2"
                   >
                     <ChevronRight className="w-4 h-4 rotate-180" />
-                    Wstaw powyżej
+                    {t.mindMapsInsertAbove as string}
                   </button>
                 )}
               </div>
@@ -771,7 +794,7 @@ function MindMapEditor({
 
           <div className="flex-1 min-w-0 p-4 overflow-hidden flex flex-col gap-2">
             <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold">
-              Notatki
+              {t.mindMapsNotes as string}
             </div>
             <div className="flex-1 min-h-0 overflow-hidden">
               {selectedNode ? (
@@ -782,7 +805,7 @@ function MindMapEditor({
                 />
               ) : (
                 <div className="h-full border border-[var(--border)] rounded-xl bg-[var(--surface)] flex items-center justify-center text-sm text-[var(--text3)]">
-                  Wybierz węzeł, żeby edytować notatkę.
+                  {t.mindMapsSelectNodeToEditNote as string}
                 </div>
               )}
             </div>
@@ -797,7 +820,9 @@ function MindMapEditor({
           ) : (
             <div className="w-2 h-2 rounded-full bg-emerald-500" />
           )}
-          <span className="font-semibold">{isSaving ? "Zapisywanie…" : "Zapisane"}</span>
+          <span className="font-semibold">
+            {isSaving ? (t.mindMapsSaving as string) : (t.mindMapsSaved as string)}
+          </span>
           {lastSavedAt ? <span>· {new Date(lastSavedAt).toLocaleTimeString()}</span> : null}
         </div>
       </div>
@@ -810,6 +835,7 @@ function MindMapEditor({
           if (!deleteNodeId) return;
           confirmDelete(deleteNodeId, keep);
         }}
+        t={t}
       />
 
       <MindMapAIModal
@@ -820,6 +846,7 @@ function MindMapEditor({
           if (!aiParentId) return;
           acceptAI(aiParentId, result);
         }}
+        t={t}
       />
     </div>
   );
@@ -830,11 +857,13 @@ function MindMapDeleteModal({
   node,
   onClose,
   onConfirm,
+  t,
 }: {
   open: boolean;
   node: MindMapNode | null;
   onClose: () => void;
   onConfirm: (keepChildren: boolean) => void;
+  t: T;
 }) {
   if (!open) return null;
   const hasKids = (node?.children?.length ?? 0) > 0;
@@ -848,9 +877,11 @@ function MindMapDeleteModal({
         className="w-full max-w-md bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-lg font-bold">Usuń węzeł</div>
+        <div className="text-lg font-bold">{t.mindMapsDeleteModalTitle as string}</div>
         <div className="mt-1 text-sm text-[var(--text3)]">
-          {hasKids ? "Ten węzeł ma elementy podrzędne." : "Czy na pewno chcesz usunąć ten węzeł?"}
+          {hasKids
+            ? (t.mindMapsDeleteModalHasChildren as string)
+            : (t.mindMapsDeleteModalConfirm as string)}
         </div>
 
         <div className="mt-5 flex gap-2">
@@ -861,14 +892,14 @@ function MindMapDeleteModal({
                 onClick={onClose}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
               >
-                Anuluj
+                {t.mindMapsCancel as string}
               </button>
               <button
                 type="button"
                 onClick={() => onConfirm(false)}
                 className="flex-1 px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 font-semibold text-sm hover:bg-red-100"
               >
-                Usuń
+                {t.mindMapsDelete as string}
               </button>
             </>
           ) : (
@@ -878,16 +909,18 @@ function MindMapDeleteModal({
                 onClick={() => onConfirm(true)}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] text-left"
               >
-                <div className="font-bold">Usuń tylko ten węzeł</div>
-                <div className="text-xs text-[var(--text3)]">dzieci awansują poziom wyżej</div>
+                <div className="font-bold">{t.mindMapsDeleteOnlyThis as string}</div>
+                <div className="text-xs text-[var(--text3)]">
+                  {t.mindMapsDeleteOnlyThisHint as string}
+                </div>
               </button>
               <button
                 type="button"
                 onClick={() => onConfirm(false)}
                 className="flex-1 px-3 py-2 rounded-xl bg-red-50 border border-red-200 text-red-700 font-semibold text-sm hover:bg-red-100 text-left"
               >
-                <div className="font-bold">Usuń całą gałąź</div>
-                <div className="text-xs opacity-80">wszystkie dzieci usunięte</div>
+                <div className="font-bold">{t.mindMapsDeleteBranch as string}</div>
+                <div className="text-xs opacity-80">{t.mindMapsDeleteBranchHint as string}</div>
               </button>
             </>
           )}
@@ -902,11 +935,13 @@ function MindMapAIModal({
   apiFetch,
   onClose,
   onAccept,
+  t,
 }: {
   open: boolean;
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   onClose: () => void;
   onAccept: (result: AINodeResult) => void;
+  t: T;
 }) {
   const [q, setQ] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -961,10 +996,8 @@ function MindMapAIModal({
         className="w-full max-w-lg bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-lg font-bold">✦ Dodaj przez AI</div>
-        <div className="mt-1 text-sm text-[var(--text3)]">
-          AI wyszuka opis narzędzia/pojęcia i zaproponuje węzeł do zatwierdzenia.
-        </div>
+        <div className="text-lg font-bold">{t.mindMapsAIAddTitle as string}</div>
+        <div className="mt-1 text-sm text-[var(--text3)]">{t.mindMapsAIAddSubtitle as string}</div>
 
         <div className="mt-4 flex gap-2">
           <input
@@ -974,6 +1007,7 @@ function MindMapAIModal({
               if (e.key === "Enter") void doSearch();
             }}
             placeholder="np. LangChain, CrewAI, Pinecone…"
+            placeholder={t.mindMapsAIQueryPlaceholder as string}
             className="flex-1 h-10 px-3 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400"
           />
           <button
@@ -987,7 +1021,7 @@ function MindMapAIModal({
             ) : (
               <Sparkles className="w-4 h-4" />
             )}
-            Szukaj
+            {t.mindMapsAISearch as string}
           </button>
         </div>
 
@@ -1011,20 +1045,20 @@ function MindMapAIModal({
                 onClick={() => onAccept(result)}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95"
               >
-                Dodaj do mapy ✓
+                {t.mindMapsAIAddConfirm as string}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
               >
-                Anuluj
+                {t.mindMapsCancel as string}
               </button>
             </div>
           </div>
         ) : (
           <div className="mt-4 text-xs text-[var(--text3)] text-center">
-            Wpisz nazwę i naciśnij Enter.
+            {t.mindMapsAIEnterHint as string}
           </div>
         )}
       </div>
@@ -1038,12 +1072,14 @@ function MindMapImportModal({
   onClose,
   onCreatedNew,
   onRefreshList,
+  t,
 }: {
   open: boolean;
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   onClose: () => void;
   onCreatedNew: (id: string) => void;
   onRefreshList: () => Promise<void>;
+  t: T;
 }) {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -1075,21 +1111,21 @@ function MindMapImportModal({
 
       const res = await apiFetch("/api/mind-maps/import", { method: "POST", body: fd });
       if (!res.ok) {
-        setError("Nie udało się przeanalizować struktury.");
+        setError(t.mindMapsImportAnalyzeError as string);
         return;
       }
       const data = (await res.json()) as { rootNode?: MindMapNode };
       if (!data?.rootNode) {
-        setError("AI zwróciło niepoprawny format.");
+        setError(t.mindMapsImportInvalidAIFormat as string);
         return;
       }
       setRootNode(data.rootNode);
     } catch {
-      setError("Wystąpił błąd podczas analizy.");
+      setError(t.mindMapsImportGenericError as string);
     } finally {
       setIsAnalyzing(false);
     }
-  }, [apiFetch, file, text]);
+  }, [apiFetch, file, t, text]);
 
   const doSaveAsNew = useCallback(async () => {
     if (!rootNode) return;
@@ -1102,7 +1138,7 @@ function MindMapImportModal({
         body: JSON.stringify({ title: rootNode.label || "Importowana mapa" }),
       });
       if (!createRes.ok) {
-        setError("Nie udało się utworzyć nowej mapy.");
+        setError(t.mindMapsImportCreateMapError as string);
         return;
       }
       const created = (await createRes.json()) as MindMap;
@@ -1112,18 +1148,18 @@ function MindMapImportModal({
         body: JSON.stringify({ rootNode, colWidths: {}, title: rootNode.label }),
       });
       if (!saveRes.ok) {
-        setError("Nie udało się zapisać mapy.");
+        setError(t.mindMapsImportSaveMapError as string);
         return;
       }
       await onRefreshList();
       onCreatedNew(created.id);
       onClose();
     } catch {
-      setError("Wystąpił błąd podczas zapisu.");
+      setError(t.mindMapsImportSaveMapError as string);
     } finally {
       setIsSaving(false);
     }
-  }, [apiFetch, onClose, onCreatedNew, onRefreshList, rootNode]);
+  }, [apiFetch, onClose, onCreatedNew, onRefreshList, rootNode, t]);
 
   if (!open) return null;
 
@@ -1136,9 +1172,9 @@ function MindMapImportModal({
         className="w-full max-w-3xl bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-lg font-bold">Importuj mapę</div>
+        <div className="text-lg font-bold">{t.mindMapsImportModalTitle as string}</div>
         <div className="mt-1 text-sm text-[var(--text3)]">
-          Wklej tekst/strukturę. Opcjonalnie dołącz screenshot mapy.
+          {t.mindMapsImportModalSubtitle as string}
         </div>
 
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
@@ -1146,7 +1182,7 @@ function MindMapImportModal({
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
-              placeholder="Np.:\n- AI\n  - LLM\n  - Embeddings\n- RAG\n  - Chunking\n  - Retrieval"
+              placeholder={t.mindMapsImportTextareaPlaceholder as string}
               className="w-full h-48 p-3 rounded-2xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400 resize-none"
             />
 
@@ -1159,7 +1195,7 @@ function MindMapImportModal({
                   onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 />
                 <span className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] hover:bg-[var(--bg3)] cursor-pointer inline-block">
-                  {file ? `Obraz: ${file.name}` : "Dodaj obraz (opcjonalnie)"}
+                  {file ? `Obraz: ${file.name}` : (t.mindMapsImportAddImage as string)}
                 </span>
               </label>
 
@@ -1169,7 +1205,7 @@ function MindMapImportModal({
                   onClick={() => setFile(null)}
                   className="text-xs font-semibold text-red-700 hover:underline"
                 >
-                  Usuń obraz
+                  {t.mindMapsImportRemoveImage as string}
                 </button>
               ) : null}
             </div>
@@ -1185,7 +1221,7 @@ function MindMapImportModal({
               ) : (
                 <Sparkles className="w-4 h-4" />
               )}
-              Analizuj
+              {t.mindMapsImportAnalyze as string}
             </button>
 
             {error ? (
@@ -1197,16 +1233,16 @@ function MindMapImportModal({
 
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold">
-              Podgląd
+              {t.mindMapsImportPreview as string}
             </div>
             <div className="mt-2 border border-[var(--border)] rounded-2xl bg-[var(--bg2)] p-3 overflow-auto h-72">
               {rootNode ? (
                 <div className="inline-flex min-w-max items-center">
-                  <MindMapTree mode="readOnly" rootNode={rootNode} allowCollapse />
+                  <MindMapTree mode="readOnly" rootNode={rootNode} allowCollapse t={t} />
                 </div>
               ) : (
                 <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
-                  Najpierw kliknij „Analizuj”, żeby zobaczyć drzewo.
+                  {t.mindMapsImportPreviewHint as string}
                 </div>
               )}
             </div>
@@ -1218,14 +1254,16 @@ function MindMapImportModal({
                 disabled={!rootNode || isSaving}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60"
               >
-                {isSaving ? "Zapisywanie…" : "Zapisz jako nową mapę"}
+                {isSaving
+                  ? (t.mindMapsImportSaving as string)
+                  : (t.mindMapsImportSaveAsNew as string)}
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex-1 px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
               >
-                Anuluj
+                {t.mindMapsCancel as string}
               </button>
             </div>
           </div>

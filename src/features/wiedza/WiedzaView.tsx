@@ -243,7 +243,11 @@ export default function WiedzaView({
             </div>
           ) : activeTab === "mindmaps" ? (
             <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
-              <MindMapsTab apiFetch={apiFetch} title={(t.tabMindMaps as string) ?? "Mapy myśli"} />
+              <MindMapsTab
+                apiFetch={apiFetch}
+                title={(t.tabMindMaps as string) ?? "Mapy myśli"}
+                t={t}
+              />
             </div>
           ) : (
             <NotesPanel

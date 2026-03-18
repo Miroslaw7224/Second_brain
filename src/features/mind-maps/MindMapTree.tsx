@@ -1,10 +1,21 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { ChevronRight, GripVertical, Loader2, MoreHorizontal, Plus, Sparkles } from "lucide-react";
+import {
+  ArrowUp,
+  ChevronRight,
+  GripVertical,
+  Loader2,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  Sparkles,
+  X,
+} from "lucide-react";
 import type { MindMapNode } from "@/src/features/mind-maps/mindMapTypes";
 import { DEFAULT_COL_W, MAX_COL_W, MIN_COL_W } from "@/src/features/mind-maps/mindMapTypes";
 import { leafCount, mapNode } from "@/src/lib/mindMapUtils";
+import type { translations } from "@/src/translations";
 
 const ROW_H = 38;
 const GAP_H = 8;
@@ -17,6 +28,7 @@ function clamp(n: number, min: number, max: number) {
 export type MindMapTreeEditableProps = {
   mode: "edit";
   rootNode: MindMapNode;
+  t: (typeof translations)["en"];
   getColW: (depth: number) => number;
   startResize: (e: React.MouseEvent, depth: number) => void;
   selId: string | null;
@@ -42,6 +54,7 @@ export type MindMapTreeEditableProps = {
 export type MindMapTreeReadOnlyProps = {
   mode: "readOnly";
   rootNode: MindMapNode;
+  t: (typeof translations)["en"];
   /** Optional fixed width for all depths in preview. */
   colW?: number;
   /** Allow collapsing/expanding branches in preview (local state only). */
@@ -55,6 +68,7 @@ export function MindMapTree(props: MindMapTreeProps) {
     return (
       <MindMapTreeReadOnly
         rootNode={props.rootNode}
+        t={props.t}
         colW={props.colW}
         allowCollapse={props.allowCollapse}
       />
@@ -67,6 +81,7 @@ export function MindMapTree(props: MindMapTreeProps) {
       node={props.rootNode}
       isRoot
       depth={0}
+      t={props.t}
       getColW={props.getColW}
       startResize={props.startResize}
       selId={props.selId}
@@ -93,10 +108,12 @@ export function MindMapTree(props: MindMapTreeProps) {
 
 function MindMapTreeReadOnly({
   rootNode,
+  t,
   colW,
   allowCollapse,
 }: {
   rootNode: MindMapNode;
+  t: (typeof translations)["en"];
   colW?: number;
   allowCollapse?: boolean;
 }) {
@@ -124,6 +141,7 @@ function MindMapTreeReadOnly({
       node={localRoot}
       isRoot
       depth={0}
+      t={t}
       getColW={getColW}
       startResize={() => {}}
       selId={null}
@@ -153,6 +171,7 @@ function TreeLevel(props: {
   node: MindMapNode;
   isRoot: boolean;
   depth: number;
+  t: (typeof translations)["en"];
   getColW: (depth: number) => number;
   startResize: (e: React.MouseEvent, depth: number) => void;
   selId: string | null;
@@ -237,6 +256,7 @@ function NodePill({
   node,
   isRoot,
   depth,
+  t,
   getColW,
   startResize,
   selId,
@@ -262,6 +282,7 @@ function NodePill({
   node: MindMapNode;
   isRoot: boolean;
   depth: number;
+  t: (typeof translations)["en"];
   getColW: (depth: number) => number;
   startResize: (e: React.MouseEvent, depth: number) => void;
   selId: string | null;
@@ -289,9 +310,6 @@ function NodePill({
   const sel = mode === "edit" && node.id === selId;
   const isDrag = mode === "edit" && node.id === dragId;
   const isDrop = mode === "edit" && node.id === dropId;
-
-  const iconType = isRoot ? "root" : hasKids ? "branch" : "leaf";
-  const iconChar = isRoot ? "✦" : hasKids ? "▤" : "·";
 
   return (
     <div
@@ -349,25 +367,18 @@ function NodePill({
           "w-6 h-6 rounded-lg flex items-center justify-center text-[var(--text2)]",
           hasKids ? "hover:bg-[var(--bg3)]" : "opacity-0 pointer-events-none",
         ].join(" ")}
-        title={hasKids ? (node.collapsed ? "Rozwiń" : "Zwiń") : ""}
+        title={
+          hasKids
+            ? node.collapsed
+              ? (t.mindMapsExpand as string)
+              : (t.mindMapsCollapse as string)
+            : ""
+        }
       >
         <ChevronRight
           className={["w-4 h-4 transition-transform", node.collapsed ? "" : "rotate-90"].join(" ")}
         />
       </button>
-
-      <div
-        className={[
-          "w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0",
-          iconType === "root"
-            ? "bg-blue-50 text-blue-700"
-            : iconType === "branch"
-              ? "bg-emerald-50 text-emerald-700"
-              : "bg-[var(--bg3)] text-[var(--text2)]",
-        ].join(" ")}
-      >
-        {iconChar}
-      </div>
 
       <div className="min-w-0 flex-1">
         {editing ? (
@@ -419,34 +430,19 @@ function NodePill({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onAddChild(node.id);
-            }}
-            className="w-7 h-7 rounded-lg hover:bg-[var(--bg3)] text-emerald-700 inline-flex items-center justify-center"
-            title="Dodaj dziecko"
-          >
-            <Plus className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onOpenAI(node.id);
-            }}
-            className="w-7 h-7 rounded-lg hover:bg-[var(--bg3)] text-sky-700 inline-flex items-center justify-center"
-            title="Dodaj przez AI"
-          >
-            <Sparkles className="w-4 h-4" />
-          </button>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
               onToggleCtx(node.id);
             }}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.preventDefault();
+                e.stopPropagation();
+                onToggleCtx(node.id);
+              }
+            }}
             className="w-7 h-7 rounded-lg hover:bg-[var(--bg3)] text-[var(--text2)] inline-flex items-center justify-center"
-            title="Więcej"
+            title={t.mindMapsMenu as string}
+            aria-haspopup="menu"
+            aria-expanded={ctxId === node.id}
           >
             <MoreHorizontal className="w-4 h-4" />
           </button>
@@ -457,30 +453,84 @@ function NodePill({
         <div
           className="absolute left-0 top-[calc(100%+6px)] z-50 min-w-56 bg-[var(--surface)] border border-[var(--border)] rounded-2xl shadow-lg p-2"
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleCtx(node.id);
+            }
+          }}
+          role="menu"
+          tabIndex={-1}
         >
+          <button
+            type="button"
+            onClick={() => {
+              onToggleCtx(node.id);
+              onAddChild(node.id);
+            }}
+            className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)] inline-flex items-center gap-2"
+            role="menuitem"
+          >
+            <Plus className="w-4 h-4 text-emerald-700" />
+            {t.mindMapsAddChild as string}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              onToggleCtx(node.id);
+              onOpenAI(node.id);
+            }}
+            className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)] inline-flex items-center gap-2"
+            role="menuitem"
+          >
+            <Sparkles className="w-4 h-4 text-sky-700" />
+            {(t.mindMapsAIAddTitle as string).replace(/^✦\s*/, "")}
+          </button>
+
+          <div className="my-1 h-px bg-[var(--border)]" />
+
           {!isRoot ? (
             <button
               type="button"
-              onClick={() => onInsertAbove(node.id)}
-              className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)]"
+              onClick={() => {
+                onToggleCtx(node.id);
+                onInsertAbove(node.id);
+              }}
+              className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)] inline-flex items-center gap-2"
+              role="menuitem"
             >
-              ↑ Wstaw węzeł powyżej
+              <ArrowUp className="w-4 h-4 text-[var(--text2)]" />
+              {t.mindMapsInsertAbove as string}
             </button>
           ) : null}
           <button
             type="button"
-            onClick={() => onStartEdit(node.id)}
-            className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)]"
+            onClick={() => {
+              onToggleCtx(node.id);
+              onStartEdit(node.id);
+            }}
+            className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)] inline-flex items-center gap-2"
+            role="menuitem"
           >
-            ✎ Zmień nazwę
+            <Pencil className="w-4 h-4 text-[var(--text2)]" />
+            {t.mindMapsRename as string}
           </button>
+
+          {!isRoot ? <div className="my-1 h-px bg-[var(--border)]" /> : null}
+
           {!isRoot ? (
             <button
               type="button"
-              onClick={() => onRequestDelete(node.id)}
-              className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-red-50 text-red-700"
+              onClick={() => {
+                onToggleCtx(node.id);
+                onRequestDelete(node.id);
+              }}
+              className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-red-50 text-red-700 inline-flex items-center gap-2"
+              role="menuitem"
             >
-              ✕ Usuń węzeł
+              <X className="w-4 h-4" />
+              {t.mindMapsDeleteNode as string}
             </button>
           ) : null}
         </div>
@@ -490,7 +540,7 @@ function NodePill({
         <div
           onMouseDown={(e) => startResize(e, depth)}
           className="absolute right-0 top-0 h-full w-3 cursor-col-resize opacity-0 hover:opacity-100 transition-opacity"
-          title="Zmień szerokość kolumny"
+          title={t.mindMapsResizeColTitle as string}
         >
           <div className="absolute right-1 top-1/2 -translate-y-1/2 w-0.5 h-6 rounded bg-[var(--border)]" />
         </div>
