@@ -6,6 +6,8 @@ import {
   ChevronsDownUp,
   ChevronsUpDown,
   Network,
+  Maximize2,
+  Minimize2,
   Plus,
   RotateCcw,
   Sparkles,
@@ -18,6 +20,7 @@ import {
 import { nanoid } from "nanoid";
 import type { MindMap, MindMapNode } from "@/src/features/mind-maps/mindMapTypes";
 import { DEFAULT_COL_W, MAX_COL_W, MIN_COL_W } from "@/src/features/mind-maps/mindMapTypes";
+import { exportHTML } from "@/src/features/mind-maps/mindMapExportHtml";
 import {
   deleteNodeKeepChildren,
   findNode,
@@ -38,6 +41,9 @@ type T = (typeof translations)["en"];
 const ROW_H = 38;
 const GAP_H = 8;
 const CONN = 24;
+const DEFAULT_NOTES_PANEL_H = 224; // tailwind h-56 (~14rem) -> 224px
+const MIN_NOTES_PANEL_H = 120;
+const MAX_NOTES_PANEL_H = 520;
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
@@ -379,9 +385,14 @@ function MindMapEditor({
 
   const [deleteNodeId, setDeleteNodeId] = useState<string | null>(null);
   const [aiParentId, setAiParentId] = useState<string | null>(null);
+  const [aiImportParentId, setAiImportParentId] = useState<string | null>(null);
+  const [isAiImportOpen, setIsAiImportOpen] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState<number | null>(null);
+
+  const [notesPanelH, setNotesPanelH] = useState<number>(DEFAULT_NOTES_PANEL_H);
+  const notesResizingRef = useRef<null | { startY: number; startH: number }>(null);
 
   const resizingRef = useRef<null | { depth: number; startX: number; startW: number }>(null);
   const saveTimerRef = useRef<number | null>(null);
@@ -389,6 +400,7 @@ function MindMapEditor({
 
   const selectedNode = useMemo(() => (selId ? findNode(rootNode, selId) : null), [rootNode, selId]);
 
+  /* eslint-disable react-hooks/exhaustive-deps */
   useEffect(() => {
     setRootNode(map.rootNode);
     setColWidths(map.colWidths ?? {});
@@ -399,13 +411,49 @@ function MindMapEditor({
     setDropId(null);
     setDeleteNodeId(null);
     setAiParentId(null);
-  }, [map.id, map.colWidths, map.rootNode]);
+    setAiImportParentId(null);
+    setIsAiImportOpen(false);
+    // Important: only reset editor-local UI when switching to a different map.
+    // Autosave updates `map.rootNode` / `map.colWidths` via `onChanged`, and resetting
+    // local selection/edit state on every autosave makes the "preview" / UI disappear.
+  }, [map.id]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     unmountedRef.current = false;
     return () => {
       unmountedRef.current = true;
       if (saveTimerRef.current) window.clearTimeout(saveTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    function onMove(e: MouseEvent) {
+      const r = notesResizingRef.current;
+      if (!r) return;
+      // Dragging the handle upward decreases clientY => increases panel height.
+      const dy = r.startY - e.clientY;
+      const maxH = (() => {
+        const viewportH = document.documentElement.clientHeight || 800;
+        // Leave some space for header + map area; prevent over-expanding.
+        return Math.max(MIN_NOTES_PANEL_H, Math.min(MAX_NOTES_PANEL_H, viewportH * 0.65));
+      })();
+      const nextH = clamp(r.startH + dy, MIN_NOTES_PANEL_H, maxH);
+      setNotesPanelH(nextH);
+    }
+
+    function onUp() {
+      if (!notesResizingRef.current) return;
+      notesResizingRef.current = null;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+    }
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onUp);
+    return () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onUp);
     };
   }, []);
 
@@ -654,6 +702,52 @@ function MindMapEditor({
     [applyTree, rootNode]
   );
 
+  const cloneWithNewNodeIds = useCallback((node: MindMapNode): MindMapNode => {
+    return {
+      ...node,
+      id: nanoid(),
+      children: node.children.map((c) => cloneWithNewNodeIds(c)),
+    };
+  }, []);
+
+  const acceptAIImportTree = useCallback(
+    (parentId: string, importedRoot: MindMapNode) => {
+      // `/api/mind-maps/import` returns a "root" wrapper node with id="root".
+      // We insert only its children under the selected parent.
+      const importedChildren = importedRoot.children;
+      const clonedChildren = importedChildren.map((c) => cloneWithNewNodeIds(c));
+      if (clonedChildren.length === 0) return;
+
+      const next = mapNode(rootNode, parentId, (n) => ({
+        ...n,
+        collapsed: false,
+        children: [...n.children, ...clonedChildren],
+      }));
+
+      setAiImportParentId(null);
+      setIsAiImportOpen(false);
+      setAiParentId(null);
+      setCtxId(null);
+      setDragId(null);
+      setDropId(null);
+
+      setSelId(clonedChildren[0].id);
+      setEditId(clonedChildren[0].id);
+      applyTree(next);
+    },
+    [
+      applyTree,
+      cloneWithNewNodeIds,
+      rootNode,
+      setAiImportParentId,
+      setIsAiImportOpen,
+      setAiParentId,
+      setCtxId,
+      setDragId,
+      setDropId,
+    ]
+  );
+
   const updateSelectedNote = useCallback(
     (html: string) => {
       if (!selId) return;
@@ -692,6 +786,14 @@ function MindMapEditor({
           >
             <ChevronsUpDown className="w-4 h-4" />
             {t.mindMapsExpandAll as string}
+          </button>
+          <button
+            type="button"
+            onClick={() => exportHTML(map)}
+            className="px-3 py-2 rounded-xl bg-[var(--surface)] border border-[var(--border)] text-[var(--text2)] text-sm font-semibold hover:bg-[var(--bg2)] inline-flex items-center gap-2"
+            title={t.mindMapsExportHtmlTitle as string}
+          >
+            ↓ {t.mindMapsExportHtml as string}
           </button>
           <button
             type="button"
@@ -739,6 +841,11 @@ function MindMapEditor({
               onCommitLabel={commitLabel}
               onToggleCtx={(id) => setCtxId((prev) => (prev === id ? null : id))}
               onAddChild={addChild}
+              onAddChildAIImport={(parentId) => {
+                setAiImportParentId(parentId);
+                setIsAiImportOpen(true);
+                setCtxId(null);
+              }}
               onInsertAbove={insertAbove}
               onRequestDelete={requestDelete}
               onOpenAI={openAI}
@@ -750,7 +857,36 @@ function MindMapEditor({
           </div>
         </div>
 
-        <div className="h-56 border-t border-[var(--border)] bg-[var(--surface)] flex overflow-hidden">
+        <div
+          style={{ height: notesPanelH }}
+          className="border-t border-[var(--border)] bg-[var(--surface)] flex overflow-hidden relative"
+        >
+          <div
+            role="separator"
+            aria-orientation="horizontal"
+            tabIndex={0}
+            className="absolute left-0 right-0 top-0 h-4 -translate-y-1 cursor-row-resize z-[20]"
+            onMouseDown={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              notesResizingRef.current = { startY: e.clientY, startH: notesPanelH };
+              document.body.style.cursor = "row-resize";
+              document.body.style.userSelect = "none";
+            }}
+            onKeyDown={(e) => {
+              // Small keyboard adjust for accessibility.
+              if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+              e.preventDefault();
+              const delta = e.key === "ArrowUp" ? 24 : -24;
+              const viewportH = document.documentElement.clientHeight || 800;
+              const maxH = Math.max(
+                MIN_NOTES_PANEL_H,
+                Math.min(MAX_NOTES_PANEL_H, viewportH * 0.65)
+              );
+              const nextH = clamp(notesPanelH + delta, MIN_NOTES_PANEL_H, maxH);
+              setNotesPanelH(nextH);
+            }}
+          />
           <div className="w-60 flex-shrink-0 border-r border-[var(--border)] p-4 overflow-hidden">
             {!selectedNode ? (
               <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
@@ -777,6 +913,18 @@ function MindMapEditor({
                 >
                   <Plus className="w-4 h-4" />
                   {t.mindMapsAddChild as string}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAiImportParentId(selectedNode.id);
+                    setIsAiImportOpen(true);
+                    setCtxId(null);
+                  }}
+                  className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] text-sm font-semibold hover:bg-[var(--bg3)] inline-flex items-center gap-2"
+                >
+                  <Sparkles className="w-4 h-4 text-sky-700" />
+                  {t.mindMapsAIImportTreeAdd as string}
                 </button>
                 {selectedNode.id !== "root" && (
                   <button
@@ -845,6 +993,20 @@ function MindMapEditor({
         onAccept={(result) => {
           if (!aiParentId) return;
           acceptAI(aiParentId, result);
+        }}
+        t={t}
+      />
+      <MindMapAIImportTreeModal
+        open={isAiImportOpen}
+        apiFetch={apiFetch}
+        parentId={aiImportParentId}
+        onClose={() => {
+          setIsAiImportOpen(false);
+          setAiImportParentId(null);
+        }}
+        onInsert={(importedRoot) => {
+          if (!aiImportParentId) return;
+          acceptAIImportTree(aiImportParentId, importedRoot);
         }}
         t={t}
       />
@@ -1006,7 +1168,6 @@ function MindMapAIModal({
             onKeyDown={(e) => {
               if (e.key === "Enter") void doSearch();
             }}
-            placeholder="np. LangChain, CrewAI, Pinecone…"
             placeholder={t.mindMapsAIQueryPlaceholder as string}
             className="flex-1 h-10 px-3 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400"
           />
@@ -1066,6 +1227,235 @@ function MindMapAIModal({
   );
 }
 
+function MindMapAIImportTreeModal({
+  open,
+  apiFetch,
+  parentId,
+  onClose,
+  onInsert,
+  t,
+}: {
+  open: boolean;
+  apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
+  parentId: string | null;
+  onClose: () => void;
+  onInsert: (importedRoot: MindMapNode) => void;
+  t: T;
+}) {
+  const templates = useMemo(
+    () => [
+      {
+        key: "testy-per-modul",
+        label: "Testy per moduł",
+        structureText: [
+          "- testy per moduł",
+          "  - profiles",
+          "    - unit: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/unit/profiles/ -v",
+          "    - integration: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/integration/profiles/ -v",
+          "    - e2e: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/e2e/profiles/ -v",
+          "    - security: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/security/profiles/ -v",
+          "  - storage (type-first + live storage)",
+          "    - unit: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/unit/storage/ -v",
+          "    - integration: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/integration/storage/ -v",
+          "    - e2e: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/e2e/storage/ -v",
+          "    - security: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/security/storage/ -v",
+          "    - live MinIO/storage: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/storage/ -v (wymaga TEST_JWT_TOKEN)",
+        ].join("\n"),
+      },
+      {
+        key: "profiles",
+        label: "profiles",
+        structureText: [
+          "- profiles",
+          "  - unit: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/unit/profiles/ -v",
+          "  - integration: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/integration/profiles/ -v",
+          "  - e2e: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/e2e/profiles/ -v",
+          "  - security: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/security/profiles/ -v",
+        ].join("\n"),
+      },
+      {
+        key: "storage",
+        label: "storage (type-first + live storage)",
+        structureText: [
+          "- storage (type-first + live storage)",
+          "  - unit: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/unit/storage/ -v",
+          "  - integration: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/integration/storage/ -v",
+          "  - e2e: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/e2e/storage/ -v",
+          "  - security: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/security/storage/ -v",
+          "  - live MinIO/storage: docker-compose -p career-guide-test -f compose.test.yml run --rm test-runner pytest tests/storage/ -v (wymaga TEST_JWT_TOKEN)",
+        ].join("\n"),
+      },
+    ],
+    []
+  );
+
+  const [templateKey, setTemplateKey] = useState<string>(templates[0]?.key ?? "testy-per-modul");
+  const [text, setText] = useState<string>(templates[0]?.structureText ?? "");
+  const [file, setFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [rootNode, setRootNode] = useState<MindMapNode | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const defaultTemplate = templates[0];
+    setTemplateKey(defaultTemplate?.key ?? "");
+    setText(defaultTemplate?.structureText ?? "");
+    setFile(null);
+    setIsAnalyzing(false);
+    setError(null);
+    setRootNode(null);
+  }, [open, templates]);
+
+  useEffect(() => {
+    if (!open) return;
+    const nextTemplate = templates.find((x) => x.key === templateKey);
+    if (nextTemplate) setText(nextTemplate.structureText);
+  }, [templateKey, open, templates]);
+
+  const doAnalyze = useCallback(async () => {
+    if (!text.trim()) return;
+    setIsAnalyzing(true);
+    setError(null);
+    setRootNode(null);
+    try {
+      const fd = new FormData();
+      fd.set("structureText", text.trim());
+      if (file) fd.set("image", file);
+
+      const res = await apiFetch("/api/mind-maps/import", { method: "POST", body: fd });
+      if (!res.ok) {
+        setError(t.mindMapsImportAnalyzeError as string);
+        return;
+      }
+      const data = (await res.json()) as { rootNode?: MindMapNode };
+      if (!data?.rootNode) {
+        setError(t.mindMapsImportInvalidAIFormat as string);
+        return;
+      }
+      setRootNode(data.rootNode);
+    } catch {
+      setError(t.mindMapsImportGenericError as string);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  }, [apiFetch, file, t, text]);
+
+  if (!open) return null;
+
+  return (
+    <div
+      className="fixed inset-0 z-[120] bg-black/30 flex items-center justify-center p-2"
+      onClick={onClose}
+    >
+      <div
+        className="w-full max-w-4xl bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl overflow-hidden flex flex-col h-[calc(100vh-280px)]"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="text-lg font-bold">{t.mindMapsAIImportTreeModalTitle as string}</div>
+        <div className="mt-1 text-sm text-[var(--text3)]">
+          {parentId ? "Wybrano węzeł docelowy. Wstaw wynik do podmenu." : "Wybierz węzeł docelowy."}
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 lg:grid-cols-3 gap-3 flex-1 min-h-0">
+          <div className="lg:col-span-1 flex flex-col gap-2 min-h-0">
+            <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold">
+              Szablony
+            </div>
+
+            <select
+              value={templateKey}
+              onChange={(e) => setTemplateKey(e.target.value)}
+              className="h-10 px-3 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none"
+            >
+              {templates.map((tpl) => (
+                <option key={tpl.key} value={tpl.key}>
+                  {tpl.label}
+                </option>
+              ))}
+            </select>
+
+            <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold leading-none">
+              Opcjonalnie obraz
+            </div>
+            <label className="w-full px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] cursor-pointer text-center">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              Wybierz obraz
+            </label>
+          </div>
+
+          <div className="lg:col-span-2 flex flex-col gap-3 min-h-0">
+            <textarea
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder={t.mindMapsImportTextareaPlaceholder as string}
+              className="w-full flex-1 min-h-0 p-3 rounded-2xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400 resize-none"
+            />
+
+            {error ? (
+              <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl p-3">
+                {error}
+              </div>
+            ) : null}
+
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => void doAnalyze()}
+                disabled={isAnalyzing || !text.trim()}
+                className="flex-1 px-3 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60 inline-flex items-center justify-center gap-2"
+              >
+                {isAnalyzing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )}
+                {t.mindMapsImportAnalyze as string}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 px-3 py-3 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
+              >
+                {t.mindMapsCancel as string}
+              </button>
+            </div>
+
+            <div className="flex-1 min-h-0 border border-[var(--border)] rounded-2xl bg-[var(--bg2)] p-3 overflow-auto">
+              {rootNode ? (
+                <div className="inline-flex min-w-max items-center">
+                  <MindMapTree mode="readOnly" rootNode={rootNode} allowCollapse t={t} />
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
+                  {t.mindMapsImportPreviewHint as string}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => {
+                if (!rootNode) return;
+                onInsert(rootNode);
+              }}
+              disabled={!rootNode || !parentId}
+              className="w-full px-3 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60 inline-flex items-center justify-center"
+            >
+              {t.mindMapsAIImportTreeInsert as string}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function MindMapImportModal({
   open,
   apiFetch,
@@ -1087,6 +1477,15 @@ function MindMapImportModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [rootNode, setRootNode] = useState<MindMapNode | null>(null);
+  const [isPreviewFullScreen, setIsPreviewFullScreen] = useState(false);
+
+  const addImageParts = t.mindMapsImportAddImage.split(" ");
+  const addImageTop = addImageParts[0] ?? t.mindMapsImportAddImage;
+  const addImageBottom = addImageParts.slice(1).join(" ");
+
+  const removeImageParts = t.mindMapsImportRemoveImage.split(" ");
+  const removeImageTop = removeImageParts[0] ?? t.mindMapsImportRemoveImage;
+  const removeImageBottom = removeImageParts.slice(1).join(" ");
 
   useEffect(() => {
     if (!open) {
@@ -1096,8 +1495,18 @@ function MindMapImportModal({
       setIsSaving(false);
       setError(null);
       setRootNode(null);
+      setIsPreviewFullScreen(false);
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !isPreviewFullScreen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsPreviewFullScreen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [open, isPreviewFullScreen]);
 
   const doAnalyze = useCallback(async () => {
     if (!text.trim()) return;
@@ -1165,64 +1574,40 @@ function MindMapImportModal({
 
   return (
     <div
-      className="fixed inset-0 z-[120] bg-black/30 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[120] bg-black/30 flex items-center justify-center p-2"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-3xl bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl overflow-hidden"
+        className="w-full max-w-4xl bg-[var(--surface)] border border-[var(--border)] rounded-3xl p-6 shadow-xl overflow-hidden flex flex-col h-[calc(100vh-540px)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="text-lg font-bold">{t.mindMapsImportModalTitle as string}</div>
-        <div className="mt-1 text-sm text-[var(--text3)]">
+        <div className="relative w-full">
+          <div className="text-lg font-bold text-center">
+            {t.mindMapsImportModalTitle as string}
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsPreviewFullScreen(true)}
+            disabled={!rootNode}
+            className="absolute top-0 right-0 mt-1 px-2.5 py-1 rounded-lg bg-[var(--bg2)] border border-[var(--border)] text-[var(--text2)] text-[10px] font-semibold hover:bg-[var(--bg3)] disabled:opacity-60 inline-flex items-center gap-2 leading-none whitespace-nowrap"
+          >
+            <Maximize2 className="w-3.5 h-3.5" />
+            {t.mindMapsImportPreviewFullScreen as string}
+          </button>
+        </div>
+
+        <div className="mt-1 text-sm text-[var(--text3)] text-center">
           {t.mindMapsImportModalSubtitle as string}
         </div>
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          <div className="flex flex-col gap-3 min-w-0">
+        <div className="mt-4 flex-1 min-h-0 flex items-stretch gap-4">
+          <div className="flex flex-col flex-1 min-w-0 min-h-0 gap-3">
             <textarea
               value={text}
               onChange={(e) => setText(e.target.value)}
               placeholder={t.mindMapsImportTextareaPlaceholder as string}
-              className="w-full h-48 p-3 rounded-2xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400 resize-none"
+              className="w-full flex-1 min-h-0 p-3 rounded-2xl bg-[var(--bg2)] border border-[var(--border)] text-sm text-[var(--text)] outline-none focus:border-sky-400 resize-none"
             />
-
-            <div className="flex items-center justify-between gap-3">
-              <label className="text-xs font-semibold text-[var(--text2)]">
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                />
-                <span className="px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] hover:bg-[var(--bg3)] cursor-pointer inline-block">
-                  {file ? `Obraz: ${file.name}` : (t.mindMapsImportAddImage as string)}
-                </span>
-              </label>
-
-              {file ? (
-                <button
-                  type="button"
-                  onClick={() => setFile(null)}
-                  className="text-xs font-semibold text-red-700 hover:underline"
-                >
-                  {t.mindMapsImportRemoveImage as string}
-                </button>
-              ) : null}
-            </div>
-
-            <button
-              type="button"
-              onClick={() => void doAnalyze()}
-              disabled={isAnalyzing || !text.trim()}
-              className="px-4 h-10 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60 inline-flex items-center justify-center gap-2"
-            >
-              {isAnalyzing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Sparkles className="w-4 h-4" />
-              )}
-              {t.mindMapsImportAnalyze as string}
-            </button>
 
             {error ? (
               <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-2xl p-3">
@@ -1231,11 +1616,12 @@ function MindMapImportModal({
             ) : null}
           </div>
 
-          <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold">
+          <div className="flex flex-col flex-1 min-w-0 min-h-0 gap-3">
+            <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold leading-none whitespace-nowrap">
               {t.mindMapsImportPreview as string}
             </div>
-            <div className="mt-2 border border-[var(--border)] rounded-2xl bg-[var(--bg2)] p-3 overflow-auto h-72">
+
+            <div className="flex-1 min-h-0 border border-[var(--border)] rounded-2xl bg-[var(--bg2)] p-3 overflow-auto">
               {rootNode ? (
                 <div className="inline-flex min-w-max items-center">
                   <MindMapTree mode="readOnly" rootNode={rootNode} allowCollapse t={t} />
@@ -1246,29 +1632,109 @@ function MindMapImportModal({
                 </div>
               )}
             </div>
+          </div>
+        </div>
 
-            <div className="mt-4 flex gap-2">
+        <div className="mt-4 grid grid-cols-4 gap-3 w-full">
+          {file ? (
+            <button
+              type="button"
+              onClick={() => setFile(null)}
+              className="w-full px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] inline-flex flex-col items-center justify-center leading-tight"
+            >
+              <span className="text-[12px] font-semibold">{removeImageTop}</span>
+              <span className="text-[11px] font-semibold">{removeImageBottom}</span>
+            </button>
+          ) : (
+            <label className="w-full px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)] cursor-pointer inline-flex flex-col items-center justify-center leading-tight">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+              />
+              <span className="text-[12px] font-semibold">{addImageTop}</span>
+              <span className="text-[11px] font-semibold">{addImageBottom}</span>
+            </label>
+          )}
+
+          <button
+            type="button"
+            onClick={() => void doAnalyze()}
+            disabled={isAnalyzing || !text.trim()}
+            className="w-full px-3 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60 inline-flex items-center justify-center gap-2 leading-none"
+          >
+            {isAnalyzing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4" />
+            )}
+            {t.mindMapsImportAnalyze as string}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => void doSaveAsNew()}
+            disabled={!rootNode || isSaving}
+            className="w-full px-3 py-3 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60 inline-flex items-center justify-center"
+          >
+            <span className="flex flex-col items-center leading-tight">
+              <span>Zapisz jako nową</span>
+              <span>mapę</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full px-3 py-3 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
+          >
+            {t.mindMapsCancel as string}
+          </button>
+        </div>
+      </div>
+
+      {isPreviewFullScreen ? (
+        <div
+          className="fixed inset-0 z-[130] bg-black/60 flex items-center justify-center p-4"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsPreviewFullScreen(false);
+          }}
+          role="dialog"
+          aria-modal="true"
+        >
+          <div
+            className="w-full h-full bg-[var(--surface)] border border-[var(--border)] rounded-3xl shadow-xl overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[var(--border)] bg-[var(--bg2)]">
+              <div className="text-[10px] uppercase tracking-widest text-[var(--text3)] font-bold leading-none whitespace-nowrap">
+                {t.mindMapsImportPreview as string}
+              </div>
               <button
                 type="button"
-                onClick={() => void doSaveAsNew()}
-                disabled={!rootNode || isSaving}
-                className="flex-1 px-3 py-2 rounded-xl bg-[var(--accent)] text-white font-semibold text-sm hover:opacity-95 disabled:opacity-60"
+                onClick={() => setIsPreviewFullScreen(false)}
+                className="px-3 py-1.5 rounded-lg bg-[var(--bg2)] border border-[var(--border)] text-[var(--text2)] text-[10px] font-semibold hover:bg-[var(--bg3)] inline-flex items-center gap-2 leading-none whitespace-nowrap"
               >
-                {isSaving
-                  ? (t.mindMapsImportSaving as string)
-                  : (t.mindMapsImportSaveAsNew as string)}
+                <Minimize2 className="w-3.5 h-3.5" />
+                {t.mindMapsImportPreviewExitFullScreen as string}
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-3 py-2 rounded-xl bg-[var(--bg2)] border border-[var(--border)] text-[var(--text)] font-semibold text-sm hover:bg-[var(--bg3)]"
-              >
-                {t.mindMapsCancel as string}
-              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-3 bg-[var(--bg2)]">
+              {rootNode ? (
+                <div className="inline-flex min-w-max items-center">
+                  <MindMapTree mode="readOnly" rootNode={rootNode} allowCollapse t={t} />
+                </div>
+              ) : (
+                <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
+                  {t.mindMapsImportPreviewHint as string}
+                </div>
+              )}
             </div>
           </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
