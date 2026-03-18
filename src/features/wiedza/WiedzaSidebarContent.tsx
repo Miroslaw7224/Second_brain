@@ -1,11 +1,11 @@
 import React, { type RefObject } from "react";
-import { Plus, MessageSquare, FileText, Link, Trash2, Loader2 } from "lucide-react";
+import { Plus, MessageSquare, FileText, Link, Trash2, Loader2, Network } from "lucide-react";
 import { cn } from "@/src/lib/cn";
 import type { Document } from "./useWiedzaData";
 
 export interface WiedzaSidebarContentProps {
-  activeTab: "chat" | "notes" | "resources";
-  setActiveTab: (tab: "chat" | "notes" | "resources") => void;
+  activeTab: "chat" | "notes" | "resources" | "mindmaps";
+  setActiveTab: (tab: "chat" | "notes" | "resources" | "mindmaps") => void;
   documents: Document[];
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteDoc: (id: string) => void;
@@ -14,6 +14,7 @@ export interface WiedzaSidebarContentProps {
   chatTab: string;
   notesTab: string;
   tabResources: string;
+  tabMindMaps: string;
   knowledge: string;
   noDocs: string;
 }
@@ -29,10 +30,11 @@ export function WiedzaSidebarContent({
   chatTab,
   notesTab,
   tabResources,
+  tabMindMaps,
   knowledge,
   noDocs,
 }: WiedzaSidebarContentProps) {
-  const tabClass = (tab: "chat" | "notes" | "resources") =>
+  const tabClass = (tab: "chat" | "notes" | "resources" | "mindmaps") =>
     cn(
       "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
       activeTab === tab
@@ -58,6 +60,14 @@ export function WiedzaSidebarContent({
         >
           <Link className="w-5 h-5 flex-shrink-0" />
           <span>{tabResources}</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab("mindmaps")}
+          className={tabClass("mindmaps")}
+        >
+          <Network className="w-5 h-5 flex-shrink-0" />
+          <span>{tabMindMaps}</span>
         </button>
       </div>
       <div className="flex items-center justify-between mb-4 px-2">

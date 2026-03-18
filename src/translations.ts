@@ -114,6 +114,7 @@ export const translations = {
     resourceEditModalTitle: "Edit resource",
     tabContent: "Content",
     tabResources: "Resources",
+    tabMindMaps: "Mind maps",
     prompts: [
       "What were the terms for the Acme project?",
       "Summarize my latest meeting notes",
@@ -232,6 +233,7 @@ export const translations = {
     resourceEditModalTitle: "Edytuj zasób",
     tabContent: "Treść",
     tabResources: "Zasoby",
+    tabMindMaps: "Mapy myśli",
     prompts: [
       "Jakie były warunki projektu Acme?",
       "Podsumuj moje ostatnie notatki ze spotkania",

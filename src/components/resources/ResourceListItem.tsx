@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Copy, Trash2, Star, Pencil } from "lucide-react";
 import type { NoteResource } from "./resourceTypes";
 import { getFaviconUrl } from "./resourceParsing";
@@ -25,6 +26,7 @@ export function ResourceListItem({
   onDelete,
 }: ResourceListItemProps) {
   const favicon = getFaviconUrl(r.url);
+  const [showFavicon, setShowFavicon] = React.useState(true);
 
   return (
     <li className="flex items-center justify-between gap-3 py-3 px-4 bg-[var(--surface)] border border-[var(--border)] rounded-xl">
@@ -35,16 +37,17 @@ export function ResourceListItem({
         role="button"
         tabIndex={0}
       >
-        {favicon && (
+        {favicon && showFavicon && (
           <div className="flex items-center flex-shrink-0 self-stretch min-h-[2rem]">
-            <img
+            <Image
               src={favicon}
+              width={28}
+              height={28}
               className="h-full w-auto object-contain"
               style={{ borderRadius: "4px", maxWidth: 28 }}
-              onError={(e) => {
-                e.currentTarget.style.display = "none";
-              }}
               alt=""
+              unoptimized
+              onError={() => setShowFavicon(false)}
             />
           </div>
         )}

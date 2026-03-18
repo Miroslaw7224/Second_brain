@@ -16,6 +16,7 @@ import { useWiedzaData, type Document, type Note } from "./useWiedzaData";
 import { WiedzaSidebarContent } from "./WiedzaSidebarContent";
 import { ChatPanel, type Message } from "./ChatPanel";
 import { NotesPanel } from "./NotesPanel";
+import { MindMapsTab } from "@/src/features/mind-maps/MindMapsTab";
 
 type TranslationsEn = (typeof translations)["en"];
 
@@ -47,7 +48,7 @@ export default function WiedzaView({
   onLogout,
   setLang,
 }: WiedzaViewProps) {
-  const [activeTab, setActiveTab] = useState<"chat" | "notes" | "resources">("chat");
+  const [activeTab, setActiveTab] = useState<"chat" | "notes" | "resources" | "mindmaps">("chat");
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteEditMode, setNoteEditMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -200,6 +201,7 @@ export default function WiedzaView({
           chatTab={t.chatTab}
           notesTab={t.notesTab}
           tabResources={(t.tabResources as string) ?? "Zasoby"}
+          tabMindMaps={(t.tabMindMaps as string) ?? "Mapy myśli"}
           knowledge={t.knowledge}
           noDocs={t.noDocs}
         />
@@ -238,6 +240,10 @@ export default function WiedzaView({
           ) : activeTab === "resources" ? (
             <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
               <ResourceSection apiFetch={apiFetch} t={t} />
+            </div>
+          ) : activeTab === "mindmaps" ? (
+            <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
+              <MindMapsTab apiFetch={apiFetch} title={(t.tabMindMaps as string) ?? "Mapy myśli"} />
             </div>
           ) : (
             <NotesPanel

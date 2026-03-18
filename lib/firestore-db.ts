@@ -68,6 +68,10 @@ function notesCol(userId: string) {
   return db().collection(COLLECTION_USERS).doc(String(userId)).collection("notes");
 }
 
+export function mindMapsCol(userId: string) {
+  return db().collection(COLLECTION_USERS).doc(String(userId)).collection("mindMaps");
+}
+
 export function resourcesCol(userId: string, noteId: string) {
   return notesCol(userId).doc(noteId).collection("resources");
 }
