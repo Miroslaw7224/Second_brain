@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { CALENDAR_COLORS, DURATION_OPTIONS, formatDuration } from "./calendarConstants";
+import { addCalendarDays } from "./calendar/calendarUtils";
 
 export interface CalendarEventFormData {
   date: string;
@@ -84,6 +85,9 @@ export function CalendarEventForm({
   };
 
   const hourOptions = Array.from({ length: 96 }, (_, i) => i * 15); // 0–23:45 co 15 min
+  const MINS_PER_DAY = 24 * 60;
+  const spanEndTotal = startMinutes + durationMinutes;
+  const crossesDayBoundary = spanEndTotal > MINS_PER_DAY;
   const tagInputNormalized = tagInput.trim().replace(/^#/, "").toLowerCase();
   const filteredExistingTags = existingTags
     .filter((t) => {
@@ -149,6 +153,21 @@ export function CalendarEventForm({
           ))}
         </select>
       </div>
+      {crossesDayBoundary && date && (
+        <p className="text-xs text-[var(--text3)] leading-relaxed">
+          {(() => {
+            const extraDays = Math.floor(spanEndTotal / MINS_PER_DAY);
+            const endMinOfDay = spanEndTotal % MINS_PER_DAY;
+            const endH = Math.floor(endMinOfDay / 60);
+            const endM = endMinOfDay % 60;
+            const endStr = `${String(endH).padStart(2, "0")}:${String(endM).padStart(2, "0")}`;
+            const endDateStr = addCalendarDays(date, extraDays);
+            return extraDays === 1
+              ? `Ends the next calendar day (${endDateStr}) at ${endStr}.`
+              : `Ends on ${endDateStr} at ${endStr} (${extraDays} days after start).`;
+          })()}
+        </p>
+      )}
       <div>
         <label className="block text-xs font-bold text-[var(--text2)] uppercase mb-1">
           Tags (#testy, #nauka…)

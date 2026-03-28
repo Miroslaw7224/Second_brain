@@ -82,6 +82,13 @@ export const translations = {
     tasksMoveDown: "Move down",
     tasksStartDateLabel: "Start",
     tasksDeadlineLabel: "Due",
+    tasksDetailModalTitle: "Task",
+    tasksDetailTitleFieldLabel: "Title",
+    tasksDetailNoteLabel: "Note",
+    tasksDetailNotePlaceholder: "Add details, links, or context…",
+    tasksDetailSave: "Save",
+    tasksDetailSaving: "Saving…",
+    tasksDetailStatusLabel: "Status",
     planAskPlaceholder:
       "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
     resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
@@ -125,7 +132,7 @@ export const translations = {
     mindMapsCreateCardTitle: "Create a new map",
     mindMapsCreateCardSubtitle: "Empty structure with the root on the left",
     mindMapsImportCardTitle: "Import a map",
-    mindMapsImportCardSubtitle: "Paste a structure (optional screenshot)",
+    mindMapsImportCardSubtitle: "Paste structure and/or screenshot",
     mindMapsNoMaps: "No maps. Create your first one and start building a tree.",
     mindMapsBreadcrumbApp: "Second Brain",
     mindMapsBreadcrumbMindMaps: "Mind maps",
@@ -163,7 +170,8 @@ export const translations = {
     mindMapsDeleteBranch: "Delete entire branch",
     mindMapsDeleteBranchHint: "all children removed",
     mindMapsImportModalTitle: "Import a map",
-    mindMapsImportModalSubtitle: "Paste text/structure. Optionally attach a screenshot.",
+    mindMapsImportModalSubtitle:
+      "Paste text and/or attach a screenshot — either is enough to analyze.",
     mindMapsImportTextareaPlaceholder:
       "E.g.:\n- AI\n  - LLM\n  - Embeddings\n- RAG\n  - Chunking\n  - Retrieval",
     mindMapsImportAddImage: "Add image (optional)",
@@ -173,6 +181,19 @@ export const translations = {
     mindMapsImportPreviewFullScreen: "Full screen",
     mindMapsImportPreviewExitFullScreen: "Exit full screen",
     mindMapsImportPreviewHint: "Click “Analyze” first to see the tree.",
+    mindMapsImportPreviewHintImageOrText:
+      "Click “Analyze” after pasting text and/or choosing an image (screenshot alone works).",
+    mindMapsDragReparentHint:
+      "Drag a node onto another to make it a child. The target branch expands so you can see the result.",
+    mindMapsExportToOtherMap: "Export to another mind map",
+    mindMapsExportToOtherMapModalTitle: "Export branch to another map",
+    mindMapsExportToOtherMapModalSubtitle:
+      'Node "{label}" and its whole subtree will be copied under the root of the map you select. Your current map stays unchanged.',
+    mindMapsExportToOtherMapPickMap: "Choose destination map",
+    mindMapsExportToOtherMapNoTargets:
+      "Create another mind map first, then you can copy branches into it.",
+    mindMapsExportToOtherMapSuccess: "Branch copied to the selected map.",
+    mindMapsExportToOtherMapError: "Could not copy the branch to that map.",
     mindMapsImportSaveAsNew: "Save as a new map",
     mindMapsImportSaving: "Saving…",
     mindMapsImportAnalyzeError: "Could not analyze the structure.",
@@ -275,6 +296,13 @@ export const translations = {
     tasksMoveDown: "W dół",
     tasksStartDateLabel: "Start",
     tasksDeadlineLabel: "Do",
+    tasksDetailModalTitle: "Zadanie",
+    tasksDetailTitleFieldLabel: "Tytuł",
+    tasksDetailNoteLabel: "Notatka",
+    tasksDetailNotePlaceholder: "Szczegóły, linki lub kontekst…",
+    tasksDetailSave: "Zapisz",
+    tasksDetailSaving: "Zapisywanie…",
+    tasksDetailStatusLabel: "Status",
     planAskPlaceholder:
       "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
     resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
@@ -320,7 +348,7 @@ export const translations = {
     mindMapsCreateCardTitle: "Utwórz nową mapę",
     mindMapsCreateCardSubtitle: "Pusta struktura z rootem po lewej",
     mindMapsImportCardTitle: "Importuj mapę",
-    mindMapsImportCardSubtitle: "Wklej strukturę (opcjonalnie screenshot)",
+    mindMapsImportCardSubtitle: "Wklej strukturę i/lub screenshot",
     mindMapsNoMaps: "Brak map. Utwórz pierwszą i zacznij budować drzewo.",
     mindMapsBreadcrumbApp: "Drugi Mózg",
     mindMapsBreadcrumbMindMaps: "Mapy myśli",
@@ -358,7 +386,8 @@ export const translations = {
     mindMapsDeleteBranch: "Usuń całą gałąź",
     mindMapsDeleteBranchHint: "wszystkie dzieci usunięte",
     mindMapsImportModalTitle: "Importuj mapę",
-    mindMapsImportModalSubtitle: "Wklej tekst/strukturę. Opcjonalnie dołącz screenshot mapy.",
+    mindMapsImportModalSubtitle:
+      "Wklej tekst i/lub dołącz screenshot — wystarczy jedno z tego, żeby uruchomić analizę.",
     mindMapsImportTextareaPlaceholder:
       "Np.:\n- AI\n  - LLM\n  - Embeddings\n- RAG\n  - Chunking\n  - Retrieval",
     mindMapsImportAddImage: "Dodaj obraz (opcjonalnie)",
@@ -368,6 +397,19 @@ export const translations = {
     mindMapsImportPreviewFullScreen: "Pełny ekran",
     mindMapsImportPreviewExitFullScreen: "Wyjdź z pełnego ekranu",
     mindMapsImportPreviewHint: "Najpierw kliknij „Analizuj”, żeby zobaczyć drzewo.",
+    mindMapsImportPreviewHintImageOrText:
+      "Kliknij „Analizuj” po wklejeniu tekstu i/lub wybraniu obrazu (wystarczy sam screenshot).",
+    mindMapsDragReparentHint:
+      "Przeciągnij węzeł na inny, aby ustawić go jako dziecko. Docelowa gałąź rozwinie się, żeby było widać efekt.",
+    mindMapsExportToOtherMap: "Eksportuj do innej mapy myśli",
+    mindMapsExportToOtherMapModalTitle: "Eksport gałęzi do innej mapy",
+    mindMapsExportToOtherMapModalSubtitle:
+      "Węzeł „{label}” wraz z całym poddrzewem zostanie skopiowany pod korzeń wybranej mapy. Bieżąca mapa pozostaje bez zmian.",
+    mindMapsExportToOtherMapPickMap: "Wybierz mapę docelową",
+    mindMapsExportToOtherMapNoTargets:
+      "Najpierw utwórz drugą mapę myśli — wtedy możesz do niej skopiować gałąź.",
+    mindMapsExportToOtherMapSuccess: "Gałąź została skopiowana do wybranej mapy.",
+    mindMapsExportToOtherMapError: "Nie udało się skopiować gałęzi do tej mapy.",
     mindMapsImportSaveAsNew: "Zapisz jako nową mapę",
     mindMapsImportSaving: "Zapisywanie…",
     mindMapsImportAnalyzeError: "Nie udało się przeanalizować struktury.",

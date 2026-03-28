@@ -1,7 +1,7 @@
 # ADR-017: Funkcja Map Myśli (Mind Maps)
 
-**Status:** Zaproponowany  
-**Data:** 2026-03-18  
+**Status:** Zaakceptowany, **wdrożony** (marzec 2026)  
+**Data:** 2026-03-18 (aktualizacja stanu: 2026-03-28)  
 **Autor:** Mirosław  
 **Powiązane ADR:** ADR-014 (Architektura warstw), ADR-015 (Strategia testów)
 
@@ -17,7 +17,7 @@ Inspiracją jest podejście NotebookLM — AI generuje strukturę z istniejącyc
 
 ## Decyzja
 
-Implementujemy funkcję Map Myśli jako **osobną sekcję aplikacji** (na równi z Notes i Resources), opartą na **drzewiastym widoku poziomym** (lewa → prawa) z **dolnym panelem notatek**.
+Implementujemy funkcję Map Myśli jako **zakładkę w module Wiedza** (`MindMapsTab` w `src/features/mind-maps/`, obok chatu / notatek / zasobów), opartą na **drzewiastym widoku poziomym** (lewa → prawa) z **dolnym panelem notatek**.
 
 ---
 
@@ -28,7 +28,7 @@ Implementujemy funkcję Map Myśli jako **osobną sekcję aplikacji** (na równi
 Całe drzewo mapy myśli przechowujemy jako **jeden dokument Firestore** z zagnieżdżoną strukturą JSON.
 
 ```typescript
-// Kolekcja: /mindMaps/{mapId}
+// Kolekcja: users/{userId}/mindMaps/{mapId}
 interface MindMap {
   id: string;
   userId: string;
@@ -80,20 +80,19 @@ const prompt = `
 
 Użytkownik buduje drzewo samodzielnie od pustego węzła root. Brak wywołań AI.
 
+#### Tryb C — Import (tekst i/lub obraz)
+
+Użytkownik może wkleić strukturę tekstową i/lub przesłać **obraz** (np. zrzut ekranu mapy z innego narzędzia). `POST /api/mind-maps/import` przyjmuje `multipart/form-data` (`structureText`, opcjonalnie pole pliku obrazu); backend (`mindMapAIService.importMindMap`) buduje lub uzupełnia drzewo węzłów. Limit rozmiaru obrazu po stronie API (np. 5MB) — patrz implementacja w `app/api/mind-maps/import/route.ts`.
+
 ---
 
 ### 3. Architektura warstw (zgodna z ADR-014)
 
 ```
 UI
-  MindMapSection          — kontener sekcji, routing
-  MindMapList             — lista zapisanych map (kafelki)
-  MindMapEditor           — główny edytor (tree + panel)
-  MindMapTree             — renderowanie drzewa poziomego
-  MindMapNode             — pojedynczy węzeł (pill)
-  MindMapNodePanel        — dolny panel notatek
-  MindMapAIModal          — modal AI search
-  MindMapDeleteModal      — modal potwierdzenia usunięcia
+  MindMapsTab             — lista map + edytor (toolbar, drzewo, dolny panel) w zakładce Wiedza
+  MindMapTree             — renderowanie drzewa poziomego i węzłów (pill)
+  (modale)                — AI węzeł / import poddrzewa / usuwanie mapy — w obrębie MindMapsTab
         ↓
 Route Handlers
   POST   /api/mind-maps                   — utwórz nową mapę
@@ -102,6 +101,7 @@ Route Handlers
   PATCH  /api/mind-maps/[id]             — zapisz całe drzewo (debounced)
   DELETE /api/mind-maps/[id]             — usuń mapę
   POST   /api/mind-maps/ai-node          — generuj węzeł przez AI
+  POST   /api/mind-maps/import           — import: opcjonalny tekst struktury + opcjonalny obraz (screenshot mapy); Gemini Vision / parser → drzewo węzłów
         ↓
 Services
   mindMapService.ts
@@ -112,10 +112,11 @@ Services
     deleteMindMap(userId, mapId)
   mindMapAIService.ts
     generateNodeFromWeb(query): Promise<{ label, description }>
+    importMindMap(...) — struktura z tekstu i/lub obrazu (Vision)
         ↓
 Infrastructure / lib
-  Firestore  — kolekcja mindMaps
-  Gemini API — google-search grounding (istniejący klient)
+  Firestore  — users/{userId}/mindMaps
+  Gemini API — Google Search grounding + modele multimodalne przy imporcie obrazu
 ```
 
 ---
@@ -136,20 +137,20 @@ Wszystkie węzły na tym samym poziomie głębokości mają **identyczną szerok
 
 ### 5. Interakcje z węzłami
 
-| Akcja                       | Sposób wywołania                                                                     |
-| --------------------------- | ------------------------------------------------------------------------------------ |
-| Rozwiń / zwiń gałąź         | Klik na ikonę `›` przy węźle                                                         |
-| Zwiń całą gałąź (z dziećmi) | Klik na węzeł nadrzędny — jedno kliknięcie zwija wszystko pod nim                    |
-| Rozwijanie gałęzi           | Niezależne — rozwinięcie jednej gałęzi nie zwija pozostałych                         |
-| Zwiń / rozwiń całą mapę     | Przyciski w toolbarze                                                                |
-| Edycja nazwy węzła          | Podwójny klik na etykietę → edycja inline (Enter = zatwierdź, Escape = anuluj)       |
-| Dodaj dziecko               | Przycisk `+` przy węźle                                                              |
-| Dodaj węzeł powyżej         | Menu `···` → "Wstaw węzeł powyżej" (węzeł wstawia się między bieżący a jego rodzica) |
-| Usuń węzeł                  | Menu `···` → "Usuń węzeł" → modal z wyborem strategii                                |
-| Przenieś węzeł              | Drag & drop na inny węzeł (węzeł staje się dzieckiem celu)                           |
-| Dodaj przez AI              | Przycisk `✦` przy węźle → modal AI search                                            |
-| Edycja notatek              | Klik na węzeł → dolny panel → pole rich text (TipTap)                                |
-| Zmiana szerokości kolumny   | Drag uchwytu `│` na prawej krawędzi węzła                                            |
+| Akcja                       | Sposób wywołania                                                                                      |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Rozwiń / zwiń gałąź         | Klik na ikonę `›` przy węźle                                                                          |
+| Zwiń całą gałąź (z dziećmi) | Klik na węzeł nadrzędny — jedno kliknięcie zwija wszystko pod nim                                     |
+| Rozwijanie gałęzi           | Niezależne — rozwinięcie jednej gałęzi nie zwija pozostałych                                          |
+| Zwiń / rozwiń całą mapę     | Przyciski w toolbarze                                                                                 |
+| Edycja nazwy węzła          | Podwójny klik na etykietę → edycja inline (Enter = zatwierdź, Escape = anuluj)                        |
+| Dodaj dziecko               | Przycisk `+` przy węźle                                                                               |
+| Dodaj węzeł powyżej         | Menu `···` → "Wstaw węzeł powyżej" (węzeł wstawia się między bieżący a jego rodzica)                  |
+| Usuń węzeł                  | Menu `···` → "Usuń węzeł" → modal z wyborem strategii                                                 |
+| Przenieś / zagnieźdź węzeł  | Drag & drop na inny węzeł — przenoszony węzeł staje się **dzieckiem** celu (np. „Agenci AI” pod „AI”) |
+| Dodaj przez AI              | Przycisk `✦` przy węźle → modal AI search                                                             |
+| Edycja notatek              | Klik na węzeł → dolny panel → pole rich text (TipTap)                                                 |
+| Zmiana szerokości kolumny   | Drag uchwytu `│` na prawej krawędzi węzła                                                             |
 
 ---
 
@@ -228,19 +229,20 @@ Gemini z Google Search grounding jest już dostępny w projekcie — brak nowych
 
 ## Plan faz
 
-### Faza 1 — MVP (obecna decyzja)
+### Faza 1 — MVP (obecna decyzja, wdrożone)
 
-- Model danych + kolekcja Firestore
-- CRUD route handlers
-- Widok drzewa poziomego z pełną interakcją (zwijanie, edycja, drag&drop, zmienna szerokość kolumn)
+- Model danych + kolekcja Firestore (`users/{userId}/mindMaps`)
+- CRUD route handlers + **import** (`/api/mind-maps/import`) + generowanie węzła AI (`/api/mind-maps/ai-node`)
+- Widok drzewa poziomego z pełną interakcją (zwijanie, edycja, drag&drop zagnieżdżający pod rodzicem, zmienna szerokość kolumn)
 - Dolny panel notatek (TipTap)
-- AI search przez Gemini + Google grounding
+- AI search przez Gemini + Google grounding; dodatkowo import z obrazem (Vision) tam, gdzie zaimplementowano w `mindMapAIService`
 - Tryb ręczny (puste drzewo)
+- **Eksport:** pobranie mapy jako samodzielny plik HTML (offline) — `mindMapExportHtml.ts`, akcja w UI
 
 ### Faza 2 — Rozszerzenia (poza zakresem tego ADR)
 
 - Generowanie mapy z wybranych notatek (RAG)
-- Eksport do PNG / SVG
+- Eksport do PNG / SVG (dodatkowo do istniejącego HTML)
 - Regeneracja częściowa gałęzi przez AI
 - Powiązanie węzłów z notatkami z sekcji Notes (klik → otwiera notatkę)
 

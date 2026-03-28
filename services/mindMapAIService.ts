@@ -114,19 +114,49 @@ ${structureText}
 `.trim();
 }
 
+function buildImportPromptFromImageOnly(): string {
+  return `
+Na załączonym obrazie znajduje się diagram, mapa myśli, zrzut ekranu z listą lub podobna struktura hierarchiczna.
+
+Odtwórz widoczną hierarchię jako JSON MindMapNode zgodny z tym interfejsem:
+${MINDMAP_NODE_INTERFACE}
+
+Zasady:
+- Korzeń MUSI mieć dokładnie id: "root" (string).
+- Każde dziecko (poza rootem) powinno mieć sensowny unikalny id (np. krótki identyfikator); jeśli nie wiesz, użyj krótkich placeholderów typu "n1", "n2".
+- Odtwórz zagnieżdżenie zgodnie z obrazem (rodzic → dzieci).
+- Etykiety (label) po polsku, zwięźle, jak na obrazie.
+- Jeśli coś jest nieczytelne, pomiń lub użyj ogólnej etykiety zamiast zgadywać szczegółów.
+
+Odpowiedz TYLKO czystym JSON, bez markdown.
+`.trim();
+}
+
 export async function importMindMap(params: {
   structureText: string;
   image?: { mimeType: string; bytes: Uint8Array };
 }): Promise<MindMapNode> {
   const structureText = (params.structureText ?? "").trim();
-  if (!structureText) throw new Error("structureText is required");
+  const hasImage = Boolean(params.image);
+  if (!structureText && !hasImage) {
+    throw new Error("structureText or image is required");
+  }
 
   const ai = getClient();
 
-  const parts: Array<Record<string, unknown>> = [{ text: buildImportPrompt(structureText) }];
-  if (params.image) {
-    const b64 = Buffer.from(params.image.bytes).toString("base64");
-    parts.push({ inlineData: { mimeType: params.image.mimeType, data: b64 } });
+  const parts: Array<Record<string, unknown>> = [];
+  if (structureText && hasImage) {
+    parts.push({
+      text: `${buildImportPrompt(structureText)}\n\n(Uwaga: dołączono obraz — użyj go jako uzupełnienie lub korekty wobec tekstu powyżej.)`,
+    });
+    const b64 = Buffer.from(params.image!.bytes).toString("base64");
+    parts.push({ inlineData: { mimeType: params.image!.mimeType, data: b64 } });
+  } else if (structureText) {
+    parts.push({ text: buildImportPrompt(structureText) });
+  } else {
+    parts.push({ text: buildImportPromptFromImageOnly() });
+    const b64 = Buffer.from(params.image!.bytes).toString("base64");
+    parts.push({ inlineData: { mimeType: params.image!.mimeType, data: b64 } });
   }
 
   const response = await ai.models.generateContent({

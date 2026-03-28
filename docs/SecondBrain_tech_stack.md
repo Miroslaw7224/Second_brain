@@ -74,9 +74,17 @@ Kluczowy argument dla RAG: wektory embeddingów będą przechowywane jako pola t
 ### Struktura kolekcji
 
 ```
-users/{userId}/documents/{docId}  → metadane dokumentu
-users/{userId}/chunks/{chunkId}   → chunk + wektor embeddingu
+users/{userId}/documents/{docId}       → metadane dokumentu
+users/{userId}/notes/{noteId}          → notatki
+users/{userId}/chunks/{chunkId}        → chunk + wektor embeddingu
+users/{userId}/calendar_events/{id}   → wydarzenia kalendarza
+users/{userId}/tasks/{id}              → zadania
+users/{userId}/user_tags/{id}          → tagi
+users/{userId}/resources/{id}        → zasoby (linki)
+users/{userId}/mindMaps/{id}           → mapy myśli (drzewo węzłów w jednym dokumencie)
 ```
+
+(Szczegóły map myśli: **ADR-017**.)
 
 ---
 

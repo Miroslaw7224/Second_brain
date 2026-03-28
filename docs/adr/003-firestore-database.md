@@ -23,9 +23,10 @@ Wybieramy **Firestore (NoSQL)** jako główną bazę danych.
 Struktura kolekcji:
 
 ```
-users/{userId}/documents/{docId}  → metadane dokumentu
-users/{userId}/notes/{noteId}     → notatki użytkownika
-users/{userId}/chunks/{chunkId}   → chunk + (opcjonalnie) wektor embeddingu
+users/{userId}/documents/{docId}    → metadane dokumentu
+users/{userId}/notes/{noteId}       → notatki użytkownika
+users/{userId}/chunks/{chunkId}     → chunk + (opcjonalnie) wektor embeddingu
+users/{userId}/mindMaps/{mapId}    → mapy myśli (drzewo w jednym dokumencie — ADR-017)
 ```
 
 Firestore jest serverless — zero konfiguracji serwera, zero migracji schematu, automatyczne skalowanie. Elastyczność NoSQL pozwala na zmiany struktury bez migracji. Wyszukiwanie kontekstu dla RAG jest realizowane w Next.js (Route Handlers w `app/api/`), bez dedykowanego vector store na MVP.
@@ -64,4 +65,4 @@ W przyszłości możliwa jest konfiguracja **Firebase Functions** (Cloud Functio
 
 ## Stan aplikacji (luty 2026)
 
-Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Next.js Route Handlers w `app/api/` + `lib/firestore-db.ts`. Kolekcje: `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`, `users/{uid}/calendar_events`, `users/{uid}/tasks`, `users/{uid}/user_tags`. Migracja z SQLite: `scripts/migrate-sqlite-to-firestore.ts`.
+Firestore jest jedyną bazą aplikacji (usunięto SQLite). Backend: Next.js Route Handlers w `app/api/` + `lib/firestore-db.ts`. Kolekcje: `users/{uid}/documents`, `users/{uid}/notes`, `users/{uid}/chunks`, `users/{uid}/calendar_events`, `users/{uid}/tasks`, `users/{uid}/user_tags`, **`users/{uid}/mindMaps`** (mapy myśli — jeden dokument na mapę z zagnieżdżonym drzewem węzłów). Zasoby użytkownika: `users/{uid}/resources`. Migracja z SQLite: `scripts/migrate-sqlite-to-firestore.ts`.

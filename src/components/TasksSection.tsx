@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, Trash2, Check, Circle, ChevronUp, ChevronDown } from "lucide-react";
+import { TaskDetailModal } from "./TaskDetailModal";
 
 export interface Task {
   id: string;
@@ -27,6 +28,11 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
   const [newTitle, setNewTitle] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const titleClickPendingRef = useRef<{
+    taskId: string;
+    timer: ReturnType<typeof setTimeout>;
+  } | null>(null);
 
   const formatDate = (iso: string | null | undefined) => {
     if (!iso) return "";
@@ -53,6 +59,75 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
       cancelled = true;
     };
   }, [apiFetch]);
+
+  useEffect(() => {
+    return () => {
+      const p = titleClickPendingRef.current;
+      if (p) clearTimeout(p.timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (detailTaskId && !tasks.some((x) => x.id === detailTaskId)) {
+      setDetailTaskId(null);
+    }
+  }, [detailTaskId, tasks]);
+
+  const handleTitleAreaClick = (task: Task) => {
+    const p = titleClickPendingRef.current;
+    if (p && p.taskId === task.id) {
+      clearTimeout(p.timer);
+      titleClickPendingRef.current = null;
+      setEditingId(task.id);
+      setEditTitle(task.title);
+      return;
+    }
+    if (p) {
+      clearTimeout(p.timer);
+      titleClickPendingRef.current = null;
+    }
+    const timer = setTimeout(() => {
+      titleClickPendingRef.current = null;
+      setDetailTaskId(task.id);
+    }, 280);
+    titleClickPendingRef.current = { taskId: task.id, timer };
+  };
+
+  const saveTaskDetail = async (payload: {
+    title: string;
+    description: string;
+    status: Task["status"];
+    due_date: string | null;
+  }) => {
+    if (!detailTaskId) return;
+    try {
+      await apiFetch(`/api/tasks/${detailTaskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: payload.title,
+          description: payload.description,
+          status: payload.status,
+          due_date: payload.due_date,
+        }),
+      });
+      setTasks((prev) =>
+        prev.map((x) =>
+          x.id === detailTaskId
+            ? {
+                ...x,
+                title: payload.title,
+                description: payload.description,
+                status: payload.status,
+                due_date: payload.due_date,
+              }
+            : x
+        )
+      );
+    } catch (err) {
+      console.error("Save task detail failed", err);
+    }
+  };
 
   const addTask = async () => {
     const title = newTitle.trim();
@@ -107,6 +182,7 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
     try {
       await apiFetch(`/api/tasks/${id}`, { method: "DELETE" });
       setTasks((prev) => prev.filter((t) => t.id !== id));
+      if (detailTaskId === id) setDetailTaskId(null);
     } catch (err) {
       console.error("Delete task failed", err);
     }
@@ -252,13 +328,16 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => {
-                                setEditingId(task.id);
-                                setEditTitle(task.title);
-                              }}
-                              className="w-full text-left text-sm font-medium truncate text-[var(--text)]"
+                              onClick={() => handleTitleAreaClick(task)}
+                              className="w-full text-left text-sm font-medium text-[var(--text)] flex items-center gap-2 min-w-0"
                             >
-                              {task.title}
+                              <span className="truncate flex-1 min-w-0">{task.title}</span>
+                              {Boolean(task.description?.trim()) ? (
+                                <span
+                                  className="w-2 h-2 rounded-full bg-sky-500 flex-shrink-0"
+                                  aria-hidden
+                                />
+                              ) : null}
                             </button>
                           )}
                           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-[var(--text3)]">
@@ -354,13 +433,18 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                           ) : (
                             <button
                               type="button"
-                              onClick={() => {
-                                setEditingId(task.id);
-                                setEditTitle(task.title);
-                              }}
-                              className="w-full text-left text-sm font-medium truncate line-through text-[var(--text3)]"
+                              onClick={() => handleTitleAreaClick(task)}
+                              className="w-full text-left text-sm font-medium text-[var(--text3)] flex items-center gap-2 min-w-0"
                             >
-                              {task.title}
+                              <span className="truncate flex-1 min-w-0 line-through">
+                                {task.title}
+                              </span>
+                              {Boolean(task.description?.trim()) ? (
+                                <span
+                                  className="w-2 h-2 rounded-full bg-sky-500 flex-shrink-0"
+                                  aria-hidden
+                                />
+                              ) : null}
                             </button>
                           )}
                           <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px] text-[var(--text3)]">
@@ -398,6 +482,13 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
           </div>
         )}
       </div>
+      <TaskDetailModal
+        task={detailTaskId ? (tasks.find((x) => x.id === detailTaskId) ?? null) : null}
+        isOpen={detailTaskId !== null}
+        t={t}
+        onClose={() => setDetailTaskId(null)}
+        onSave={saveTaskDetail}
+      />
     </div>
   );
 }

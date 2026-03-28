@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { formatDuration, CALENDAR_COLORS } from "./calendarConstants";
 import type { UserTag } from "./TagsSection";
+import { eventMinutesInInclusiveRange } from "@/lib/calendarRange";
 
 export interface CalendarEvent {
   id: string;
@@ -72,10 +73,12 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
   const tagHours = useMemo(() => {
     const byTag = new Map<string, number>();
     for (const ev of events) {
+      const minutesInRange = eventMinutesInInclusiveRange(ev, startDate, endDate);
+      if (minutesInRange <= 0) continue;
       for (const tag of ev.tags) {
         if (!tag.trim()) continue;
         const prev = byTag.get(tag) ?? 0;
-        byTag.set(tag, prev + ev.duration_minutes);
+        byTag.set(tag, prev + minutesInRange);
       }
     }
     const arr = Array.from(byTag.entries()).map(([tag, minutes]) => ({
@@ -84,7 +87,7 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
     }));
     arr.sort((a, b) => b.hours - a.hours);
     return arr;
-  }, [events]);
+  }, [events, startDate, endDate]);
 
   const tagToColor = useMemo(() => {
     const map = new Map<string, string>();
@@ -155,27 +158,37 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
         ) : (
           <>
             <ul className="flex-[2_2_0%] min-w-0 space-y-1.5 overflow-auto pr-2">
-              {events.map((ev) => (
-                <li
-                  key={ev.id}
-                  className="flex items-center gap-3 py-2 px-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl"
-                >
-                  <div
-                    className="w-2 h-5 rounded flex-shrink-0"
-                    style={{ backgroundColor: ev.color }}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-sm leading-tight text-[var(--text)]">
-                      {ev.title}
-                    </p>
-                    <p className="text-[10px] text-[var(--text3)] uppercase font-bold mt-0.5 leading-tight">
-                      {ev.date} · {formatTime(ev.start_minutes)} ·{" "}
-                      {formatDuration(ev.duration_minutes)}
-                      {ev.tags.length > 0 && ` · ${ev.tags.map((tag) => `#${tag}`).join(" ")}`}
-                    </p>
-                  </div>
-                </li>
-              ))}
+              {events.map((ev) => {
+                const minutesInRange = eventMinutesInInclusiveRange(ev, startDate, endDate);
+                const partial = minutesInRange > 0 && minutesInRange !== ev.duration_minutes;
+                const durationPart = partial
+                  ? `${formatDuration(minutesInRange)}${
+                      lang === "pl" ? " w zakresie" : " in range"
+                    } · ${formatDuration(ev.duration_minutes)} ${
+                      lang === "pl" ? "łącznie" : "total"
+                    }`
+                  : formatDuration(minutesInRange);
+                return (
+                  <li
+                    key={ev.id}
+                    className="flex items-center gap-3 py-2 px-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl"
+                  >
+                    <div
+                      className="w-2 h-5 rounded flex-shrink-0"
+                      style={{ backgroundColor: ev.color }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm leading-tight text-[var(--text)]">
+                        {ev.title}
+                      </p>
+                      <p className="text-[10px] text-[var(--text3)] uppercase font-bold mt-0.5 leading-tight">
+                        {ev.date} · {formatTime(ev.start_minutes)} · {durationPart}
+                        {ev.tags.length > 0 && ` · ${ev.tags.map((tag) => `#${tag}`).join(" ")}`}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
             </ul>
             <div className="flex-[3_3_0%] min-w-0 flex flex-col self-start bg-[var(--surface)] border border-[var(--border)] rounded-xl p-4 activity-chart">
               {tagHours.length === 0 ? (

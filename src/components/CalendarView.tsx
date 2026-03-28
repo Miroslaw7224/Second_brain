@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Plus, ChevronLeft, ChevronRight, Trash2, Play, Square } from "lucide-react";
 import { CalendarEventForm, type CalendarEventFormData } from "./CalendarEventForm";
 import { StartSessionModal } from "./StartSessionModal";
@@ -8,6 +8,7 @@ import {
   getDaysInMonth,
   MONTH_NAMES,
   DAY_NAMES,
+  expandEventToSegments,
 } from "./calendar/calendarUtils";
 import { CalendarDayColumn } from "./calendar/CalendarDayColumn";
 import type { UserTag } from "./TagsSection";
@@ -91,6 +92,8 @@ export function CalendarView({
       cancelled = true;
     };
   }, [startDate, endDate, apiFetch, refreshTrigger]);
+
+  const eventSegments = useMemo(() => events.flatMap((e) => expandEventToSegments(e)), [events]);
 
   const eventTags = Array.from(new Set(events.flatMap((e) => e.tags)));
   const userTagNames = userTags.map((u) => u.tag).filter(Boolean);
@@ -312,12 +315,12 @@ export function CalendarView({
                 </div>
               </div>
               {days.map((day) => {
-                const dayEvents = events.filter((e) => e.date === day.date);
+                const daySegments = eventSegments.filter((s) => s.segmentDate === day.date);
                 return (
                   <CalendarDayColumn
                     key={day.date}
                     day={day}
-                    dayEvents={dayEvents}
+                    daySegments={daySegments}
                     cellWidth={cellWidth}
                     lang={lang}
                     dayNames={DAY_NAMES[lang]}

@@ -32,8 +32,8 @@ Wprowadzamy refaktoryzację w pięciu fazach: wspólna utilita, rozbicie Resourc
 
 ### 3. CalendarView – utils i CalendarDayColumn
 
-- **`src/components/calendar/calendarUtils.ts`** — typ `CalendarEvent`, funkcje `getDaysInMonth`, `assignLanes`, `getOverlapCounts`, stałe `MONTH_NAMES`, `DAY_NAMES`, `CALENDAR_MAX_STACK`.
-- **`src/components/calendar/CalendarDayColumn.tsx`** — przyjmuje dzień, eventy dnia, cellWidth, lang, dayNames, callbacks (onAddClick, onEventClick, onEndSession), activeSession, todayStr, nowMinutes, t. Renderuje paski eventów **inline** (bez osobnego komponentu CalendarEventBar na start). Osobny plik na pasek eventu tylko przy wzroście złożoności (np. drag-and-drop, duplikacja kodu).
+- **`src/components/calendar/calendarUtils.ts`** — typ `CalendarEvent`, **`CalendarEventSegment`**, funkcja **`expandEventToSegments`** (jedno zdarzenie z `duration_minutes` przekraczającym koniec dnia jest dzielone na wiele segmentów z `segmentDate` — naprawa wyświetlania np. 22:00–04:00), `getDaysInMonth`, `assignLanes`, `getOverlapCounts`, stałe `MONTH_NAMES`, `DAY_NAMES`, `CALENDAR_MAX_STACK`.
+- **`src/components/calendar/CalendarDayColumn.tsx`** — przyjmuje dzień, **segmenty** przypisane do tego dnia, cellWidth, lang, dayNames, callbacks (onAddClick, onEventClick, onEndSession), activeSession, todayStr, nowMinutes, t. Renderuje paski eventów **inline** (bez osobnego komponentu CalendarEventBar na start). Osobny plik na pasek eventu tylko przy wzroście złożoności (np. drag-and-drop, duplikacja kodu).
 - **CalendarView.tsx** — importuje z `./calendar/calendarUtils` i `./calendar/CalendarDayColumn`, zarządza stanem i fetchem, renderuje nagłówek i listę dni jako CalendarDayColumn. Re-eksport `CalendarEvent` z calendarUtils.
 
 ### 4. WiedzaView – useWiedzaData (Faza 4a) i panele

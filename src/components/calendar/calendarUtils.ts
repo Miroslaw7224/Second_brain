@@ -9,7 +9,61 @@ export interface CalendarEvent {
   created_at?: string;
 }
 
+/** Row in the day grid (one event may produce several segments across midnights). */
+export interface CalendarEventSegment {
+  segmentKey: string;
+  segmentDate: string;
+  start_minutes: number;
+  duration_minutes: number;
+  source: CalendarEvent;
+}
+
+export interface IntervalForLanes {
+  id: string;
+  start_minutes: number;
+  duration_minutes: number;
+}
+
 const MAX_STACK = 3;
+const MINS_PER_DAY = 24 * 60;
+
+export function addCalendarDays(dateStr: string, deltaDays: number): string {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const dt = new Date(y, m - 1, d + deltaDays);
+  return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
+}
+
+/** Splits one stored event into per-day intervals, each fitting in 0..1440 minutes. */
+export function expandEventToSegments(ev: CalendarEvent): CalendarEventSegment[] {
+  if (ev.duration_minutes <= 0) return [];
+  let remaining = ev.duration_minutes;
+  let currentDate = ev.date;
+  let segmentStart = ev.start_minutes;
+  while (segmentStart >= MINS_PER_DAY) {
+    currentDate = addCalendarDays(currentDate, 1);
+    segmentStart -= MINS_PER_DAY;
+  }
+  const segments: CalendarEventSegment[] = [];
+  let idx = 0;
+  while (remaining > 0) {
+    const spaceInDay = MINS_PER_DAY - segmentStart;
+    const segmentDuration = Math.min(remaining, spaceInDay);
+    segments.push({
+      segmentKey: `${ev.id}#${currentDate}#${idx}`,
+      segmentDate: currentDate,
+      start_minutes: segmentStart,
+      duration_minutes: segmentDuration,
+      source: ev,
+    });
+    remaining -= segmentDuration;
+    idx++;
+    if (remaining > 0) {
+      currentDate = addCalendarDays(currentDate, 1);
+      segmentStart = 0;
+    }
+  }
+  return segments;
+}
 
 export function getDaysInMonth(
   year: number,
@@ -28,7 +82,7 @@ export function getDaysInMonth(
   return days;
 }
 
-export function assignLanes(events: CalendarEvent[]): Map<string, number> {
+export function assignLanes(events: IntervalForLanes[]): Map<string, number> {
   const lanes = new Map<string, number>();
   const sorted = [...events].sort((a, b) => a.start_minutes - b.start_minutes);
   for (const ev of sorted) {
@@ -49,8 +103,8 @@ export function assignLanes(events: CalendarEvent[]): Map<string, number> {
   return lanes;
 }
 
-/** For each event, number of events that overlap with it (including itself). Used to scale bar height. */
-export function getOverlapCounts(events: CalendarEvent[]): Map<string, number> {
+/** For each interval, number of intervals that overlap with it (including itself). Used to scale bar height. */
+export function getOverlapCounts(events: IntervalForLanes[]): Map<string, number> {
   const counts = new Map<string, number>();
   for (const ev of events) {
     const end = ev.start_minutes + ev.duration_minutes;

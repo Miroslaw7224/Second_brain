@@ -1,5 +1,7 @@
 # CURSOR TASK — Implementacja Mind Maps
 
+**Stan (marzec 2026):** funkcja jest **wdrożona** w repo (`MindMapsTab`, `MindMapTree`, API `/api/mind-maps`, **`/api/mind-maps/import`**, eksport HTML). Poniższy dokument zostaje jako **referencja prototypu** i checklisty; przy dalszych zmianach trzymaj spójność z **ADR-017** (aktualny opis produktu i endpointów).
+
 Poniżej znajdziesz działający prototyp UI mapy myśli (vanilla HTML/JS) oraz instrukcję adaptacji do projektu Drugi Mózg.
 
 ## Twoje zadanie
@@ -20,7 +22,7 @@ Nie wymyślaj algorytmu layoutu od nowa — użyj funkcji `leafCount` i `renderL
 2. Firestore — kolekcja `mindMaps`, reguły bezpieczeństwa
 3. `mindMapService.ts` — CRUD (create, get, getAll, save, delete)
 4. `mindMapAIService.ts` — `generateNodeFromWeb(query)` przez Gemini + Google Search grounding
-5. Route handlers — `/api/mind-maps/*` zgodnie z ADR-017
+5. Route handlers — `/api/mind-maps/*` zgodnie z ADR-017 (w tym **`POST /api/mind-maps/import`** dla tekstu i/lub obrazu)
 6. Hook `useMindMaps` — state management, debounced save (1500ms)
 7. Komponenty UI — przeportuj logikę z prototypu do React komponentów
 8. Integracja z nawigacją — dodaj sekcję Mind Maps do sidebar

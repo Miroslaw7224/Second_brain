@@ -1,5 +1,6 @@
 import { getFirestore } from "@/lib/firebase-admin";
 import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { eventOverlapsInclusiveRange } from "@/lib/calendarRange";
 
 const COLLECTION_USERS = "users";
 
@@ -454,10 +455,11 @@ export async function getCalendarEvents(
       createdAt: data.createdAt ?? createdAt,
     };
   });
-  if (options?.startDate) {
+  if (options?.startDate && options?.endDate) {
+    list = list.filter((e) => eventOverlapsInclusiveRange(e, options.startDate!, options.endDate!));
+  } else if (options?.startDate) {
     list = list.filter((e) => e.date >= options.startDate!);
-  }
-  if (options?.endDate) {
+  } else if (options?.endDate) {
     list = list.filter((e) => e.date <= options.endDate!);
   }
   list.sort((a, b) => a.date.localeCompare(b.date) || a.start_minutes - b.start_minutes);

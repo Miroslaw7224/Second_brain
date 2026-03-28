@@ -1,15 +1,19 @@
 import React from "react";
 import { Pencil, Square } from "lucide-react";
-import type { CalendarEvent } from "./calendarUtils";
+import type { CalendarEvent, CalendarEventSegment } from "./calendarUtils";
 import { assignLanes, getOverlapCounts, CALENDAR_MAX_STACK } from "./calendarUtils";
 import { formatDuration } from "../calendarConstants";
 import type { ActiveSession } from "@/src/lib/activeSession";
 
 type TranslationDict = Record<string, string | string[]>;
 
+function localYmd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export interface CalendarDayColumnProps {
   day: { date: string; dayOfWeek: number; day: number };
-  dayEvents: CalendarEvent[];
+  daySegments: CalendarEventSegment[];
   cellWidth: number;
   lang: "pl" | "en";
   dayNames: string[];
@@ -25,7 +29,7 @@ export interface CalendarDayColumnProps {
 
 export function CalendarDayColumn({
   day,
-  dayEvents,
+  daySegments,
   cellWidth,
   lang,
   dayNames,
@@ -38,8 +42,13 @@ export function CalendarDayColumn({
   onEndSession,
   t,
 }: CalendarDayColumnProps) {
-  const lanes = assignLanes(dayEvents);
-  const overlapCounts = getOverlapCounts(dayEvents);
+  const laneItems = daySegments.map((s) => ({
+    id: s.segmentKey,
+    start_minutes: s.start_minutes,
+    duration_minutes: s.duration_minutes,
+  }));
+  const lanes = assignLanes(laneItems);
+  const overlapCounts = getOverlapCounts(laneItems);
   const HOURS = 24;
 
   return (
@@ -61,19 +70,21 @@ export function CalendarDayColumn({
           onAddClick(day.date);
         }}
       >
-        {dayEvents.map((ev) => {
-          const lane = lanes.get(ev.id) ?? 0;
+        {daySegments.map((seg) => {
+          const lane = lanes.get(seg.segmentKey) ?? 0;
           const stackSize = Math.max(
             1,
-            Math.min(CALENDAR_MAX_STACK, overlapCounts.get(ev.id) ?? 1)
+            Math.min(CALENDAR_MAX_STACK, overlapCounts.get(seg.segmentKey) ?? 1)
           );
-          const leftPx = (ev.start_minutes / 60) * cellWidth;
-          const widthPx = (ev.duration_minutes / 60) * cellWidth;
+          const leftPx = (seg.start_minutes / 60) * cellWidth;
+          const widthPx = (seg.duration_minutes / 60) * cellWidth;
           const heightPct = 100 / stackSize - 2;
           const topPct = lane * (100 / stackSize);
+          const ev = seg.source;
+          const titleTip = `${ev.title} ${ev.tags.map((tag) => `#${tag}`).join(" ")} · ${formatDuration(seg.duration_minutes)}`;
           return (
             <div
-              key={ev.id}
+              key={seg.segmentKey}
               data-event
               onClick={(e) => {
                 e.stopPropagation();
@@ -87,7 +98,7 @@ export function CalendarDayColumn({
                 height: `${heightPct}%`,
                 backgroundColor: ev.color,
               }}
-              title={`${ev.title} ${ev.tags.map((tag) => `#${tag}`).join(" ")} · ${formatDuration(ev.duration_minutes)}`}
+              title={titleTip}
             >
               <span className="truncate text-[10px] font-medium text-white px-1 drop-shadow flex-1 min-w-0">
                 {ev.title}
@@ -103,14 +114,21 @@ export function CalendarDayColumn({
           day.date === todayStr &&
           (() => {
             const started = new Date(activeSession.startedAt);
-            const sessionStartMinutes = started.getHours() * 60 + started.getMinutes();
+            const startDay = localYmd(started);
+            let sessionStartMinutes: number;
+            if (startDay < todayStr) {
+              sessionStartMinutes = 0;
+            } else if (startDay === todayStr) {
+              sessionStartMinutes = started.getHours() * 60 + started.getMinutes();
+            } else {
+              return null;
+            }
             const sessionEndMinutes = nowMinutes;
             if (sessionEndMinutes <= sessionStartMinutes) return null;
             const leftPx = (sessionStartMinutes / 60) * cellWidth;
-            const widthPx = Math.max(
-              24,
-              ((sessionEndMinutes - sessionStartMinutes) / 60) * cellWidth
-            );
+            const maxMinutesInRow = 24 * 60 - sessionStartMinutes;
+            const spanMinutes = Math.min(sessionEndMinutes - sessionStartMinutes, maxMinutesInRow);
+            const widthPx = Math.max(24, (spanMinutes / 60) * cellWidth);
             const sessionTimeStr = `${String(started.getHours()).padStart(2, "0")}:${String(started.getMinutes()).padStart(2, "0")}`;
             const sessionInProgressSince =
               (t.sessionInProgressSince as string)?.replace("{time}", sessionTimeStr) ??

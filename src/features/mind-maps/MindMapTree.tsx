@@ -4,6 +4,7 @@ import React, { useCallback, useMemo, useState } from "react";
 import {
   ArrowUp,
   ChevronRight,
+  FolderInput,
   GripVertical,
   Loader2,
   MoreHorizontal,
@@ -17,7 +18,7 @@ import { DEFAULT_COL_W, MAX_COL_W, MIN_COL_W } from "@/src/features/mind-maps/mi
 import { leafCount, mapNode } from "@/src/lib/mindMapUtils";
 import type { translations } from "@/src/translations";
 
-const ROW_H = 38;
+const ROW_H = 42;
 const GAP_H = 8;
 const CONN = 24;
 
@@ -47,6 +48,8 @@ export type MindMapTreeEditableProps = {
   onInsertAbove: (childId: string) => void;
   onRequestDelete: (id: string) => void;
   onOpenAI: (parentId: string) => void;
+  /** Copy this node's subtree into another saved map (under that map's root). */
+  onExportToOtherMap: (nodeId: string) => void;
   onDragStart: (id: string) => void;
   onDragOver: (id: string) => void;
   onDrop: (targetId: string) => void;
@@ -101,6 +104,7 @@ export function MindMapTree(props: MindMapTreeProps) {
       onInsertAbove={props.onInsertAbove}
       onRequestDelete={props.onRequestDelete}
       onOpenAI={props.onOpenAI}
+      onExportToOtherMap={props.onExportToOtherMap}
       onDragStart={props.onDragStart}
       onDragOver={props.onDragOver}
       onDrop={props.onDrop}
@@ -162,6 +166,7 @@ function MindMapTreeReadOnly({
       onInsertAbove={() => {}}
       onRequestDelete={() => {}}
       onOpenAI={() => {}}
+      onExportToOtherMap={() => {}}
       onDragStart={() => {}}
       onDragOver={() => {}}
       onDrop={() => {}}
@@ -193,6 +198,7 @@ function TreeLevel(props: {
   onInsertAbove: (childId: string) => void;
   onRequestDelete: (id: string) => void;
   onOpenAI: (parentId: string) => void;
+  onExportToOtherMap: (nodeId: string) => void;
   onDragStart: (id: string) => void;
   onDragOver: (id: string) => void;
   onDrop: (targetId: string) => void;
@@ -279,6 +285,7 @@ function NodePill({
   onInsertAbove,
   onRequestDelete,
   onOpenAI,
+  onExportToOtherMap,
   onDragStart,
   onDragOver,
   onDrop,
@@ -306,6 +313,7 @@ function NodePill({
   onInsertAbove: (childId: string) => void;
   onRequestDelete: (id: string) => void;
   onOpenAI: (parentId: string) => void;
+  onExportToOtherMap: (nodeId: string) => void;
   onDragStart: (id: string) => void;
   onDragOver: (id: string) => void;
   onDrop: (targetId: string) => void;
@@ -320,6 +328,7 @@ function NodePill({
 
   return (
     <div
+      title={mode === "edit" && !isRoot ? (t.mindMapsDragReparentHint as string) : undefined}
       draggable={mode === "edit" && !isRoot}
       onDragStart={(e) => {
         if (mode !== "edit") return;
@@ -534,6 +543,19 @@ function NodePill({
           >
             <Pencil className="w-4 h-4 text-[var(--text2)]" />
             {t.mindMapsRename as string}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              onToggleCtx(node.id);
+              onExportToOtherMap(node.id);
+            }}
+            className="w-full px-3 py-2 rounded-xl text-left text-sm font-semibold hover:bg-[var(--bg2)] text-[var(--text)] inline-flex items-center gap-2"
+            role="menuitem"
+          >
+            <FolderInput className="w-4 h-4 text-[var(--text2)]" />
+            {t.mindMapsExportToOtherMap as string}
           </button>
 
           {!isRoot ? <div className="my-1 h-px bg-[var(--border)]" /> : null}
