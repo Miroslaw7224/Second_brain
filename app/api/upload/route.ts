@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
+import { parseUploadFormFile } from "@/lib/uploadFormFile";
 import * as documentService from "@/services/documentService";
 
 export async function POST(request: NextRequest) {
@@ -12,18 +13,11 @@ export async function POST(request: NextRequest) {
   } catch {
     return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
   }
-  const file = formData.get("file");
-  if (!file || !(file instanceof File)) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+  const parsed = await parseUploadFormFile(formData);
+  if (!parsed.ok) {
+    return parsed.response;
   }
-  const name = file.name;
-  const type = file.type;
-  let content: string;
-  try {
-    content = await file.text();
-  } catch {
-    return NextResponse.json({ error: "Failed to read file content" }, { status: 400 });
-  }
+  const { name, type, content } = parsed;
   try {
     const result = await documentService.ingestDocument(auth.uid, { name, content, type });
     return NextResponse.json(result);

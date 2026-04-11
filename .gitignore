@@ -21,6 +21,7 @@ brain.db
 test-results/
 playwright-report/
 playwright/.cache/
+playwright/.auth/
 blob-report/
 
 .vercel

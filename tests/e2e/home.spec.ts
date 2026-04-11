@@ -1,17 +1,20 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("Strona główna", () => {
-  test("ładuje się i pokazuje ekran logowania", async ({ page }) => {
+  test("ładuje landing i link do logowania", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: /Second Brain/i })).toBeVisible({
       timeout: 15000,
     });
     await expect(page).toHaveTitle(/Second Brain|Vite/);
+    await expect(page.getByRole("link", { name: /^Zaloguj się$/i })).toBeVisible();
   });
+});
 
+test.describe("/auth/login", () => {
   test("wyświetla tytuł aplikacji i formularz logowania", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Second Brain/i })).toBeVisible({
+    await page.goto("/auth/login");
+    await expect(page.getByRole("heading", { name: /^Second Brain$/i })).toBeVisible({
       timeout: 15000,
     });
     await expect(page.getByText(/Freelancer Edition/i)).toBeVisible();
@@ -21,22 +24,15 @@ test.describe("Strona główna", () => {
   });
 
   test("ma przycisk logowania przez Google", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/auth/login");
     await expect(
       page.getByRole("button", { name: /Zaloguj przez Google|Sign in with Google/i })
     ).toBeVisible({ timeout: 15000 });
   });
 
-  test("ma opcję kontynuuj jako gość", async ({ page }) => {
-    await page.goto("/");
-    await expect(
-      page.getByRole("button", { name: /Kontynuuj jako Gość|Continue as Guest/i })
-    ).toBeVisible({ timeout: 15000 });
-  });
-
   test("przełączenie na rejestrację pokazuje formularz rejestracji", async ({ page }) => {
-    await page.goto("/");
-    await expect(page.getByRole("heading", { name: /Second Brain/i })).toBeVisible({
+    await page.goto("/auth/login");
+    await expect(page.getByRole("heading", { name: /^Second Brain$/i })).toBeVisible({
       timeout: 15000,
     });
     await page
