@@ -27,6 +27,21 @@ import type { translations } from "@/src/translations";
 
 type TranslationsEn = (typeof translations)["en"];
 
+function planAskResponseText(data: { text?: string; error?: unknown }): string {
+  if (data.text) return data.text;
+  const e = data.error;
+  if (typeof e === "string") return e;
+  if (
+    e &&
+    typeof e === "object" &&
+    "message" in e &&
+    typeof (e as { message: unknown }).message === "string"
+  ) {
+    return (e as { message: string }).message;
+  }
+  return "";
+}
+
 export interface PlanowanieViewProps {
   user: AppSidebarUser | null;
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
@@ -174,7 +189,13 @@ export default function PlanowanieView({
         }),
       });
       const data = await res.json();
-      const assistantContent = data.text || data.error || "";
+      const assistantContent =
+        planAskResponseText(data) ||
+        (!res.ok
+          ? lang === "pl"
+            ? "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie."
+            : "Could not get a response. Please try again."
+          : "");
       setMessages((prev) =>
         [...prev, { role: "assistant" as const, content: assistantContent }].slice(-20)
       );
@@ -215,7 +236,13 @@ export default function PlanowanieView({
         body: JSON.stringify({ message: planAskPendingMessage, history: messages, lang }),
       });
       const data = await res.json();
-      const assistantContent = data.text || data.error || "";
+      const assistantContent =
+        planAskResponseText(data) ||
+        (!res.ok
+          ? lang === "pl"
+            ? "Nie udało się uzyskać odpowiedzi. Spróbuj ponownie."
+            : "Could not get a response. Please try again."
+          : "");
       setMessages((prev) =>
         [...prev, { role: "assistant" as const, content: assistantContent }].slice(-20)
       );

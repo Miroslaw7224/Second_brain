@@ -23,6 +23,9 @@
     "test:integration:docker": "docker compose -f docker-compose-test.yml up -d && wait-on tcp:localhost:8080 && cross-env FIRESTORE_EMULATOR_HOST=localhost:8080 RUN_INTEGRATION_TESTS=1 vitest run --config vitest.integration.config.ts && docker compose -f docker-compose-test.yml down",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "playwright:cli": "playwright-cli",
+    "playwright:cli:help": "playwright-cli --help",
+    "playwright:cli:skills": "playwright-cli install --skills",
     "vercel": "vercel",
     "vercel:prod": "vercel --prod",
     "prepare": "husky"
@@ -54,6 +57,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/cli": "^0.1.6",
     "@playwright/test": "^1.58.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",

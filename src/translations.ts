@@ -90,7 +90,7 @@ export const translations = {
     tasksDetailSaving: "Saving…",
     tasksDetailStatusLabel: "Status",
     planAskPlaceholder:
-      "E.g. How much time on #tests this week? Or: I have to do auth module tests.",
+      "E.g. Add Fri 15:00–17:00 #reviews team sync. Or: I need to finish auth tests this week.",
     resourceDescriptionPlaceholder: "Description (e.g. Color picker for project)",
     resourceUrlPlaceholder: "URL",
     resourceTagsPlaceholder: "Tags (comma-separated, optional)",
@@ -304,7 +304,7 @@ export const translations = {
     tasksDetailSaving: "Zapisywanie…",
     tasksDetailStatusLabel: "Status",
     planAskPlaceholder:
-      "Np. Ile czasu na #testy w tym tygodniu? Lub: Mam do zrobienia testy modułu auth.",
+      "Np. Dodaj w piątek 15:00–17:00 #reviews sync zespołu. Albo: muszę dokończyć testy auth w tym tygodniu.",
     resourceDescriptionPlaceholder: "Opis (np. Strona z kolorami do projektu)",
     resourceUrlPlaceholder: "URL",
     resourceTagsPlaceholder: "Tagi (oddzielone przecinkiem, opcjonalnie)",

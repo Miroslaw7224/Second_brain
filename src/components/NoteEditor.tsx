@@ -125,12 +125,20 @@ export function NoteEditor({
   onContentChange,
   placeholder,
   className,
+  variant = "default",
 }: {
   content: string;
   onContentChange: (html: string) => void;
   placeholder?: string;
   className?: string;
+  /** W ograniczonej wysokości (np. panel mapy myśli): pasek przewijania w treści zamiast obcinania. */
+  variant?: "default" | "panel";
 }) {
+  const proseClass =
+    variant === "panel"
+      ? "prose prose-lg max-w-none outline-none px-3 py-2 text-[var(--text)] leading-relaxed"
+      : "prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[var(--text)] leading-relaxed";
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -144,8 +152,7 @@ export function NoteEditor({
     content: content || "<p></p>",
     editorProps: {
       attributes: {
-        class:
-          "prose prose-lg max-w-none min-h-[60vh] outline-none px-0 py-0 text-[var(--text)] leading-relaxed",
+        class: proseClass,
       },
       handleDOMEvents: {
         paste: (view, event) => {
@@ -178,9 +185,15 @@ export function NoteEditor({
 
   if (!editor) {
     return (
-      <div className={twMerge("min-h-[60vh] bg-[var(--surface)] rounded-lg", className)}>
-        <div className="animate-pulse h-8 bg-[var(--bg3)] rounded mb-4 w-1/3" />
-        <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2" />
+      <div
+        className={twMerge(
+          variant === "panel" ? "h-full min-h-0 flex flex-col" : "min-h-[60vh]",
+          "bg-[var(--surface)] rounded-lg",
+          className
+        )}
+      >
+        <div className="animate-pulse h-8 bg-[var(--bg3)] rounded mb-4 w-1/3 flex-shrink-0" />
+        <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2 flex-1 min-h-[4rem]" />
         <div className="animate-pulse h-4 bg-[var(--bg3)] rounded mb-2 w-5/6" />
       </div>
     );
@@ -189,12 +202,13 @@ export function NoteEditor({
   return (
     <div
       className={twMerge(
-        "border border-[var(--border)] rounded-xl overflow-hidden bg-[var(--surface)]",
+        "border border-[var(--border)] rounded-xl bg-[var(--surface)]",
+        variant === "panel" ? "flex flex-col h-full min-h-0 overflow-hidden" : "overflow-hidden",
         className
       )}
     >
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[var(--border)] bg-[var(--bg2)]">
+      <div className="flex flex-wrap items-center gap-1 p-2 border-b border-[var(--border)] bg-[var(--bg2)] flex-shrink-0">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           active={editor.isActive("bold")}
@@ -311,7 +325,13 @@ export function NoteEditor({
           </select>
         </div>
       </div>
-      <EditorContent editor={editor} />
+      {variant === "panel" ? (
+        <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden">
+          <EditorContent editor={editor} />
+        </div>
+      ) : (
+        <EditorContent editor={editor} />
+      )}
       <style jsx global>{`
         .ProseMirror p.is-editor-empty:first-child::before {
           content: attr(data-placeholder);

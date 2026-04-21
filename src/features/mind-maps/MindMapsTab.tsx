@@ -905,7 +905,7 @@ function MindMapEditor({
               setNotesPanelH(nextH);
             }}
           />
-          <div className="w-60 flex-shrink-0 border-r border-[var(--border)] p-4 overflow-hidden">
+          <div className="w-60 flex-shrink-0 border-r border-[var(--border)] p-4 min-h-0 overflow-y-auto overflow-x-hidden">
             {!selectedNode ? (
               <div className="h-full flex items-center justify-center text-sm text-[var(--text3)] font-semibold text-center">
                 {t.mindMapsClickNodeHint as string}
@@ -967,7 +967,8 @@ function MindMapEditor({
                 <NoteEditor
                   content={selectedNode.note ?? ""}
                   onContentChange={updateSelectedNote}
-                  className="h-full"
+                  className="h-full min-h-0"
+                  variant="panel"
                 />
               ) : (
                 <div className="h-full border border-[var(--border)] rounded-xl bg-[var(--surface)] flex items-center justify-center text-sm text-[var(--text3)]">

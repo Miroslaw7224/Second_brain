@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server";
 import { DomainError } from "@/lib/errors";
+import { inferHttpStatus } from "@/lib/inferHttpStatus";
 
 export function handleServiceError(err: unknown): NextResponse {
   if (err instanceof DomainError) {
     return NextResponse.json({ error: err.message }, { status: err.statusCode });
   }
-  const status =
-    err && typeof err === "object" && "status" in err
-      ? (err as { status: number }).status
-      : undefined;
+  const status = inferHttpStatus(err);
   if (status === 429) {
     const msg = err instanceof Error ? err.message : "API rate limit exceeded.";
     const retryMatch = typeof msg === "string" ? msg.match(/retry in (\d+(?:\.\d+)?)s/i) : null;
@@ -19,6 +17,15 @@ export function handleServiceError(err: unknown): NextResponse {
         retryAfterSeconds: retrySec,
       },
       { status: 429 }
+    );
+  }
+  if (status === 503) {
+    return NextResponse.json(
+      {
+        error:
+          "Usługa AI jest chwilowo przeciążona. Spróbuj ponownie za chwilę (często pomaga druga próba).",
+      },
+      { status: 503 }
     );
   }
   console.error(err);
