@@ -11,7 +11,7 @@ export async function parseUploadFormFile(formData: FormData): Promise<UploadFil
   const file = formData.get("file");
   if (!file || !(file instanceof File)) {
     return {
-      ok: false,
+      ok: false as const,
       response: NextResponse.json({ error: "No file uploaded" }, { status: 400 }),
     };
   }
@@ -22,9 +22,9 @@ export async function parseUploadFormFile(formData: FormData): Promise<UploadFil
     content = await file.text();
   } catch {
     return {
-      ok: false,
+      ok: false as const,
       response: NextResponse.json({ error: "Failed to read file content" }, { status: 400 }),
     };
   }
-  return { ok: true, name, type, content };
+  return { ok: true as const, name, type, content };
 }

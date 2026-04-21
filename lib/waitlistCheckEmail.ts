@@ -13,14 +13,18 @@ export type WaitlistCheckEmailParams =
 export function parseWaitlistCheckEmailParam(emailParam: string | null): WaitlistCheckEmailParams {
   const trimmed = typeof emailParam === "string" ? emailParam.trim() : "";
   if (!trimmed) {
-    return { ok: false, status: 400, body: { error: "Brak parametru email", allowed: false } };
+    return {
+      ok: false as const,
+      status: 400,
+      body: { error: "Brak parametru email", allowed: false },
+    };
   }
   if (!isValidEmail(trimmed)) {
     return {
-      ok: false,
+      ok: false as const,
       status: 400,
       body: { error: "Nieprawidłowy format adresu e-mail", allowed: false },
     };
   }
-  return { ok: true, email: trimmed.toLowerCase() };
+  return { ok: true as const, email: trimmed.toLowerCase() };
 }

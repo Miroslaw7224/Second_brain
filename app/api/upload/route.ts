@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid form data" }, { status: 400 });
   }
   const parsed = await parseUploadFormFile(formData);
-  if (!parsed.ok) {
+  if (parsed.ok === false) {
     return parsed.response;
   }
   const { name, type, content } = parsed;

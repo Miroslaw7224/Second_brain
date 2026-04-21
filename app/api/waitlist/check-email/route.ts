@@ -10,7 +10,7 @@ const WAITLIST_COLLECTION = "waitlist";
  */
 export async function GET(request: NextRequest) {
   const parsed = parseWaitlistCheckEmailParam(request.nextUrl.searchParams.get("email"));
-  if (!parsed.ok) {
+  if (parsed.ok === false) {
     return NextResponse.json(parsed.body, { status: parsed.status });
   }
   const trimmed = parsed.email;
