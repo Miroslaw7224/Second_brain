@@ -31,8 +31,8 @@ interface KnowledgeNode {
     nodeId?: string;
   }[];
   embedding: number[]; // 1536 floatów — OpenAI text-embedding-3-small
-  dueDate?: string; // tylko dla type: "task"
-  reminderAt?: string; // tylko dla type: "task"
+  dueDate?: string; // dla type: "task" i "event"
+  reminderAt?: string; // dla type: "task" i "event"
   createdAt: Timestamp;
   updatedAt: Timestamp;
   createdBy: "user" | "ai";
@@ -116,7 +116,7 @@ Przy każdym otwarciu chatu AI sprawdza węzły `type: "task"` i `type: "event"`
 zapytanie użytkownika
   → embedding zapytania (OpenAI)
   → cosine similarity po wszystkich węzłach użytkownika
-  → top N węzłów (próg: 0.75)
+  → top 10 węzłów (próg similarity: 0.75)
   → GPT-4o-mini buduje odpowiedź z treści węzłów
   → odpowiedź zawiera tytuły i ID węzłów jako źródła
 ```
@@ -129,7 +129,7 @@ zapytanie użytkownika
 
 Zunifikowana lista węzłów w zakładce Wiedza z:
 
-- Filtrowaniem po typie: `[Wszystkie] [Notatki] [Zadania] [Zasoby] [Chaty] [Dokumenty]`
+- Filtrowaniem po typie: `[Wszystkie] [Notatki] [Zadania] [Wydarzenia] [Zasoby] [Chaty] [Dokumenty]`
 - Semantyczną wyszukiwarką
 - Licznikiem połączeń per węzeł
 - Panelem powiązanych węzłów po kliknięciu
@@ -195,6 +195,6 @@ Po migracji skrypt generuje embeddingi dla wszystkich węzłów i buduje wstępn
 ## Zależności
 
 - `openai` — SDK do GPT-4o-mini i embeddingów (nowy package)
-- `react-flow-renderer` lub `@xyflow/react` — wizualizacja grafu
+- `@xyflow/react` — wizualizacja grafu (React Flow v12)
 - Firebase Firestore — storage (bez zmian)
 - Firebase Auth — autoryzacja (bez zmian)
