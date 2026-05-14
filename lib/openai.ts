@@ -18,3 +18,19 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   });
   return response.data[0].embedding;
 }
+
+export type ChatMessage = {
+  role: "system" | "user" | "assistant";
+  content: string;
+};
+
+export async function generateChatCompletion(params: {
+  model: string;
+  messages: ChatMessage[];
+}): Promise<string> {
+  const response = await getClient().chat.completions.create({
+    model: params.model,
+    messages: params.messages,
+  });
+  return (response.choices[0].message.content ?? "").trim();
+}

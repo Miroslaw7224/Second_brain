@@ -1,11 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockCreate = vi.hoisted(() => vi.fn());
+const mockChatCreate = vi.hoisted(() => vi.fn());
 
 vi.mock("openai", () => ({
   default: vi.fn().mockImplementation(() => ({
     embeddings: {
       create: mockCreate,
+    },
+    chat: {
+      completions: {
+        create: mockChatCreate,
+      },
     },
   })),
 }));
@@ -38,5 +44,36 @@ describe("generateEmbedding", () => {
     vi.resetModules();
     const { generateEmbedding } = await import("@/lib/openai");
     await expect(generateEmbedding("test")).rejects.toThrow("OPENAI_API_KEY");
+  });
+});
+
+describe("generateChatCompletion", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.stubEnv("OPENAI_API_KEY", "test-key");
+  });
+
+  it("zwraca treść odpowiedzi jako string", async () => {
+    mockChatCreate.mockResolvedValue({
+      choices: [{ message: { content: "Odpowiedź AI" } }],
+    });
+
+    const { generateChatCompletion } = await import("@/lib/openai");
+    const result = await generateChatCompletion({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Jesteś asystentem." },
+        { role: "user", content: "Cześć" },
+      ],
+    });
+
+    expect(mockChatCreate).toHaveBeenCalledWith({
+      model: "gpt-4o-mini",
+      messages: [
+        { role: "system", content: "Jesteś asystentem." },
+        { role: "user", content: "Cześć" },
+      ],
+    });
+    expect(result).toBe("Odpowiedź AI");
   });
 });
