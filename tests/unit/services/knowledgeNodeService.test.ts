@@ -85,6 +85,48 @@ describe("knowledgeNodeService", () => {
     });
   });
 
+  describe("updateNode", () => {
+    it("regeneruje embedding gdy zmienia się title", async () => {
+      const updatedNode = { ...fakeNode, title: "New Title" };
+      mockFirestoreKnowledge.getKnowledgeNode.mockResolvedValue(fakeNode);
+      mockFirestoreKnowledge.updateKnowledgeNode.mockResolvedValue(updatedNode);
+      const { updateNode } = await import("@/services/knowledgeNodeService");
+
+      const result = await updateNode("user-1", "node-1", { title: "New Title" });
+
+      expect(mockOpenai.generateEmbedding).toHaveBeenCalledWith("New Title\nContent");
+      expect(mockFirestoreKnowledge.updateKnowledgeNode).toHaveBeenCalledWith(
+        "user-1",
+        "node-1",
+        expect.objectContaining({ title: "New Title", embedding: fakeEmbedding })
+      );
+      expect(result).toEqual(updatedNode);
+    });
+
+    it("NIE regeneruje embedding gdy zmienia się tylko tags", async () => {
+      const updatedNode = { ...fakeNode, tags: ["tag1"] };
+      mockFirestoreKnowledge.updateKnowledgeNode.mockResolvedValue(updatedNode);
+      const { updateNode } = await import("@/services/knowledgeNodeService");
+
+      const result = await updateNode("user-1", "node-1", { tags: ["tag1"] });
+
+      expect(mockOpenai.generateEmbedding).not.toHaveBeenCalled();
+      expect(mockFirestoreKnowledge.updateKnowledgeNode).toHaveBeenCalledWith("user-1", "node-1", {
+        tags: ["tag1"],
+      });
+      expect(result).toEqual(updatedNode);
+    });
+
+    it("rzuca błąd gdy węzeł nie istnieje", async () => {
+      mockFirestoreKnowledge.getKnowledgeNode.mockResolvedValue(null);
+      const { updateNode } = await import("@/services/knowledgeNodeService");
+
+      await expect(updateNode("user-1", "node-1", { title: "New Title" })).rejects.toThrow(
+        "node-1"
+      );
+    });
+  });
+
   describe("listNodes", () => {
     it("zwraca listę węzłów z opcjonalnym filtrem po typie", async () => {
       mockFirestoreKnowledge.listKnowledgeNodes.mockResolvedValue([fakeNode]);
