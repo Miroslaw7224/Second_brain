@@ -113,9 +113,13 @@ export async function deleteEdgesForNode(userId: string, nodeId: string): Promis
     edgesCol(userId).where("fromNodeId", "==", nodeId).get(),
     edgesCol(userId).where("toNodeId", "==", nodeId).get(),
   ]);
+  const seen = new Set<string>();
   const batch = getFirestore().batch();
   for (const doc of [...fromSnap.docs, ...toSnap.docs]) {
-    batch.delete(doc.ref);
+    if (!seen.has(doc.id)) {
+      seen.add(doc.id);
+      batch.delete(doc.ref);
+    }
   }
   await batch.commit();
 }
@@ -127,8 +131,6 @@ export async function deleteKnowledgeEdge(userId: string, edgeId: string): Promi
 export async function listAllKnowledgeNodesWithEmbeddings(
   userId: string
 ): Promise<KnowledgeNode[]> {
-  const snap = await nodesCol(userId)
-    .select("id", "title", "content", "type", "embedding", "sources")
-    .get();
+  const snap = await nodesCol(userId).get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KnowledgeNode);
 }
