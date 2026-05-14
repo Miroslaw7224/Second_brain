@@ -17,6 +17,8 @@ import { WiedzaSidebarContent } from "./WiedzaSidebarContent";
 import { ChatPanel, type Message } from "./ChatPanel";
 import { NotesPanel } from "./NotesPanel";
 import { MindMapsTab } from "@/src/features/mind-maps/MindMapsTab";
+import { KnowledgeListView } from "@/features/knowledge/KnowledgeListView";
+import { KnowledgeGraphView } from "@/features/knowledge/KnowledgeGraphView";
 
 type TranslationsEn = (typeof translations)["en"];
 
@@ -48,7 +50,10 @@ export default function WiedzaView({
   onLogout,
   setLang,
 }: WiedzaViewProps) {
-  const [activeTab, setActiveTab] = useState<"chat" | "notes" | "resources" | "mindmaps">("chat");
+  const [activeTab, setActiveTab] = useState<
+    "chat" | "notes" | "resources" | "mindmaps" | "knowledge"
+  >("chat");
+  const [knowledgeViewMode, setKnowledgeViewMode] = useState<"list" | "graph">("list");
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteEditMode, setNoteEditMode] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -249,6 +254,18 @@ export default function WiedzaView({
                 t={t}
               />
             </div>
+          ) : activeTab === "knowledge" && knowledgeViewMode === "graph" ? (
+            <KnowledgeGraphView
+              apiFetch={apiFetch}
+              lang={lang}
+              onClose={() => setKnowledgeViewMode("list")}
+            />
+          ) : activeTab === "knowledge" ? (
+            <KnowledgeListView
+              apiFetch={apiFetch}
+              lang={lang}
+              onShowGraph={() => setKnowledgeViewMode("graph")}
+            />
           ) : (
             <NotesPanel
               notes={notes}

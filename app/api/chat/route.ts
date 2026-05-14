@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
 import { parseChatPostBody } from "@/lib/chatRequestBody";
-import * as ragService from "@/services/ragService";
+import * as knowledgeAIService from "@/services/knowledgeAIService";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthUserId(request);
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   }
   const { message, lang } = parsed;
   try {
-    const result = await ragService.query(auth.uid, { message, lang });
+    const result = await knowledgeAIService.query(auth.uid, { message, lang });
     return NextResponse.json(result);
   } catch (err) {
     return handleServiceError(err);
