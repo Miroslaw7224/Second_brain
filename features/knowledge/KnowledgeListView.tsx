@@ -44,6 +44,8 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
   const [searchResults, setSearchResults] = useState<KnowledgeNode[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
+  const [migrating, setMigrating] = useState(false);
+  const [migrateResult, setMigrateResult] = useState<string | null>(null);
 
   const { nodes, loading } = useKnowledgeNodes(
     apiFetch,
@@ -75,6 +77,23 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
     },
     [apiFetch]
   );
+
+  const handleMigrate = async () => {
+    setMigrating(true);
+    setMigrateResult(null);
+    try {
+      const res = await apiFetch("/api/knowledge/migrate", { method: "POST" });
+      if (!res.ok) throw new Error("Błąd migracji");
+      const data = await res.json();
+      setMigrateResult(
+        lang === "pl" ? `Zmigrowano ${data.total} rekordów` : `Migrated ${data.total} records`
+      );
+    } catch {
+      setMigrateResult(lang === "pl" ? "Błąd migracji danych" : "Migration failed");
+    } finally {
+      setMigrating(false);
+    }
+  };
 
   const displayedNodes = searchResults ?? nodes;
 
@@ -136,15 +155,31 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
               {lang === "pl" ? "Ładowanie..." : "Loading..."}
             </div>
           ) : displayedNodes.length === 0 ? (
-            <div className="flex items-center justify-center h-24 text-[var(--text3)] text-sm">
-              {searchQuery
-                ? lang === "pl"
-                  ? "Brak wyników wyszukiwania"
-                  : "No results found"
-                : lang === "pl"
-                  ? "Baza wiedzy jest pusta"
-                  : "Knowledge base is empty"}
-            </div>
+            searchQuery ? (
+              <div className="flex items-center justify-center h-24 text-[var(--text3)] text-sm">
+                {lang === "pl" ? "Brak wyników wyszukiwania" : "No results found"}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
+                <p className="text-[var(--text3)] text-sm">
+                  {lang === "pl" ? "Baza wiedzy jest pusta" : "Knowledge base is empty"}
+                </p>
+                <button
+                  onClick={handleMigrate}
+                  disabled={migrating}
+                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)] text-white text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+                >
+                  {migrating
+                    ? lang === "pl"
+                      ? "Migruję..."
+                      : "Migrating..."
+                    : lang === "pl"
+                      ? "Migruj istniejące dane"
+                      : "Migrate existing data"}
+                </button>
+                {migrateResult && <p className="text-xs text-[var(--text3)]">{migrateResult}</p>}
+              </div>
+            )
           ) : (
             displayedNodes.map((node) => (
               <button
