@@ -1,5 +1,5 @@
 import { getFirestore } from "@/lib/firebase-admin";
-import { FieldValue, Timestamp } from "firebase-admin/firestore";
+import { FieldValue, Query, Timestamp } from "firebase-admin/firestore";
 import {
   KnowledgeNode,
   KnowledgeNodeInput,
@@ -72,8 +72,9 @@ export async function listKnowledgeNodes(
   userId: string,
   type?: KnowledgeNodeType
 ): Promise<KnowledgeNode[]> {
-  let query = nodesCol(userId).orderBy("createdAt", "desc");
+  let query: Query = nodesCol(userId);
   if (type) query = query.where("type", "==", type);
+  query = query.orderBy("createdAt", "desc");
   const snap = await query.get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KnowledgeNode);
 }
