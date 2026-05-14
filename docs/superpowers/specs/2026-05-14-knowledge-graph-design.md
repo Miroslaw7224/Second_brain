@@ -94,7 +94,7 @@ Przy każdym nowym węźle (niezależnie od źródła) system w tle:
 
 ### Tryb przypomnień
 
-Przy każdym otwarciu chatu AI sprawdza węzły `type: "task"` z `dueDate` w ciągu 48h i informuje użytkownika proaktywnie na początku rozmowy.
+Przy każdym otwarciu chatu AI sprawdza węzły `type: "task"` i `type: "event"` z `dueDate` w ciągu 48h i informuje użytkownika proaktywnie na początku rozmowy. Użytkownik może pytać o kalendarz naturalnym językiem ("co mam jutro?") — AI odpytuje węzły po typie i dacie.
 
 ---
 
@@ -168,14 +168,15 @@ Mapy myśli pozostają jako osobna funkcja (kreatywne narzędzie, brainstorming)
 
 Jednorazowy skrypt migracyjny przepisuje dane do nowej struktury:
 
-| Obecna kolekcja | Nowy typ węzła                      |
-| --------------- | ----------------------------------- |
-| `notes/`        | `type: "note"`                      |
-| `resources/`    | `type: "resource"`                  |
-| `documents/`    | `type: "document"`                  |
-| `tasks/`        | `type: "task"`                      |
-| Chunki RAG      | usunięte                            |
-| `mindMaps/`     | bez zmian + przycisk synchronizacji |
+| Obecna kolekcja   | Nowy typ węzła                      |
+| ----------------- | ----------------------------------- |
+| `notes/`          | `type: "note"`                      |
+| `resources/`      | `type: "resource"`                  |
+| `documents/`      | `type: "document"`                  |
+| `tasks/`          | `type: "task"`                      |
+| `calendarEvents/` | `type: "event"` z `dueDate`         |
+| Chunki RAG        | usunięte                            |
+| `mindMaps/`       | bez zmian + przycisk synchronizacji |
 
 Po migracji skrypt generuje embeddingi dla wszystkich węzłów i buduje wstępne połączenia.
 
