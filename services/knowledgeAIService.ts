@@ -40,13 +40,60 @@ export type ExtractedNode = {
   dueDate?: string;
 };
 
+// Fetch page title and meta description — free, no external API, 3s timeout
+async function fetchPageMeta(url: string): Promise<{ title: string; description: string } | null> {
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 3000);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; SecondBrain/1.0)" },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    const html = await res.text();
+    const titleMatch = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+    const descMatch =
+      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{1,400})["']/i) ??
+      html.match(/<meta[^>]+content=["']([^"']{1,400})["'][^>]+name=["']description["']/i) ??
+      html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']{1,400})["']/i);
+    const title = titleMatch?.[1]?.trim() ?? "";
+    const description = descMatch?.[1]?.trim() ?? "";
+    if (!title && !description) return null;
+    return { title, description };
+  } catch {
+    return null;
+  }
+}
+
 export async function extractNodesFromMessage(message: string): Promise<ExtractedNode[]> {
+  // Extract URLs from message to pre-fetch page metadata
+  const urlMatches = message.match(/https?:\/\/[^\s]+/g) ?? [];
+  const uniqueUrls = [...new Set(urlMatches)].slice(0, 10);
+
+  // Fetch all pages in parallel (best-effort, failures silently ignored)
+  const metaByUrl = new Map<string, { title: string; description: string }>();
+  if (uniqueUrls.length > 0) {
+    const results = await Promise.all(uniqueUrls.map((u) => fetchPageMeta(u)));
+    uniqueUrls.forEach((u, i) => {
+      if (results[i]) metaByUrl.set(u, results[i]!);
+    });
+  }
+
+  const pageContext =
+    metaByUrl.size > 0
+      ? "\n\nDodatkowy kontekst pobrany ze stron (użyj go do ulepszenia opisów):\n" +
+        [...metaByUrl.entries()]
+          .map(([u, m]) => `${u}\nTytuł strony: ${m.title}\nMeta opis: ${m.description}`)
+          .join("\n\n")
+      : "";
+
   const prompt = `Wyciągnij węzły wiedzy z wiadomości. Zwróć TYLKO tablicę JSON, bez markdown.
 
 Zasady:
 - Każdy zasób z URL to osobny węzeł typu "resource"
 - Tytuł: nazwa narzędzia/platformy wyciągnięta z URL lub kontekstu (np. "DigitalOcean", "Vercel") — NIE kopiuj surowego opisu
-- Content: ulepszona, zwięzła wersja opisu (1–2 zdania), profesjonalnie napisana po polsku
+- Content: ulepszona, zwięzła wersja opisu (1–2 zdania) oparta na dostarczonym kontekście ze strony — NIE zmyślaj funkcji których nie ma w kontekście
 - Jeśli jest URL, wpisz go w sources
 - Dla notatek bez URL: type "note", title krótki i opisowy
 
@@ -63,7 +110,7 @@ Format:
 ]
 
 Wiadomość:
-${message}`;
+${message}${pageContext}`;
 
   try {
     const response = await generateChatCompletion({
