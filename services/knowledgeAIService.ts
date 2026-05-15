@@ -121,9 +121,19 @@ ${message}${pageContext}`;
     });
     const cleaned = response.replace(/```json\n?|\n?```/g, "").trim();
     const parsed = JSON.parse(cleaned);
+    const VALID_TYPES: KnowledgeNodeType[] = [
+      "note",
+      "task",
+      "resource",
+      "chat",
+      "document",
+      "event",
+    ];
     const arr = Array.isArray(parsed) ? parsed : [parsed];
     return arr.map((n: Partial<ExtractedNode>) => ({
-      type: (n.type as KnowledgeNodeType) ?? "note",
+      type: VALID_TYPES.includes(n.type as KnowledgeNodeType)
+        ? (n.type as KnowledgeNodeType)
+        : "note",
       title: typeof n.title === "string" && n.title ? n.title : message.slice(0, 50),
       content: typeof n.content === "string" && n.content ? n.content : message,
       tags: Array.isArray(n.tags) ? n.tags : [],
