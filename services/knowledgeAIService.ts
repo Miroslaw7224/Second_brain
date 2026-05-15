@@ -22,7 +22,7 @@ Zasady:
 - Zawsze podaj źródło: [→ tytuł (nodeId)]
 - Jeśli są powiązane węzły, dodaj: Powiązane: [Tytuł A], [Tytuł B]
 - Odpowiadaj w języku użytkownika (PL jeśli pisze po polsku, EN jeśli po angielsku)
-- Jeśli informacji nie ma w kontekście, powiedz to wprost — nie wymyślaj faktów`;
+- Jeśli informacji nie ma w kontekście: NIE wymyślaj faktów. Zamiast tego zapytaj użytkownika co chce zrobić — np. "Nie mam tej informacji w bazie. Czy chcesz ją teraz dodać?" albo "Brak danych na ten temat — chcesz żebym pomógł to zapisać?"`;
 
 function isSaveCommand(message: string): boolean {
   const lower = message.toLowerCase();
