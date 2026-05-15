@@ -23,8 +23,8 @@ function FavoriteResourceButton({ resource }: { resource: NoteResource }) {
           src={favicon}
           width={48}
           height={48}
-          className="w-12 h-12 object-contain"
-          style={{ borderRadius: "6px" }}
+          className="object-contain"
+          style={{ borderRadius: "6px", width: 48, height: 48 }}
           alt=""
           unoptimized
           onError={() => setShowFavicon(false)}

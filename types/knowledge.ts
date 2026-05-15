@@ -20,6 +20,7 @@ export interface KnowledgeNode {
   embedding: number[];
   dueDate?: string;
   reminderAt?: string;
+  sourceId?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
   createdBy: "user" | "ai";
@@ -33,6 +34,7 @@ export interface KnowledgeNodeInput {
   sources?: KnowledgeSource[];
   dueDate?: string;
   reminderAt?: string;
+  sourceId?: string;
   createdBy: "user" | "ai";
 }
 
