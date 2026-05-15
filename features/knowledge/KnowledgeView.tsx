@@ -51,26 +51,26 @@ export function KnowledgeView({ apiFetch, lang }: Props) {
         ))}
       </div>
 
-      {/* Content */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {activeTab === "chat" && (
+      {/* Content — all panels stay mounted to preserve state */}
+      <div className="flex-1 min-h-0 overflow-hidden relative">
+        <div className={`absolute inset-0 ${activeTab === "chat" ? "" : "hidden"}`}>
           <KnowledgeChatPanel apiFetch={apiFetch} lang={lang} onNodeSaved={handleNodeSaved} />
-        )}
-        {activeTab === "list" && (
+        </div>
+        <div className={`absolute inset-0 ${activeTab === "list" ? "" : "hidden"}`}>
           <KnowledgeListView
             key={listKey}
             apiFetch={apiFetch}
             lang={lang}
             onShowGraph={() => handleTabChange("graph")}
           />
-        )}
-        {activeTab === "graph" && (
+        </div>
+        <div className={`absolute inset-0 ${activeTab === "graph" ? "" : "hidden"}`}>
           <KnowledgeGraphView
             apiFetch={apiFetch}
             lang={lang}
             onClose={() => handleTabChange("list")}
           />
-        )}
+        </div>
       </div>
     </div>
   );
