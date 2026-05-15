@@ -9,13 +9,16 @@ const SAVE_KEYWORDS = [
   "zapisz to",
   "zapisz że",
   "dodaj to do",
+  "dodaj do bazy",
   "dodaj notatkę",
   "dodaj zadanie",
   "wrzuć to",
+  "wrzuć do bazy",
   "umieść w bazie",
   "add note",
   "add task",
   "add this",
+  "add to",
   "save this",
   "remember that",
   "remember this",
@@ -34,9 +37,14 @@ Gdy brakuje danych w bazie — zaproponuj zapisanie:
 
 Obsługa kontekstu konwersacji:
 - Gdy użytkownik odpowiada "nie", "ok", "tak", "dobrze" — interpretuj w odniesieniu do poprzedniej wiadomości
-- "nie" po pytaniu "czy chcesz dodać szczegóły?" = nie chce dodawać; potwierdź i zakończ temat
-- "tak" po propozycji zapisania = przejdź do zapisywania
+- "nie" po pytaniu "czy chcesz dodać szczegóły?" = nie chce dodawać; potwierdź jednym krótkim zdaniem i zakończ temat
+- "tak" po propozycji = krótkie potwierdzenie, NIE powtarzaj treści z poprzedniej wiadomości
 - Nigdy nie pytaj dwa razy o to samo w jednej rozmowie
+
+Ekonomia tokenów — KLUCZOWE:
+- Nigdy nie powtarzaj treści z poprzednich wiadomości
+- Potwierdzenia: maksymalnie 1–2 zdania, np. "✅ Gotowe." lub "Rozumiem, pomijam."
+- Nie dodawaj "Jeśli potrzebujesz czegoś więcej..." ani podobnych wypełniaczy
 
 Ton: profesjonalny, partnerski, bezpośredni. Bez zbędnych wstępów.
 Odpowiadaj w języku użytkownika (PL lub EN).`;
