@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
-import { extractNodeFromMessage } from "@/services/knowledgeAIService";
+import { extractNodesFromMessage } from "@/services/knowledgeAIService";
 
 export async function POST(request: NextRequest) {
   const auth = await getAuthUserId(request);
@@ -20,8 +20,8 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const node = await extractNodeFromMessage(message);
-    return NextResponse.json({ node });
+    const nodes = await extractNodesFromMessage(message);
+    return NextResponse.json({ nodes });
   } catch (err) {
     return handleServiceError(err);
   }

@@ -46,45 +46,65 @@ function isSaveCommand(message: string): boolean {
   return SAVE_KEYWORDS.some((k) => lower.includes(k));
 }
 
-export async function extractNodeFromMessage(message: string): Promise<{
+export type ExtractedNode = {
   type: KnowledgeNodeType;
   title: string;
   content: string;
   tags: string[];
+  sources: Array<{ title: string; url?: string }>;
   dueDate?: string;
-}> {
-  const prompt = `Wyciągnij strukturę wiedzy z tej wiadomości. Zwróć TYLKO JSON, bez markdown:
-{
-  "type": "note" | "task" | "resource" | "event",
-  "title": "krótki tytuł (max 50 znaków)",
-  "content": "zwięzła treść (max 3 zdania)",
-  "tags": ["tag1", "tag2"],
-  "dueDate": "YYYY-MM-DD lub null"
-}
+};
 
-Wiadomość: ${message}`;
+export async function extractNodesFromMessage(message: string): Promise<ExtractedNode[]> {
+  const prompt = `Wyciągnij węzły wiedzy z wiadomości. Zwróć TYLKO tablicę JSON, bez markdown.
+
+Zasady:
+- Każdy zasób z URL to osobny węzeł typu "resource"
+- Tytuł: nazwa narzędzia/platformy wyciągnięta z URL lub kontekstu (np. "DigitalOcean", "Vercel") — NIE kopiuj surowego opisu
+- Content: ulepszona, zwięzła wersja opisu (1–2 zdania), profesjonalnie napisana po polsku
+- Jeśli jest URL, wpisz go w sources
+- Dla notatek bez URL: type "note", title krótki i opisowy
+
+Format:
+[
+  {
+    "type": "resource" | "note" | "task" | "event",
+    "title": "Nazwa narzędzia lub krótki tytuł",
+    "content": "Ulepszona treść opisu",
+    "tags": ["tag1", "tag2"],
+    "sources": [{"title": "Nazwa", "url": "https://..."}],
+    "dueDate": null
+  }
+]
+
+Wiadomość:
+${message}`;
 
   try {
     const response = await generateChatCompletion({
       model: "gpt-4o-mini",
       messages: [{ role: "user", content: prompt }],
     });
-    const parsed = JSON.parse(response);
-    return {
-      type: parsed.type ?? "note",
-      title: parsed.title ?? message.slice(0, 50),
-      content: parsed.content ?? message,
-      tags: Array.isArray(parsed.tags) ? parsed.tags : [],
-      dueDate: parsed.dueDate ?? undefined,
-    };
+    const cleaned = response.replace(/```json\n?|\n?```/g, "").trim();
+    const parsed = JSON.parse(cleaned);
+    const arr = Array.isArray(parsed) ? parsed : [parsed];
+    return arr.map((n: Partial<ExtractedNode>) => ({
+      type: (n.type as KnowledgeNodeType) ?? "note",
+      title: typeof n.title === "string" && n.title ? n.title : message.slice(0, 50),
+      content: typeof n.content === "string" && n.content ? n.content : message,
+      tags: Array.isArray(n.tags) ? n.tags : [],
+      sources: Array.isArray(n.sources) ? n.sources : [],
+      dueDate: typeof n.dueDate === "string" && n.dueDate !== "null" ? n.dueDate : undefined,
+    }));
   } catch {
-    return {
-      type: "note",
-      title: message.slice(0, 50),
-      content: message,
-      tags: [],
-    };
+    return [{ type: "note", title: message.slice(0, 50), content: message, tags: [], sources: [] }];
   }
+}
+
+// Keep for backwards compat (used in handleSaveCommand)
+async function extractNodeFromMessage(message: string): Promise<ExtractedNode> {
+  const nodes = await extractNodesFromMessage(message);
+  return nodes[0];
 }
 
 export async function getUpcomingReminders(userId: string): Promise<KnowledgeNode[]> {
@@ -129,7 +149,6 @@ async function handleSaveCommand(
   const extracted = await extractNodeFromMessage(message);
   const node = await knowledgeNodeService.createNode(userId, {
     ...extracted,
-    sources: [],
     createdBy: "ai",
   });
 

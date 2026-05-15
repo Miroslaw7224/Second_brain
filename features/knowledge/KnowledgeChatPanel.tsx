@@ -48,6 +48,7 @@ interface PendingNode {
   title: string;
   content: string;
   tags: string[];
+  sources: Array<{ title: string; url?: string }>;
   dueDate?: string;
 }
 
@@ -61,7 +62,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [pendingNode, setPendingNode] = useState<PendingNode | null>(null);
+  const [pendingNodes, setPendingNodes] = useState<PendingNode[]>([]);
   const [saving, setSaving] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
 
@@ -75,7 +76,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
   };
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading || pendingNode) return;
+    if (!input.trim() || isLoading || pendingNodes.length > 0) return;
     const msg = input.trim();
     setInput("");
     const history = messages.map(({ role, content }) => ({ role, content }));
@@ -91,7 +92,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
         });
         if (!res.ok) throw new Error();
         const data = await res.json();
-        setPendingNode(data.node);
+        setPendingNodes(data.nodes ?? []);
         scrollToBottom();
       } else {
         const res = await apiFetch("/api/chat", {
@@ -117,21 +118,24 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
   };
 
   const handleConfirmSave = async () => {
-    if (!pendingNode) return;
+    if (pendingNodes.length === 0) return;
     setSaving(true);
+    const saved: string[] = [];
     try {
-      const res = await apiFetch("/api/knowledge/nodes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...pendingNode, sources: [], createdBy: "ai" }),
-      });
-      if (!res.ok) throw new Error();
-      const saved = pendingNode;
-      setPendingNode(null);
-      addMessage({
-        role: "assistant",
-        content: `✅ ${lang === "pl" ? "Zapisano" : "Saved"}: ${saved.title}`,
-      });
+      for (const node of pendingNodes) {
+        const res = await apiFetch("/api/knowledge/nodes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...node, createdBy: "ai" }),
+        });
+        if (res.ok) saved.push(node.title);
+      }
+      setPendingNodes([]);
+      const summary =
+        saved.length === 1
+          ? `✅ ${lang === "pl" ? "Zapisano" : "Saved"}: ${saved[0]}`
+          : `✅ ${lang === "pl" ? "Zapisano" : "Saved"} ${saved.length}: ${saved.join(", ")}`;
+      addMessage({ role: "assistant", content: summary });
       onNodeSaved?.();
     } catch {
       addMessage({ role: "assistant", content: lang === "pl" ? "Błąd zapisu." : "Save failed." });
@@ -141,7 +145,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
   };
 
   const handleCancelSave = () => {
-    setPendingNode(null);
+    setPendingNodes([]);
     addMessage({ role: "assistant", content: lang === "pl" ? "Pominięto." : "Discarded." });
   };
 
@@ -153,7 +157,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
           <button
             onClick={() => {
               setMessages([]);
-              setPendingNode(null);
+              setPendingNodes([]);
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-[var(--text3)] hover:text-red-400 hover:bg-red-50/10 transition-colors"
             aria-label={lang === "pl" ? "Wyczyść czat" : "Clear chat"}
@@ -198,32 +202,38 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
           </div>
         ))}
 
-        {pendingNode && (
+        {pendingNodes.length > 0 && (
           <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 space-y-3">
             <p className="text-xs text-[var(--text3)]">
-              {lang === "pl" ? "Czy zapisać tę wiedzę?" : "Save this to your knowledge base?"}
+              {lang === "pl"
+                ? `Znaleziono ${pendingNodes.length} ${pendingNodes.length === 1 ? "wpis" : "wpisy/wpisów"} do zapisania:`
+                : `Found ${pendingNodes.length} ${pendingNodes.length === 1 ? "entry" : "entries"} to save:`}
             </p>
-            <div className="flex items-start gap-2">
-              <span
-                className={`shrink-0 px-2 py-0.5 rounded-full text-white text-xs font-medium ${TYPE_COLORS[pendingNode.type]}`}
-              >
-                {TYPE_LABELS[pendingNode.type]}
-              </span>
-              <p className="font-medium text-[var(--text)] text-sm">{pendingNode.title}</p>
-            </div>
-            <p className="text-[var(--text2)] text-xs leading-relaxed">{pendingNode.content}</p>
-            {pendingNode.tags.length > 0 && (
-              <div className="flex gap-1 flex-wrap">
-                {pendingNode.tags.map((tag) => (
+            <div className="space-y-2">
+              {pendingNodes.map((node, i) => (
+                <div
+                  key={i}
+                  className="flex items-start gap-2 py-1.5 border-b border-[var(--border)] last:border-0"
+                >
                   <span
-                    key={tag}
-                    className="px-1.5 py-0.5 rounded bg-[var(--bg3)] text-[var(--text3)] text-xs"
+                    className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full text-white text-xs font-medium ${TYPE_COLORS[node.type]}`}
                   >
-                    #{tag}
+                    {TYPE_LABELS[node.type]}
                   </span>
-                ))}
-              </div>
-            )}
+                  <div className="min-w-0">
+                    <p className="font-medium text-[var(--text)] text-sm">{node.title}</p>
+                    <p className="text-[var(--text2)] text-xs mt-0.5 leading-relaxed">
+                      {node.content}
+                    </p>
+                    {node.sources.length > 0 && node.sources[0].url && (
+                      <p className="text-[var(--text3)] text-xs mt-0.5 truncate">
+                        {node.sources[0].url}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="flex gap-2 pt-1">
               <button
                 onClick={handleConfirmSave}
@@ -235,8 +245,12 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
                     ? "Zapisuję..."
                     : "Saving..."
                   : lang === "pl"
-                    ? "Zapisz"
-                    : "Save"}
+                    ? pendingNodes.length === 1
+                      ? "Zapisz"
+                      : `Zapisz wszystkie (${pendingNodes.length})`
+                    : pendingNodes.length === 1
+                      ? "Save"
+                      : `Save all (${pendingNodes.length})`}
               </button>
               <button
                 onClick={handleCancelSave}
