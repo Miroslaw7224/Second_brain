@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { X, Link, Tag } from "lucide-react";
+import { X, Link, Tag, Trash2 } from "lucide-react";
 import { KnowledgeEdge, KnowledgeNode } from "@/types/knowledge";
 import { ApiFetch, fetchNodeEdges } from "./useKnowledgeNodes";
 
@@ -24,9 +24,10 @@ interface Props {
   node: KnowledgeNode;
   apiFetch: ApiFetch;
   onClose: () => void;
+  onDeleted: () => void;
 }
 
-export function KnowledgeNodePanel({ node, apiFetch, onClose }: Props) {
+export function KnowledgeNodePanel({ node, apiFetch, onClose, onDeleted }: Props) {
   const [edges, setEdges] = useState<KnowledgeEdge[]>([]);
   const [loadingEdges, setLoadingEdges] = useState(true);
 
@@ -36,6 +37,16 @@ export function KnowledgeNodePanel({ node, apiFetch, onClose }: Props) {
       .then(setEdges)
       .finally(() => setLoadingEdges(false));
   }, [apiFetch, node.id]);
+
+  const handleDelete = async () => {
+    if (!window.confirm("Usunąć ten węzeł z bazy wiedzy?")) return;
+    try {
+      await apiFetch(`/api/knowledge/nodes/${node.id}`, { method: "DELETE" });
+      onDeleted();
+    } catch {
+      // silent
+    }
+  };
 
   return (
     <div
@@ -52,13 +63,22 @@ export function KnowledgeNodePanel({ node, apiFetch, onClose }: Props) {
           </span>
           <h3 className="font-semibold text-[var(--text)] text-sm truncate">{node.title}</h3>
         </div>
-        <button
-          onClick={onClose}
-          aria-label="Zamknij"
-          className="shrink-0 p-1 rounded-lg hover:bg-[var(--bg2)] text-[var(--text3)] transition-colors"
-        >
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={handleDelete}
+            aria-label="Usuń węzeł"
+            className="p-1 rounded-lg hover:bg-red-50 text-red-400 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+          <button
+            onClick={onClose}
+            aria-label="Zamknij"
+            className="p-1 rounded-lg hover:bg-[var(--bg2)] text-[var(--text3)] transition-colors"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
