@@ -90,10 +90,12 @@ export async function extractNodesFromMessage(message: string): Promise<Extracte
 
   const prompt = `Wyciągnij węzły wiedzy z wiadomości. Zwróć TYLKO tablicę JSON, bez markdown.
 
+JĘZYK: Pole "content" ZAWSZE po polsku — niezależnie od języka pobranego kontekstu ze strony.
+
 Zasady:
 - Każdy zasób z URL to osobny węzeł typu "resource"
-- Tytuł: nazwa narzędzia/platformy wyciągnięta z URL lub kontekstu (np. "DigitalOcean", "Vercel") — NIE kopiuj surowego opisu
-- Content: ulepszona, zwięzła wersja opisu (1–2 zdania) oparta na dostarczonym kontekście ze strony — NIE zmyślaj funkcji których nie ma w kontekście
+- Tytuł: nazwa narzędzia/platformy (np. "DigitalOcean", "Vercel") — zachowaj oryginalną nazwę własną
+- Content: zwięzły opis (1–2 zdania) PO POLSKU, oparty na dostarczonym kontekście — NIE zmyślaj funkcji których nie ma w kontekście
 - Jeśli jest URL, wpisz go w sources
 - Dla notatek bez URL: type "note", title krótki i opisowy
 
