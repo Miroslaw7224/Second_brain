@@ -14,16 +14,13 @@ import { ResourceSection } from "@/src/components/ResourceSection";
 import type { translations } from "@/src/translations";
 import { useWiedzaData, type Document, type Note } from "./useWiedzaData";
 import { WiedzaSidebarContent } from "./WiedzaSidebarContent";
-import { ChatPanel, type Message } from "./ChatPanel";
 import { NotesPanel } from "./NotesPanel";
 import { MindMapsTab } from "@/src/features/mind-maps/MindMapsTab";
-import { KnowledgeListView } from "@/features/knowledge/KnowledgeListView";
-import { KnowledgeGraphView } from "@/features/knowledge/KnowledgeGraphView";
+import { KnowledgeView } from "@/features/knowledge/KnowledgeView";
 
 type TranslationsEn = (typeof translations)["en"];
 
 export type { Document, Note };
-export type { Message } from "./ChatPanel";
 
 export interface WiedzaViewProps {
   user: AppSidebarUser | null;
@@ -50,16 +47,11 @@ export default function WiedzaView({
   onLogout,
   setLang,
 }: WiedzaViewProps) {
-  const [activeTab, setActiveTab] = useState<
-    "chat" | "notes" | "resources" | "mindmaps" | "knowledge"
-  >("chat");
-  const [knowledgeViewMode, setKnowledgeViewMode] = useState<"list" | "graph">("list");
+  const [activeTab, setActiveTab] = useState<"notes" | "resources" | "mindmaps" | "knowledge">(
+    "notes"
+  );
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteEditMode, setNoteEditMode] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const { documents, notes, fetchDocuments, fetchNotes } = useWiedzaData(apiFetch);
@@ -70,10 +62,6 @@ export default function WiedzaView({
       fetchNotes();
     }
   }, [user, fetchDocuments, fetchNotes]);
-
-  useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
 
   const handleSaveNote = async () => {
     if (!selectedNote) return;
@@ -145,37 +133,6 @@ export default function WiedzaView({
     }
   };
 
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-    const userMessage = input.trim();
-    setInput("");
-    setMessages((prev) => [...prev, { role: "user", content: userMessage }]);
-    setIsLoading(true);
-    try {
-      const res = await apiFetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMessage, lang }),
-      });
-      const data = await res.json();
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", content: data.text, sources: data.sources },
-      ]);
-    } catch (err) {
-      console.error("Chat failed", err);
-      setMessages((prev) => [
-        ...prev,
-        {
-          role: "assistant",
-          content: "Sorry, I encountered an error processing your request.",
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const sidebarT: AppSidebarTranslations = {
     title: t.title,
     subtitle: t.subtitle,
@@ -203,7 +160,6 @@ export default function WiedzaView({
           onDeleteDoc={handleDeleteDoc}
           isUploading={isUploading}
           fileInputRef={fileInputRef}
-          chatTab={t.chatTab}
           notesTab={t.notesTab}
           tabResources={(t.tabResources as string) ?? "Zasoby"}
           tabMindMaps={(t.tabMindMaps as string) ?? "Mapy myśli"}
@@ -228,21 +184,7 @@ export default function WiedzaView({
         />
 
         <div className="flex-1 min-w-0 overflow-hidden flex flex-col min-h-0">
-          {activeTab === "chat" ? (
-            <ChatPanel
-              messages={messages}
-              input={input}
-              setInput={setInput}
-              onSend={handleSend}
-              isLoading={isLoading}
-              chatEndRef={chatEndRef}
-              prompts={t.prompts}
-              welcomeTitle={t.welcomeTitle}
-              welcomeSubtitle={t.welcomeSubtitle}
-              inputPlaceholder={t.inputPlaceholder}
-              disclaimer={t.disclaimer}
-            />
-          ) : activeTab === "resources" ? (
+          {activeTab === "resources" ? (
             <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
               <ResourceSection apiFetch={apiFetch} t={t} />
             </div>
@@ -254,18 +196,8 @@ export default function WiedzaView({
                 t={t}
               />
             </div>
-          ) : activeTab === "knowledge" && knowledgeViewMode === "graph" ? (
-            <KnowledgeGraphView
-              apiFetch={apiFetch}
-              lang={lang}
-              onClose={() => setKnowledgeViewMode("list")}
-            />
           ) : activeTab === "knowledge" ? (
-            <KnowledgeListView
-              apiFetch={apiFetch}
-              lang={lang}
-              onShowGraph={() => setKnowledgeViewMode("graph")}
-            />
+            <KnowledgeView apiFetch={apiFetch} lang={lang} />
           ) : (
             <NotesPanel
               notes={notes}
