@@ -3,30 +3,24 @@ import { Send, Brain, Trash2 } from "lucide-react";
 import { KnowledgeNodeType } from "@/types/knowledge";
 import { ApiFetch } from "./useKnowledgeNodes";
 
-const SAVE_KEYWORDS = [
-  "zapamiętaj",
-  "zapisz",
-  "dodaj notatkę",
-  "dodaj zadanie",
-  "dodaj do bazy",
-  "wrzuć do bazy",
-  "dodaj to",
-  "zapisz to",
-  "zapisz że",
-  "wrzuć to",
-  "umieść w bazie",
-  "add note",
-  "add task",
-  "remember that",
-  "save this",
-  "add this",
-  "add to",
-  "remember this",
+const SAVE_PATTERNS = [
+  // Polish — explicit save intent
+  /zapamiętaj/,
+  /zapisz/,
+  /dodaj\s+(to\s+)?do\s+(\w+\s+)?bazy/, // "dodaj do bazy", "dodaj do naszej bazy", "dodaj to do bazy"
+  /wrzuć\s+(to\s+)?do\s+(\w+\s+)?bazy/,
+  /umieść\s+w\s+bazie/,
+  /dodaj\s+(notatkę|zadanie|wpis|zasób)/,
+  // English
+  /remember\s+(that|this)/,
+  /save\s+this/,
+  /add\s+(this\s+)?(to\s+)?(the\s+)?(knowledge\s+)?(base|database|db)/,
+  /add\s+(a\s+)?(note|task|resource)/,
 ];
 
 function isSaveCommand(msg: string): boolean {
   const lower = msg.toLowerCase();
-  return SAVE_KEYWORDS.some((k) => lower.includes(k));
+  return SAVE_PATTERNS.some((p) => p.test(lower));
 }
 
 const TYPE_COLORS: Record<KnowledgeNodeType, string> = {

@@ -5,13 +5,16 @@ import { KnowledgeNode, KnowledgeNodeType } from "@/types/knowledge";
 
 const SYSTEM_PROMPT = `Jesteś asystentem osobistej bazy wiedzy. Prowadzisz konwersację — masz dostęp do historii rozmowy i MUSISZ z niej korzystać.
 
+Kontekst z bazy wiedzy jest zawsze dostarczany przed wiadomością użytkownika. Nawet jeśli dopasowanie nie jest idealne — ZAWSZE sprawdź czy któryś z węzłów odpowiada pytaniu. Jeśli tytuł węzła pasuje do pytania (np. user pyta o "Railway" a węzeł ma tytuł "Railway") — użyj go jako odpowiedzi.
+
 Odpowiadanie na pytania:
-- Korzystaj z dostarczonego kontekstu z bazy wiedzy
+- NAJPIERW przejrzyj dostarczone węzły bazy wiedzy — odpowiedź może być właśnie tam
+- Gdy pytanie zawiera nazwy własne (np. "Railway, Google Cloud") — szukaj węzłów o dokładnie tych tytułach
 - Bądź zwięzły: 2–4 zdania, konkretne fakty
 - Podawaj źródło: [→ Tytuł węzła]
 - Jeśli są powiązane węzły, wspomnij: "Powiązane: [Tytuł A], [Tytuł B]"
 
-Gdy brakuje danych w bazie — zaproponuj zapisanie:
+Gdy NAPRAWDĘ brakuje danych (żaden węzeł nie pasuje tytułem ani treścią):
 - "Nie mam tej informacji w bazie. Chcesz ją dodać? Napisz 'zapamiętaj że...'"
 
 Obsługa kontekstu konwersacji:
@@ -136,10 +139,29 @@ export async function query(
     history?: Array<{ role: "user" | "assistant"; content: string }>;
   }
 ): Promise<{ text: string; sources: string[] }> {
-  const [reminders, searchResults] = await Promise.all([
+  // If the message looks like a comma-separated list of proper nouns, also search each term
+  // individually so short names match their node titles (e.g. "Railway, Google Cloud, Langfuse")
+  const terms = message
+    .split(/[,\n]+/)
+    .map((t) => t.trim())
+    .filter((t) => t.length > 1 && t.length < 60 && !t.includes(" "));
+  const isNameList = terms.length >= 2 && terms.every((t) => /^[A-Z]/.test(t));
+
+  const [reminders, searchResults, ...extraResults] = await Promise.all([
     getUpcomingReminders(userId),
     knowledgeSearchService.searchNodes(userId, message),
+    ...(isNameList ? terms.map((t) => knowledgeSearchService.searchNodes(userId, t, 3)) : []),
   ]);
+
+  // Merge and deduplicate results, keeping highest score per node
+  const merged = new Map<string, { node: KnowledgeNode; score: number }>();
+  for (const r of [searchResults, ...extraResults].flat()) {
+    const existing = merged.get(r.node.id);
+    if (!existing || r.score > existing.score) merged.set(r.node.id, r);
+  }
+  const dedupedResults = Array.from(merged.values())
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 
   const contextParts: string[] = [];
 
@@ -148,8 +170,8 @@ export async function query(
     contextParts.push(`## Nadchodzące zadania/wydarzenia:\n${reminderLines}`);
   }
 
-  if (searchResults.length > 0) {
-    const nodesText = searchResults
+  if (dedupedResults.length > 0) {
+    const nodesText = dedupedResults
       .map(
         ({ node }) =>
           `### ${node.title} [${node.id}]\nTyp: ${node.type}\n${node.content}` +
@@ -173,6 +195,6 @@ export async function query(
     ],
   });
 
-  const sources = searchResults.map(({ node }) => node.title);
+  const sources = dedupedResults.map(({ node }) => node.title);
   return { text: responseText, sources };
 }
