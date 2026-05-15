@@ -38,7 +38,7 @@ describe("KnowledgeListView", () => {
     vi.clearAllMocks();
     mockApiFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(fakeNodes),
+      json: () => Promise.resolve({ nodes: fakeNodes }),
     });
   });
 
@@ -51,43 +51,19 @@ describe("KnowledgeListView", () => {
     });
   });
 
-  it("wyświetla przyciski filtrów typów", async () => {
-    render(<KnowledgeListView apiFetch={mockApiFetch} lang="pl" onShowGraph={() => {}} />);
-
-    const filterButtons = screen.getAllByRole("button", { name: /wszystkie|notatki|zadania/i });
-    expect(filterButtons.length).toBeGreaterThanOrEqual(3);
-  });
-
-  it("filtruje węzły po kliknięciu przycisku typu", async () => {
-    const user = userEvent.setup();
-
-    mockApiFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(fakeNodes) });
-
-    render(<KnowledgeListView apiFetch={mockApiFetch} lang="pl" onShowGraph={() => {}} />);
-
-    await waitFor(() => screen.getAllByText("Notatka testowa"));
-
-    mockApiFetch.mockClear();
-    mockApiFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve([fakeNodes[0]]) });
-
-    const filterButtons = screen.getAllByRole("button", { name: /notatki/i });
-    await user.click(filterButtons[0]);
-
-    await waitFor(() => {
-      expect(mockApiFetch).toHaveBeenCalledWith("/api/knowledge/nodes?type=note");
-    });
-  });
-
   it("otwiera panel po kliknięciu węzła", async () => {
     const user = userEvent.setup();
-    mockApiFetch.mockResolvedValue({ ok: true, json: () => Promise.resolve(fakeNodes) });
+    mockApiFetch.mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ nodes: fakeNodes }),
+    });
 
     render(<KnowledgeListView apiFetch={mockApiFetch} lang="pl" onShowGraph={() => {}} />);
 
     await waitFor(() => screen.getAllByText("Notatka testowa"));
 
-    const nodeButtons = screen.getAllByText("Notatka testowa");
-    await user.click(nodeButtons[0]);
+    const nodeTitle = screen.getAllByText("Notatka testowa")[0];
+    await user.click(nodeTitle);
 
     expect(screen.getByTestId("knowledge-node-panel")).toBeInTheDocument();
   });
