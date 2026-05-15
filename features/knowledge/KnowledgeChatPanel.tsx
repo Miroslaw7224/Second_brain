@@ -127,7 +127,10 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
       if (!res.ok) throw new Error();
       const saved = pendingNode;
       setPendingNode(null);
-      addMessage({ role: "assistant", content: `✅ Zapisano: ${saved.title}` });
+      addMessage({
+        role: "assistant",
+        content: `✅ ${lang === "pl" ? "Zapisano" : "Saved"}: ${saved.title}`,
+      });
       onNodeSaved?.();
     } catch {
       addMessage({ role: "assistant", content: lang === "pl" ? "Błąd zapisu." : "Save failed." });
