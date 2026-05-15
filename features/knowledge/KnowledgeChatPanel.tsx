@@ -244,8 +244,8 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
 
       {/* Input */}
       <div className="p-4 border-t border-[var(--border)]">
-        <div className="flex gap-2">
-          <input
+        <div className="flex gap-2 items-end">
+          <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
@@ -260,16 +260,23 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
                 : "Type knowledge to save or ask a question..."
             }
             disabled={isLoading || !!pendingNode}
-            className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg2)] px-4 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50"
+            rows={1}
+            className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg2)] px-4 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 resize-none overflow-hidden"
+            style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading || !!pendingNode}
-            className="px-4 py-2 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-50"
+            className="px-4 py-2 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
           >
             <Send size={16} />
           </button>
         </div>
+        <p className="mt-1.5 text-xs text-[var(--text3)] pl-1">
+          {lang === "pl"
+            ? "Enter — wyślij · Shift+Enter — nowa linia"
+            : "Enter — send · Shift+Enter — new line"}
+        </p>
       </div>
     </div>
   );
