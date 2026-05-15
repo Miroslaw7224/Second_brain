@@ -70,7 +70,7 @@ interface Props {
 }
 
 export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
-  const { nodes, loading } = useKnowledgeNodes(apiFetch);
+  const { nodes, loading, refetch } = useKnowledgeNodes(apiFetch);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
 
@@ -137,6 +137,10 @@ export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
             node={selectedNode}
             apiFetch={apiFetch}
             onClose={() => setSelectedNode(null)}
+            onDeleted={() => {
+              setSelectedNode(null);
+              refetch();
+            }}
           />
         )}
       </div>
