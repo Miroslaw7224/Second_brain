@@ -55,20 +55,37 @@ describe("knowledgeSearchService", () => {
       expect(results[0].score).toBeCloseTo(1.0);
     });
 
-    it("filtruje węzły poniżej progu 0.75", async () => {
+    it("filtruje węzły poniżej progu 0.60 gdy istnieją wyniki powyżej progu", async () => {
       const queryEmbedding = unitVec(1536, 0);
-      // dot([1,0,...], [0.6,0.8,...]) = 0.6, |[0.6,0.8]|=1.0 → similarity=0.6 < 0.75
-      const belowThreshold = makeNode("c", [0.6, 0.8, ...Array.from({ length: 1534 }, () => 0)]);
+      // score=1.0 — above threshold
+      const above = makeNode("a", unitVec(1536, 0));
+      // dot([1,0,...], [0.5, ~0.866,...]) = 0.5 < 0.60 — below threshold
+      const below = makeNode("c", [0.5, Math.sqrt(0.75), ...Array.from({ length: 1534 }, () => 0)]);
 
       mockOpenai.generateEmbedding.mockResolvedValue(queryEmbedding);
-      mockFirestoreKnowledge.listAllKnowledgeNodesWithEmbeddings.mockResolvedValue([
-        belowThreshold,
-      ]);
+      mockFirestoreKnowledge.listAllKnowledgeNodesWithEmbeddings.mockResolvedValue([above, below]);
 
       const { searchNodes } = await import("@/services/knowledgeSearchService");
       const results = await searchNodes("user-1", "query");
 
-      expect(results).toHaveLength(0);
+      expect(results).toHaveLength(1);
+      expect(results[0].node.id).toBe("a");
+    });
+
+    it("zwraca fallback gdy żaden węzeł nie przekracza progu 0.60", async () => {
+      const queryEmbedding = unitVec(1536, 0);
+      // score=0.5 < 0.60
+      const below = makeNode("b", [0.5, Math.sqrt(0.75), ...Array.from({ length: 1534 }, () => 0)]);
+
+      mockOpenai.generateEmbedding.mockResolvedValue(queryEmbedding);
+      mockFirestoreKnowledge.listAllKnowledgeNodesWithEmbeddings.mockResolvedValue([below]);
+
+      const { searchNodes } = await import("@/services/knowledgeSearchService");
+      const results = await searchNodes("user-1", "query");
+
+      // fallback: returns top-3 even below threshold so AI always has context
+      expect(results).toHaveLength(1);
+      expect(results[0].node.id).toBe("b");
     });
 
     it("respektuje parametr limit", async () => {

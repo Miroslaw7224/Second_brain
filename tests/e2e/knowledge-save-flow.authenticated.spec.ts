@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-test.use({ storageState: "playwright/.auth/user.json" });
-
 test.describe("Knowledge Save Flow", () => {
   test("saves a resource from chat and it appears in list view", async ({ page }) => {
     await page.goto("/dashboard");

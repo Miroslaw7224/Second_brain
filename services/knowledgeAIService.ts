@@ -40,8 +40,42 @@ export type ExtractedNode = {
   dueDate?: string;
 };
 
+// Block private/internal IP ranges and localhost to prevent SSRF attacks.
+export function isPublicUrl(rawUrl: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+  const host = parsed.hostname.toLowerCase();
+  if (host === "localhost" || host === "::1") return false;
+  // IPv4 private / loopback / link-local ranges
+  const ipv4 = host.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (ipv4) {
+    const [a, b] = [Number(ipv4[1]), Number(ipv4[2])];
+    if (a === 10) return false; // 10.x.x.x
+    if (a === 127) return false; // 127.x.x.x loopback
+    if (a === 169 && b === 254) return false; // 169.254.x.x link-local / cloud metadata
+    if (a === 172 && b >= 16 && b <= 31) return false; // 172.16-31.x.x
+    if (a === 192 && b === 168) return false; // 192.168.x.x
+    if (a === 100 && b >= 64 && b <= 127) return false; // 100.64-127.x.x shared address space
+    if (a === 0) return false; // 0.x.x.x
+  }
+  // IPv6 private / loopback ranges
+  const ipv6 = host.startsWith("[") ? host.slice(1, -1) : null;
+  if (ipv6) {
+    const h = ipv6.toLowerCase();
+    if (h === "::1" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80"))
+      return false;
+  }
+  return true;
+}
+
 // Fetch page title and meta description — free, no external API, 3s timeout
 async function fetchPageMeta(url: string): Promise<{ title: string; description: string } | null> {
+  if (!isPublicUrl(url)) return null;
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3000);

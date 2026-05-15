@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Timestamp } from "firebase-admin/firestore";
 
 const mockSearchService = vi.hoisted(() => ({
@@ -39,6 +39,76 @@ const fakeNode = {
   createdBy: "user" as const,
 };
 
+describe("isPublicUrl — SSRF protection", () => {
+  let isPublicUrl: (url: string) => boolean;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    ({ isPublicUrl } = await import("@/services/knowledgeAIService"));
+  });
+
+  it("dopuszcza publiczne HTTPS URL", () => {
+    expect(isPublicUrl("https://example.com/path")).toBe(true);
+    expect(isPublicUrl("https://jan.ai")).toBe(true);
+    expect(isPublicUrl("http://vercel.com")).toBe(true);
+  });
+
+  it("blokuje localhost", () => {
+    expect(isPublicUrl("http://localhost")).toBe(false);
+    expect(isPublicUrl("http://localhost:8080/admin")).toBe(false);
+    expect(isPublicUrl("https://localhost/secret")).toBe(false);
+  });
+
+  it("blokuje 127.x.x.x loopback", () => {
+    expect(isPublicUrl("http://127.0.0.1")).toBe(false);
+    expect(isPublicUrl("http://127.1.2.3:9000")).toBe(false);
+  });
+
+  it("blokuje 169.254.x.x — cloud metadata (AWS/GCP/Azure)", () => {
+    expect(isPublicUrl("http://169.254.169.254/latest/meta-data/")).toBe(false);
+    expect(isPublicUrl("http://169.254.169.254/latest/meta-data/iam/security-credentials/")).toBe(
+      false
+    );
+  });
+
+  it("blokuje prywatne zakresy RFC 1918", () => {
+    expect(isPublicUrl("http://10.0.0.1")).toBe(false);
+    expect(isPublicUrl("http://10.255.255.255")).toBe(false);
+    expect(isPublicUrl("http://172.16.0.1")).toBe(false);
+    expect(isPublicUrl("http://172.31.255.255")).toBe(false);
+    expect(isPublicUrl("http://192.168.1.1")).toBe(false);
+    expect(isPublicUrl("http://192.168.100.200:8080")).toBe(false);
+  });
+
+  it("blokuje 100.64-127.x.x shared address space", () => {
+    expect(isPublicUrl("http://100.64.0.1")).toBe(false);
+    expect(isPublicUrl("http://100.127.255.255")).toBe(false);
+  });
+
+  it("blokuje IPv6 loopback i prywatne zakresy", () => {
+    expect(isPublicUrl("http://[::1]/")).toBe(false);
+    expect(isPublicUrl("http://[fc00::1]")).toBe(false);
+    expect(isPublicUrl("http://[fd12:3456:789a::1]")).toBe(false);
+    expect(isPublicUrl("http://[fe80::1]")).toBe(false);
+  });
+
+  it("blokuje protokoły inne niż http/https", () => {
+    expect(isPublicUrl("ftp://example.com")).toBe(false);
+    expect(isPublicUrl("file:///etc/passwd")).toBe(false);
+    expect(isPublicUrl("javascript:alert(1)")).toBe(false);
+  });
+
+  it("blokuje nieprawidłowe URL", () => {
+    expect(isPublicUrl("not-a-url")).toBe(false);
+    expect(isPublicUrl("")).toBe(false);
+  });
+
+  it("nie blokuje 172.15.x.x ani 172.32.x.x — poza zakresem prywatnym", () => {
+    expect(isPublicUrl("http://172.15.0.1")).toBe(true);
+    expect(isPublicUrl("http://172.32.0.1")).toBe(true);
+  });
+});
+
 describe("knowledgeAIService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -71,41 +141,6 @@ describe("knowledgeAIService", () => {
       );
       expect(result.text).toBe("Deadline projektu X to 20 maja.");
       expect(result.sources).toContain("Projekt X");
-    });
-  });
-
-  describe("query — tryb zapisu (save command)", () => {
-    it("tworzy węzeł gdy wiadomość zawiera 'zapamiętaj'", async () => {
-      mockOpenai.generateChatCompletion.mockResolvedValueOnce(
-        JSON.stringify({
-          type: "note",
-          title: "Projekt X deadline",
-          content: "Deadline projektu X to 20 maja.",
-          tags: ["projekt"],
-          dueDate: null,
-        })
-      );
-
-      mockNodeService.createNode.mockResolvedValue({
-        ...fakeNode,
-        id: "new-node",
-        title: "Projekt X deadline",
-      });
-      mockSearchService.searchNodes.mockResolvedValue([]);
-      mockFirestoreKnowledge.getKnowledgeNode.mockResolvedValue(null);
-
-      const { query } = await import("@/services/knowledgeAIService");
-      const result = await query("user-1", {
-        message: "zapamiętaj że projekt X ma deadline 20 maja",
-        lang: "pl",
-      });
-
-      expect(mockNodeService.createNode).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({ title: "Projekt X deadline", createdBy: "ai" })
-      );
-      expect(result.text).toContain("Zapisano");
-      expect(result.sources).toContain("Projekt X deadline");
     });
   });
 

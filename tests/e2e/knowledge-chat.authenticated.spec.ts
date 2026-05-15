@@ -1,7 +1,5 @@
 import { test, expect } from "@playwright/test";
 
-test.use({ storageState: "playwright/.auth/user.json" });
-
 test.describe("Knowledge Chat", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/dashboard");
