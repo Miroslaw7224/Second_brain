@@ -21,10 +21,12 @@ const TABS: { id: InnerTab; labelPl: string; labelEn: string; Icon: React.Elemen
 export function KnowledgeView({ apiFetch, lang }: Props) {
   const [activeTab, setActiveTab] = useState<InnerTab>("chat");
   const [listKey, setListKey] = useState(0);
+  const [graphKey, setGraphKey] = useState(0);
 
   const handleTabChange = (tab: InnerTab) => {
     setActiveTab(tab);
     if (tab === "list") setListKey((k) => k + 1);
+    if (tab === "graph") setGraphKey((k) => k + 1);
   };
 
   const handleNodeSaved = () => {
@@ -66,6 +68,7 @@ export function KnowledgeView({ apiFetch, lang }: Props) {
         </div>
         <div className={`absolute inset-0 ${activeTab === "graph" ? "" : "hidden"}`}>
           <KnowledgeGraphView
+            key={graphKey}
             apiFetch={apiFetch}
             lang={lang}
             onClose={() => handleTabChange("list")}
