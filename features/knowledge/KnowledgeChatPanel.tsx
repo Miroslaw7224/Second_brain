@@ -224,13 +224,29 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
                   >
                     {TYPE_LABELS[node.type]}
                   </span>
-                  <div className="min-w-0">
-                    <p className="font-medium text-[var(--text)] text-sm">{node.title}</p>
-                    <p className="text-[var(--text2)] text-xs mt-0.5 leading-relaxed">
-                      {node.content}
-                    </p>
+                  <div className="min-w-0 flex-1">
+                    <input
+                      value={node.title}
+                      onChange={(e) =>
+                        setPendingNodes((prev) =>
+                          prev.map((n, j) => (j === i ? { ...n, title: e.target.value } : n))
+                        )
+                      }
+                      className="w-full font-medium text-[var(--text)] text-sm bg-transparent border-b border-transparent hover:border-[var(--border)] focus:border-[var(--accent)] focus:outline-none pb-0.5 transition-colors"
+                    />
+                    <textarea
+                      value={node.content}
+                      onChange={(e) =>
+                        setPendingNodes((prev) =>
+                          prev.map((n, j) => (j === i ? { ...n, content: e.target.value } : n))
+                        )
+                      }
+                      rows={2}
+                      className="w-full text-[var(--text2)] text-xs mt-1 leading-relaxed bg-transparent border border-transparent hover:border-[var(--border)] focus:border-[var(--accent)] focus:outline-none rounded px-1 py-0.5 resize-none transition-colors"
+                      style={{ fieldSizing: "content" } as React.CSSProperties}
+                    />
                     {node.sources.length > 0 && node.sources[0].url && (
-                      <p className="text-[var(--text3)] text-xs mt-0.5 truncate">
+                      <p className="text-[var(--text3)] text-xs mt-0.5 truncate px-1">
                         {node.sources[0].url}
                       </p>
                     )}
