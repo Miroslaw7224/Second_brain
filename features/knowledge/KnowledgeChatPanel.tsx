@@ -8,10 +8,20 @@ const SAVE_KEYWORDS = [
   "zapisz",
   "dodaj notatkę",
   "dodaj zadanie",
+  "dodaj do bazy",
+  "wrzuć do bazy",
+  "dodaj to",
+  "zapisz to",
+  "zapisz że",
+  "wrzuć to",
+  "umieść w bazie",
   "add note",
   "add task",
   "remember that",
   "save this",
+  "add this",
+  "add to",
+  "remember this",
 ];
 
 function isSaveCommand(msg: string): boolean {

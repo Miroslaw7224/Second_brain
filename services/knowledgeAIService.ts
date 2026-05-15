@@ -1,28 +1,7 @@
 import * as firestoreKnowledge from "@/lib/firestore-knowledge";
 import { generateChatCompletion } from "@/lib/openai";
 import * as knowledgeSearchService from "@/services/knowledgeSearchService";
-import * as knowledgeNodeService from "@/services/knowledgeNodeService";
 import { KnowledgeNode, KnowledgeNodeType } from "@/types/knowledge";
-
-const SAVE_KEYWORDS = [
-  "zapamiętaj",
-  "zapisz to",
-  "zapisz że",
-  "dodaj to do",
-  "dodaj do bazy",
-  "dodaj notatkę",
-  "dodaj zadanie",
-  "wrzuć to",
-  "wrzuć do bazy",
-  "umieść w bazie",
-  "add note",
-  "add task",
-  "add this",
-  "add to",
-  "save this",
-  "remember that",
-  "remember this",
-];
 
 const SYSTEM_PROMPT = `Jesteś asystentem osobistej bazy wiedzy. Prowadzisz konwersację — masz dostęp do historii rozmowy i MUSISZ z niej korzystać.
 
@@ -48,11 +27,6 @@ Ekonomia tokenów — KLUCZOWE:
 
 Ton: profesjonalny, partnerski, bezpośredni. Bez zbędnych wstępów.
 Odpowiadaj w języku użytkownika (PL lub EN).`;
-
-function isSaveCommand(message: string): boolean {
-  const lower = message.toLowerCase();
-  return SAVE_KEYWORDS.some((k) => lower.includes(k));
-}
 
 export type ExtractedNode = {
   type: KnowledgeNodeType;
@@ -150,26 +124,6 @@ export async function buildConnections(userId: string, nodeId: string): Promise<
   );
 }
 
-async function handleSaveCommand(
-  userId: string,
-  message: string
-): Promise<{ text: string; sources: string[] }> {
-  const extracted = await extractNodeFromMessage(message);
-  const node = await knowledgeNodeService.createNode(userId, {
-    ...extracted,
-    createdBy: "ai",
-  });
-
-  buildConnections(userId, node.id).catch((err) =>
-    console.error("[knowledgeAI] buildConnections error:", err)
-  );
-
-  return {
-    text: `Zapisano: ${node.title}\nTyp: ${node.type}`,
-    sources: [node.title],
-  };
-}
-
 export async function query(
   userId: string,
   {
@@ -182,10 +136,6 @@ export async function query(
     history?: Array<{ role: "user" | "assistant"; content: string }>;
   }
 ): Promise<{ text: string; sources: string[] }> {
-  if (isSaveCommand(message)) {
-    return handleSaveCommand(userId, message);
-  }
-
   const [reminders, searchResults] = await Promise.all([
     getUpcomingReminders(userId),
     knowledgeSearchService.searchNodes(userId, message),
