@@ -29,7 +29,7 @@ function isSaveCommand(message: string): boolean {
   return SAVE_KEYWORDS.some((k) => lower.includes(k));
 }
 
-async function extractNodeFromMessage(message: string): Promise<{
+export async function extractNodeFromMessage(message: string): Promise<{
   type: KnowledgeNodeType;
   title: string;
   content: string;
