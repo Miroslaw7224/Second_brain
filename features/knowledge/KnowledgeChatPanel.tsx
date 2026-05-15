@@ -290,14 +290,14 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
                 ? "Wpisz wiedzę do zapisania lub zadaj pytanie..."
                 : "Type knowledge to save or ask a question..."
             }
-            disabled={isLoading || !!pendingNode}
+            disabled={isLoading || pendingNodes.length > 0}
             rows={1}
             className="flex-1 rounded-xl border border-[var(--border)] bg-[var(--bg2)] px-4 py-2 text-sm text-[var(--text)] placeholder:text-[var(--text3)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] disabled:opacity-50 resize-none overflow-hidden"
             style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
             onClick={handleSend}
-            disabled={!input.trim() || isLoading || !!pendingNode}
+            disabled={!input.trim() || isLoading || pendingNodes.length > 0}
             className="px-4 py-2 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
           >
             <Send size={16} />
