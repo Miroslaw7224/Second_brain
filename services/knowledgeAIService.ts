@@ -6,30 +6,40 @@ import { KnowledgeNode, KnowledgeNodeType } from "@/types/knowledge";
 
 const SAVE_KEYWORDS = [
   "zapamiętaj",
-  "zapisz",
+  "zapisz to",
+  "zapisz że",
+  "dodaj to do",
   "dodaj notatkę",
   "dodaj zadanie",
+  "wrzuć to",
+  "umieść w bazie",
   "add note",
   "add task",
-  "remember that",
+  "add this",
   "save this",
+  "remember that",
+  "remember this",
 ];
 
-const SYSTEM_PROMPT = `Jesteś inteligentnym asystentem osobistej bazy wiedzy użytkownika. Twoja rola to pomagać w organizacji i przeszukiwaniu zgromadzonej wiedzy oraz aktywne budowanie tej bazy razem z użytkownikiem.
+const SYSTEM_PROMPT = `Jesteś asystentem osobistej bazy wiedzy. Prowadzisz konwersację — masz dostęp do historii rozmowy i MUSISZ z niej korzystać.
 
-Zasady odpowiadania:
-- Odpowiadaj wyłącznie na podstawie dostarczonego kontekstu — nie dodawaj informacji spoza bazy
-- Bądź zwięzły i konkretny: 2–4 zdania, skupione na faktach
-- Podawaj źródło wiedzy: [→ Tytuł węzła]
-- Jeśli istnieją powiązane węzły, wspomnij o nich: "Powiązane: [Tytuł A], [Tytuł B]"
-- Odpowiadaj w języku użytkownika (PL lub EN)
+Odpowiadanie na pytania:
+- Korzystaj z dostarczonego kontekstu z bazy wiedzy
+- Bądź zwięzły: 2–4 zdania, konkretne fakty
+- Podawaj źródło: [→ Tytuł węzła]
+- Jeśli są powiązane węzły, wspomnij: "Powiązane: [Tytuł A], [Tytuł B]"
 
-Gdy brakuje informacji w bazie:
-- Nie mów tylko "nie wiem" — zaangażuj użytkownika
-- Zaproponuj działanie, np.: "Nie mam tej informacji w bazie — chcesz ją teraz dodać? Wystarczy napisać 'zapamiętaj że...'"
-- Jeśli pytanie sugeruje, że użytkownik posiada tę wiedzę, zachęć do jej zapisania: "To brzmi jak coś wartego zapamiętania. Mogę to zapisać — powiedz mi więcej."
+Gdy brakuje danych w bazie — zaproponuj zapisanie:
+- "Nie mam tej informacji w bazie. Chcesz ją dodać? Napisz 'zapamiętaj że...'"
 
-Ton: profesjonalny, pomocny, partnerski. Nie jesteś wyszukiwarką — jesteś asystentem, który aktywnie pomaga budować i wykorzystywać wiedzę.`;
+Obsługa kontekstu konwersacji:
+- Gdy użytkownik odpowiada "nie", "ok", "tak", "dobrze" — interpretuj w odniesieniu do poprzedniej wiadomości
+- "nie" po pytaniu "czy chcesz dodać szczegóły?" = nie chce dodawać; potwierdź i zakończ temat
+- "tak" po propozycji zapisania = przejdź do zapisywania
+- Nigdy nie pytaj dwa razy o to samo w jednej rozmowie
+
+Ton: profesjonalny, partnerski, bezpośredni. Bez zbędnych wstępów.
+Odpowiadaj w języku użytkownika (PL lub EN).`;
 
 function isSaveCommand(message: string): boolean {
   const lower = message.toLowerCase();
@@ -135,7 +145,15 @@ async function handleSaveCommand(
 
 export async function query(
   userId: string,
-  { message, lang }: { message: string; lang?: string }
+  {
+    message,
+    lang,
+    history = [],
+  }: {
+    message: string;
+    lang?: string;
+    history?: Array<{ role: "user" | "assistant"; content: string }>;
+  }
 ): Promise<{ text: string; sources: string[] }> {
   if (isSaveCommand(message)) {
     return handleSaveCommand(userId, message);
@@ -168,11 +186,13 @@ export async function query(
 
   const context = contextParts.length > 0 ? contextParts.join("\n\n") : "Baza wiedzy jest pusta.";
 
+  const recentHistory = history.slice(-6);
   const responseText = await generateChatCompletion({
     model: "gpt-4o-mini",
     messages: [
       { role: "system", content: SYSTEM_PROMPT },
-      { role: "user", content: `Kontekst:\n${context}\n\nPytanie: ${message}` },
+      ...recentHistory,
+      { role: "user", content: `Kontekst z bazy wiedzy:\n${context}\n\nWiadomość: ${message}` },
     ],
   });
 

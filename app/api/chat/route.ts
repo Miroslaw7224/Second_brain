@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
   if (parsed.ok === false) {
     return NextResponse.json({ error: parsed.error }, { status: 400 });
   }
-  const { message, lang } = parsed;
+  const { message, lang, history } = parsed;
   try {
-    const result = await knowledgeAIService.query(auth.uid, { message, lang });
+    const result = await knowledgeAIService.query(auth.uid, { message, lang, history });
     return NextResponse.json(result);
   } catch (err) {
     return handleServiceError(err);

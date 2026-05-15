@@ -1,5 +1,5 @@
 import React, { useRef, useState } from "react";
-import { Send, Brain } from "lucide-react";
+import { Send, Brain, Trash2 } from "lucide-react";
 import { KnowledgeNodeType } from "@/types/knowledge";
 import { ApiFetch } from "./useKnowledgeNodes";
 
@@ -78,6 +78,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
     if (!input.trim() || isLoading || pendingNode) return;
     const msg = input.trim();
     setInput("");
+    const history = messages.map(({ role, content }) => ({ role, content }));
     addMessage({ role: "user", content: msg });
     setIsLoading(true);
 
@@ -96,7 +97,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
         const res = await apiFetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: msg, lang }),
+          body: JSON.stringify({ message: msg, lang, history }),
         });
         if (!res.ok) throw new Error();
         const data = await res.json();
@@ -146,6 +147,22 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
+      {/* Toolbar */}
+      {messages.length > 0 && (
+        <div className="flex justify-end px-4 pt-2 shrink-0">
+          <button
+            onClick={() => {
+              setMessages([]);
+              setPendingNode(null);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-[var(--text3)] hover:text-red-400 hover:bg-red-50/10 transition-colors"
+            aria-label={lang === "pl" ? "Wyczyść czat" : "Clear chat"}
+          >
+            <Trash2 size={13} />
+            {lang === "pl" ? "Wyczyść czat" : "Clear chat"}
+          </button>
+        </div>
+      )}
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3">
         {messages.length === 0 && !isLoading && (
