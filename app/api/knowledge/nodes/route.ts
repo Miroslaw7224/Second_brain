@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUserId } from "@/lib/getAuth";
 import { handleServiceError } from "@/lib/apiError";
 import * as knowledgeNodeService from "@/services/knowledgeNodeService";
+import { buildConnections } from "@/services/knowledgeAIService";
 import { KnowledgeNodeInput, KnowledgeNodeType } from "@/types/knowledge";
 
 export async function GET(request: NextRequest) {
@@ -40,6 +41,8 @@ export async function POST(request: NextRequest) {
       ...input,
       createdBy: "user",
     });
+    // Build connections in the background — don't await so response is fast
+    buildConnections(auth.uid, node.id).catch(() => {});
     return NextResponse.json({ node }, { status: 201 });
   } catch (err) {
     return handleServiceError(err);

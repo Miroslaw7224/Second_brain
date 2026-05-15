@@ -9,7 +9,7 @@ import {
   NodeMouseHandler,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, RefreshCw } from "lucide-react";
 import { KnowledgeEdge, KnowledgeNode } from "@/types/knowledge";
 import { ApiFetch, useKnowledgeNodes, fetchNodeEdges } from "./useKnowledgeNodes";
 import { KnowledgeNodePanel } from "./KnowledgeNodePanel";
@@ -73,6 +73,7 @@ export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
   const { nodes, loading, refetch } = useKnowledgeNodes(apiFetch);
   const [rfEdges, setRfEdges] = useState<Edge[]>([]);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
+  const [rebuilding, setRebuilding] = useState(false);
 
   useEffect(() => {
     if (nodes.length === 0) return;
@@ -88,6 +89,16 @@ export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
     const node = rfNode.data?.node as KnowledgeNode | undefined;
     if (node) setSelectedNode(node);
   }, []);
+
+  const handleRebuildConnections = async () => {
+    setRebuilding(true);
+    try {
+      await apiFetch("/api/knowledge/rebuild-connections", { method: "POST" });
+      await refetch();
+    } finally {
+      setRebuilding(false);
+    }
+  };
 
   const rfNodes = toRFNodes(nodes);
 
@@ -105,6 +116,25 @@ export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
         <span className="text-[var(--text3)] text-sm">
           {nodes.length} {lang === "pl" ? "węzłów" : "nodes"}
         </span>
+        <button
+          onClick={handleRebuildConnections}
+          disabled={rebuilding || loading}
+          className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-[var(--text2)] hover:text-[var(--text)] hover:bg-[var(--bg2)] transition-colors disabled:opacity-50"
+          title={
+            lang === "pl"
+              ? "Przebuduj połączenia między węzłami"
+              : "Rebuild connections between nodes"
+          }
+        >
+          <RefreshCw size={13} className={rebuilding ? "animate-spin" : ""} />
+          {rebuilding
+            ? lang === "pl"
+              ? "Budowanie..."
+              : "Building..."
+            : lang === "pl"
+              ? "Przebuduj połączenia"
+              : "Rebuild connections"}
+        </button>
       </div>
 
       <div className="flex flex-1 overflow-hidden">
