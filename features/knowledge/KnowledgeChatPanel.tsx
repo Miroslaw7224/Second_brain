@@ -20,7 +20,10 @@ const SAVE_PATTERNS = [
 
 function isSaveCommand(msg: string): boolean {
   const lower = msg.toLowerCase();
-  return SAVE_PATTERNS.some((p) => p.test(lower));
+  if (SAVE_PATTERNS.some((p) => p.test(lower))) return true;
+  // A message that is just a URL (possibly with surrounding whitespace) is a save intent
+  const trimmed = msg.trim();
+  return /^https?:\/\/\S+$/.test(trimmed);
 }
 
 const TYPE_COLORS: Record<KnowledgeNodeType, string> = {

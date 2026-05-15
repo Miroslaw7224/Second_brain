@@ -30,9 +30,23 @@ export async function searchNodes(
     firestoreKnowledge.listAllKnowledgeNodesWithEmbeddings(userId),
   ]);
 
+  const queryLower = query.toLowerCase().trim();
+
+  // Title-based exact/substring match gets a boosted score so short proper nouns
+  // (e.g. "Pi.ai", "You.com") are always found even when embedding similarity is low
   const scored = allNodes
     .filter((n) => n.embedding && n.embedding.length > 0)
-    .map((node) => ({ node, score: cosineSimilarity(queryEmbedding, node.embedding) }))
+    .map((node) => {
+      const titleLower = node.title.toLowerCase();
+      const embScore = cosineSimilarity(queryEmbedding, node.embedding);
+      const titleScore =
+        titleLower === queryLower
+          ? 1.0
+          : titleLower.includes(queryLower) || queryLower.includes(titleLower)
+            ? 0.85
+            : 0;
+      return { node, score: Math.max(embScore, titleScore) };
+    })
     .sort((a, b) => b.score - a.score);
 
   const aboveThreshold = scored.filter(({ score }) => score >= SIMILARITY_THRESHOLD);
