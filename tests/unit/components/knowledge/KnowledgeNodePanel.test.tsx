@@ -35,26 +35,47 @@ describe("KnowledgeNodePanel", () => {
     vi.clearAllMocks();
     mockApiFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve(fakeEdges),
+      json: () => Promise.resolve({ edges: fakeEdges }),
     });
   });
 
   it("wyświetla tytuł i treść węzła", () => {
-    render(<KnowledgeNodePanel node={fakeNode} apiFetch={mockApiFetch} onClose={() => {}} />);
+    render(
+      <KnowledgeNodePanel
+        node={fakeNode}
+        apiFetch={mockApiFetch}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    );
 
     expect(screen.getByText("Notatka testowa")).toBeInTheDocument();
     expect(screen.getByText("Treść notatki z ważnymi informacjami.")).toBeInTheDocument();
   });
 
   it("wyświetla tagi węzła", () => {
-    render(<KnowledgeNodePanel node={fakeNode} apiFetch={mockApiFetch} onClose={() => {}} />);
+    render(
+      <KnowledgeNodePanel
+        node={fakeNode}
+        apiFetch={mockApiFetch}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    );
 
     const allTags = screen.getAllByText(/^#/);
     expect(allTags.length).toBeGreaterThanOrEqual(2);
   });
 
   it("ładuje i wyświetla połączenia", async () => {
-    render(<KnowledgeNodePanel node={fakeNode} apiFetch={mockApiFetch} onClose={() => {}} />);
+    render(
+      <KnowledgeNodePanel
+        node={fakeNode}
+        apiFetch={mockApiFetch}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    );
 
     await waitFor(() => {
       expect(mockApiFetch).toHaveBeenCalledWith("/api/knowledge/edges?nodeId=n1");
@@ -69,7 +90,12 @@ describe("KnowledgeNodePanel", () => {
   it("wywołuje onClose po kliknięciu przycisku zamknięcia", async () => {
     const onClose = vi.fn();
     const { container } = render(
-      <KnowledgeNodePanel node={fakeNode} apiFetch={mockApiFetch} onClose={onClose} />
+      <KnowledgeNodePanel
+        node={fakeNode}
+        apiFetch={mockApiFetch}
+        onClose={onClose}
+        onDeleted={() => {}}
+      />
     );
 
     const buttons = container.querySelectorAll('button[aria-label="Zamknij"]');
@@ -79,7 +105,14 @@ describe("KnowledgeNodePanel", () => {
   });
 
   it("ma data-testid dla testów integracyjnych", () => {
-    render(<KnowledgeNodePanel node={fakeNode} apiFetch={mockApiFetch} onClose={() => {}} />);
+    render(
+      <KnowledgeNodePanel
+        node={fakeNode}
+        apiFetch={mockApiFetch}
+        onClose={() => {}}
+        onDeleted={() => {}}
+      />
+    );
 
     const panels = screen.getAllByTestId("knowledge-node-panel");
     expect(panels.length).toBeGreaterThan(0);

@@ -14,6 +14,7 @@ tsconfig.tsbuildinfo
 
 # Local / IDE
 .cursor/
+.claude/
 # SQLite DB (local data; do not commit)
 brain.db
 
@@ -25,3 +26,6 @@ playwright/.auth/
 blob-report/
 
 .vercel
+
+# Claude Code
+.superpowers/

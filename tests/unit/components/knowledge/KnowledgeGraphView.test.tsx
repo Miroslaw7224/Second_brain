@@ -59,8 +59,8 @@ describe("KnowledgeGraphView", () => {
     vi.clearAllMocks();
     mockApiFetch = vi
       .fn()
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(fakeNodes) }) // nodes
-      .mockResolvedValue({ ok: true, json: () => Promise.resolve([]) }); // edges
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ nodes: fakeNodes }) }) // nodes
+      .mockResolvedValue({ ok: true, json: () => Promise.resolve({ edges: [] }) }); // edges
   });
 
   afterEach(() => {

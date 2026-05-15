@@ -15,6 +15,7 @@ describe("lib/chatRequestBody", () => {
       ok: true,
       message: "hi",
       lang: "en",
+      history: [],
     });
   });
 
@@ -23,6 +24,7 @@ describe("lib/chatRequestBody", () => {
       ok: true,
       message: "x",
       lang: "pl",
+      history: [],
     });
   });
 
@@ -31,6 +33,26 @@ describe("lib/chatRequestBody", () => {
       ok: true,
       message: "a",
       lang: "pl",
+      history: [],
+    });
+  });
+
+  it("passes valid history entries", () => {
+    const result = parseChatPostBody({
+      message: "hi",
+      history: [
+        { role: "user", content: "hello" },
+        { role: "assistant", content: "hi there" },
+      ],
+    });
+    expect(result).toEqual({
+      ok: true,
+      message: "hi",
+      lang: "en",
+      history: [
+        { role: "user", content: "hello" },
+        { role: "assistant", content: "hi there" },
+      ],
     });
   });
 });

@@ -1,17 +1,16 @@
 import React, { type RefObject } from "react";
-import { Plus, MessageSquare, FileText, Link, Trash2, Loader2, Network, Brain } from "lucide-react";
+import { Plus, FileText, Link, Trash2, Loader2, Network, Brain } from "lucide-react";
 import { cn } from "@/src/lib/cn";
 import type { Document } from "./useWiedzaData";
 
 export interface WiedzaSidebarContentProps {
-  activeTab: "chat" | "notes" | "resources" | "mindmaps" | "knowledge";
-  setActiveTab: (tab: "chat" | "notes" | "resources" | "mindmaps" | "knowledge") => void;
+  activeTab: "notes" | "resources" | "mindmaps" | "knowledge";
+  setActiveTab: (tab: "notes" | "resources" | "mindmaps" | "knowledge") => void;
   documents: Document[];
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteDoc: (id: string) => void;
   isUploading: boolean;
   fileInputRef: RefObject<HTMLInputElement | null>;
-  chatTab: string;
   notesTab: string;
   tabResources: string;
   tabMindMaps: string;
@@ -27,14 +26,13 @@ export function WiedzaSidebarContent({
   onDeleteDoc,
   isUploading,
   fileInputRef,
-  chatTab,
   notesTab,
   tabResources,
   tabMindMaps,
   knowledge,
   noDocs,
 }: WiedzaSidebarContentProps) {
-  const tabClass = (tab: "chat" | "notes" | "resources" | "mindmaps" | "knowledge") =>
+  const tabClass = (tab: "notes" | "resources" | "mindmaps" | "knowledge") =>
     cn(
       "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
       activeTab === tab
@@ -45,10 +43,6 @@ export function WiedzaSidebarContent({
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-1">
-        <button type="button" onClick={() => setActiveTab("chat")} className={tabClass("chat")}>
-          <MessageSquare className="w-5 h-5 flex-shrink-0" />
-          <span>{chatTab}</span>
-        </button>
         <button type="button" onClick={() => setActiveTab("notes")} className={tabClass("notes")}>
           <FileText className="w-5 h-5 flex-shrink-0" />
           <span>{notesTab}</span>

@@ -43,8 +43,8 @@ export function ResourceListItem({
               src={favicon}
               width={28}
               height={28}
-              className="h-full w-auto object-contain"
-              style={{ borderRadius: "4px", maxWidth: 28 }}
+              className="object-contain"
+              style={{ borderRadius: "4px", width: 28, height: 28 }}
               alt=""
               unoptimized
               onError={() => setShowFavicon(false)}

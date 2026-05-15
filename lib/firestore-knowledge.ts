@@ -34,11 +34,12 @@ export async function createKnowledgeNode(
     tags: input.tags ?? [],
     sources: input.sources ?? [],
     embedding: input.embedding,
-    dueDate: input.dueDate,
-    reminderAt: input.reminderAt,
     createdAt: now,
     updatedAt: now,
     createdBy: input.createdBy,
+    ...(input.dueDate !== undefined && { dueDate: input.dueDate }),
+    ...(input.reminderAt !== undefined && { reminderAt: input.reminderAt }),
+    ...(input.sourceId !== undefined && { sourceId: input.sourceId }),
   };
   await ref.set(node);
   return node;
@@ -73,7 +74,17 @@ export async function listKnowledgeNodes(
   type?: KnowledgeNodeType
 ): Promise<KnowledgeNode[]> {
   let query: Query = nodesCol(userId);
-  if (type) query = query.where("type", "==", type);
+  if (type) {
+    // Composite index (type + createdAt) may not exist yet — filter in memory instead
+    query = query.where("type", "==", type);
+    const snap = await query.get();
+    const nodes = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KnowledgeNode);
+    return nodes.sort((a, b) => {
+      const aMs = (a.createdAt as Timestamp)?.toMillis?.() ?? 0;
+      const bMs = (b.createdAt as Timestamp)?.toMillis?.() ?? 0;
+      return bMs - aMs;
+    });
+  }
   query = query.orderBy("createdAt", "desc");
   const snap = await query.get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KnowledgeNode);
@@ -134,4 +145,19 @@ export async function listAllKnowledgeNodesWithEmbeddings(
 ): Promise<KnowledgeNode[]> {
   const snap = await nodesCol(userId).get();
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as KnowledgeNode);
+}
+
+export async function deleteAllKnowledgeNodes(userId: string): Promise<number> {
+  const db = getFirestore();
+  const snap = await db.collection(USERS).doc(userId).collection(NODES).get();
+  if (snap.empty) return 0;
+  const BATCH_SIZE = 25;
+  let deleted = 0;
+  for (let i = 0; i < snap.docs.length; i += BATCH_SIZE) {
+    const batch = db.batch();
+    snap.docs.slice(i, i + BATCH_SIZE).forEach((doc) => batch.delete(doc.ref));
+    await batch.commit();
+    deleted += Math.min(BATCH_SIZE, snap.docs.length - i);
+  }
+  return deleted;
 }

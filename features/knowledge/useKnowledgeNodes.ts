@@ -16,7 +16,7 @@ export function useKnowledgeNodes(apiFetch: ApiFetch, type?: KnowledgeNodeType) 
       const res = await apiFetch(url);
       if (!res.ok) throw new Error("Błąd pobierania węzłów");
       const data = await res.json();
-      setNodes(data);
+      setNodes(data.nodes ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Nieznany błąd");
     } finally {
@@ -53,5 +53,11 @@ export async function searchKnowledgeNodes(
 export async function fetchNodeEdges(apiFetch: ApiFetch, nodeId: string): Promise<KnowledgeEdge[]> {
   const res = await apiFetch(`/api/knowledge/edges?nodeId=${nodeId}`);
   if (!res.ok) return [];
-  return res.json();
+  const data = await res.json();
+  return data.edges ?? [];
+}
+
+export async function deleteKnowledgeNode(apiFetch: ApiFetch, nodeId: string): Promise<void> {
+  const res = await apiFetch(`/api/knowledge/nodes/${nodeId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error("Błąd usuwania węzła");
 }

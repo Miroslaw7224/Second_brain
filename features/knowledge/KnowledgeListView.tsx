@@ -1,18 +1,13 @@
 import React, { useState, useCallback } from "react";
-import { Network, Search } from "lucide-react";
+import { Network, Search, Trash2 } from "lucide-react";
 import { KnowledgeNode, KnowledgeNodeType } from "@/types/knowledge";
-import { ApiFetch, useKnowledgeNodes, searchKnowledgeNodes } from "./useKnowledgeNodes";
+import {
+  ApiFetch,
+  useKnowledgeNodes,
+  searchKnowledgeNodes,
+  deleteKnowledgeNode,
+} from "./useKnowledgeNodes";
 import { KnowledgeNodePanel } from "./KnowledgeNodePanel";
-
-const TYPE_FILTERS: { label: string; value: KnowledgeNodeType | "all" }[] = [
-  { label: "Wszystkie", value: "all" },
-  { label: "Notatki", value: "note" },
-  { label: "Zadania", value: "task" },
-  { label: "Wydarzenia", value: "event" },
-  { label: "Zasoby", value: "resource" },
-  { label: "Chaty", value: "chat" },
-  { label: "Dokumenty", value: "document" },
-];
 
 const TYPE_COLORS: Record<KnowledgeNodeType, string> = {
   note: "bg-blue-500",
@@ -39,18 +34,12 @@ interface Props {
 }
 
 export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
-  const [activeFilter, setActiveFilter] = useState<KnowledgeNodeType | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<KnowledgeNode[] | null>(null);
   const [searching, setSearching] = useState(false);
   const [selectedNode, setSelectedNode] = useState<KnowledgeNode | null>(null);
-  const [migrating, setMigrating] = useState(false);
-  const [migrateResult, setMigrateResult] = useState<string | null>(null);
 
-  const { nodes, loading } = useKnowledgeNodes(
-    apiFetch,
-    activeFilter === "all" ? undefined : activeFilter
-  );
+  const { nodes, loading, refetch } = useKnowledgeNodes(apiFetch);
 
   const handleSearch = useCallback(
     async (q: string) => {
@@ -78,21 +67,23 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
     [apiFetch]
   );
 
-  const handleMigrate = async () => {
-    setMigrating(true);
-    setMigrateResult(null);
+  const handleDeleteNode = async (nodeId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!window.confirm(lang === "pl" ? "Usunąć ten węzeł?" : "Delete this node?")) return;
     try {
-      const res = await apiFetch("/api/knowledge/migrate", { method: "POST" });
-      if (!res.ok) throw new Error("Błąd migracji");
-      const data = await res.json();
-      setMigrateResult(
-        lang === "pl" ? `Zmigrowano ${data.total} rekordów` : `Migrated ${data.total} records`
-      );
+      await deleteKnowledgeNode(apiFetch, nodeId);
+      if (searchResults) {
+        setSearchResults((prev) => prev?.filter((n) => n.id !== nodeId) ?? null);
+      }
+      await refetch();
     } catch {
-      setMigrateResult(lang === "pl" ? "Błąd migracji danych" : "Migration failed");
-    } finally {
-      setMigrating(false);
+      // silent — node stays in list
     }
+  };
+
+  const handleNodeDeleted = async () => {
+    setSelectedNode(null);
+    await refetch();
   };
 
   const displayedNodes = searchResults ?? nodes;
@@ -102,13 +93,15 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
       <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-4 p-4 border-b border-[var(--border)]">
-          <h2 className="text-lg font-semibold text-[var(--text)]">Baza wiedzy</h2>
+          <h2 className="text-lg font-semibold text-[var(--text)]">
+            {lang === "pl" ? "Baza wiedzy" : "Knowledge base"}
+          </h2>
           <button
             onClick={onShowGraph}
             className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--accent)] text-white text-sm hover:opacity-90 transition-opacity"
           >
             <Network size={16} />
-            Pokaż graf
+            {lang === "pl" ? "Pokaż graf" : "Show graph"}
           </button>
         </div>
 
@@ -129,25 +122,6 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
           </div>
         </div>
 
-        {/* Type filters */}
-        {!searchQuery && (
-          <div className="flex gap-2 px-4 py-2 overflow-x-auto">
-            {TYPE_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                onClick={() => setActiveFilter(f.value)}
-                className={`shrink-0 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
-                  activeFilter === f.value
-                    ? "bg-[var(--accent)] text-white"
-                    : "bg-[var(--bg2)] text-[var(--text2)] hover:bg-[var(--bg3)]"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         {/* Node list */}
         <div className="flex-1 overflow-y-auto px-4 py-2 space-y-2">
           {loading || searching ? (
@@ -155,39 +129,23 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
               {lang === "pl" ? "Ładowanie..." : "Loading..."}
             </div>
           ) : displayedNodes.length === 0 ? (
-            searchQuery ? (
-              <div className="flex items-center justify-center h-24 text-[var(--text3)] text-sm">
-                {lang === "pl" ? "Brak wyników wyszukiwania" : "No results found"}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center gap-4 py-12 text-center">
-                <p className="text-[var(--text3)] text-sm">
-                  {lang === "pl" ? "Baza wiedzy jest pusta" : "Knowledge base is empty"}
-                </p>
-                <button
-                  onClick={handleMigrate}
-                  disabled={migrating}
-                  className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)] text-white text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-                >
-                  {migrating
-                    ? lang === "pl"
-                      ? "Migruję..."
-                      : "Migrating..."
-                    : lang === "pl"
-                      ? "Migruj istniejące dane"
-                      : "Migrate existing data"}
-                </button>
-                {migrateResult && <p className="text-xs text-[var(--text3)]">{migrateResult}</p>}
-              </div>
-            )
+            <div className="flex items-center justify-center h-24 text-[var(--text3)] text-sm">
+              {searchQuery
+                ? lang === "pl"
+                  ? "Brak wyników wyszukiwania"
+                  : "No results found"
+                : lang === "pl"
+                  ? "Baza wiedzy jest pusta. Dodaj wiedzę przez Chat AI."
+                  : "Knowledge base is empty. Add knowledge via AI Chat."}
+            </div>
           ) : (
             displayedNodes.map((node) => (
-              <button
+              <div
                 key={node.id}
+                className="group relative w-full text-left p-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--bg2)] transition-colors cursor-pointer"
                 onClick={() => setSelectedNode(node)}
-                className="w-full text-left p-3 rounded-xl border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--bg2)] transition-colors"
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-2 pr-8">
                   <span
                     className={`shrink-0 mt-0.5 px-2 py-0.5 rounded-full text-white text-xs font-medium ${TYPE_COLORS[node.type]}`}
                   >
@@ -212,7 +170,14 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
                     )}
                   </div>
                 </div>
-              </button>
+                <button
+                  onClick={(e) => handleDeleteNode(node.id, e)}
+                  className="absolute top-3 right-3 p-1 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-400 transition-all"
+                  aria-label={lang === "pl" ? "Usuń węzeł" : "Delete node"}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
             ))
           )}
         </div>
@@ -224,6 +189,7 @@ export function KnowledgeListView({ apiFetch, lang, onShowGraph }: Props) {
           node={selectedNode}
           apiFetch={apiFetch}
           onClose={() => setSelectedNode(null)}
+          onDeleted={handleNodeDeleted}
         />
       )}
     </div>

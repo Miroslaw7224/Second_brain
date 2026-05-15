@@ -26,7 +26,7 @@ describe("useKnowledgeNodes", () => {
   it("pobiera węzły i ustawia state", async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve([fakeNode]),
+      json: () => Promise.resolve({ nodes: [fakeNode] }),
     });
 
     const { result } = renderHook(() => useKnowledgeNodes(mockFetch));
@@ -72,15 +72,17 @@ describe("fetchNodeEdges", () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () =>
-        Promise.resolve([
-          {
-            id: "edge-1",
-            fromNodeId: "node-1",
-            toNodeId: "node-2",
-            relation: "related",
-            strength: 0.8,
-          },
-        ]),
+        Promise.resolve({
+          edges: [
+            {
+              id: "edge-1",
+              fromNodeId: "node-1",
+              toNodeId: "node-2",
+              relation: "related",
+              strength: 0.8,
+            },
+          ],
+        }),
     });
 
     const edges = await fetchNodeEdges(mockFetch, "node-1");
