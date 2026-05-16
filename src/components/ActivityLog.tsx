@@ -225,27 +225,18 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
                         labelFormatter={(label) => `#${label}`}
                       />
                       <Bar dataKey="hours" radius={[0, 4, 4, 0]} barSize={24}>
-                        {tagHours.map((entry, i) => (
-                          <Cell
-                            key={entry.tag}
-                            fill={
-                              tagToColor.get(entry.tag) ??
-                              CALENDAR_COLORS[i % CALENDAR_COLORS.length]
-                            }
-                          />
+                        {tagHours.map((entry) => (
+                          <Cell key={entry.tag} fill={tagToColor.get(entry.tag) ?? "#3B82F6"} />
                         ))}
                       </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                   <div className="mt-4 pt-4 border-t border-[var(--border)] flex flex-wrap gap-x-6 gap-y-2">
-                    {tagHours.map(({ tag, hours }, i) => (
+                    {tagHours.map(({ tag, hours }) => (
                       <div key={tag} className="flex items-center gap-2 text-sm">
                         <span
                           className="w-2 h-2 rounded-full flex-shrink-0"
-                          style={{
-                            backgroundColor:
-                              tagToColor.get(tag) ?? CALENDAR_COLORS[i % CALENDAR_COLORS.length],
-                          }}
+                          style={{ backgroundColor: tagToColor.get(tag) ?? "#3B82F6" }}
                         />
                         <span className="font-medium text-[var(--text)]">#{tag}</span>
                         <span className="text-[var(--text2)]">{hours} h</span>

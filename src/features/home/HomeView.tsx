@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import type { translations } from "@/src/translations";
 import { ActivityLog } from "@/src/components/ActivityLog";
+import type { UserTag } from "@/src/components/TagsSection";
 
 type T = (typeof translations)["en"];
 
@@ -41,6 +42,7 @@ function in48hISO() {
 export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeViewProps) {
   const [nodes, setNodes] = useState<KnowledgeNode[]>([]);
   const [loading, setLoading] = useState(true);
+  const [userTags, setUserTags] = useState<UserTag[]>([]);
 
   useEffect(() => {
     apiFetch("/api/knowledge/nodes")
@@ -48,6 +50,13 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
       .then((data) => setNodes(Array.isArray(data) ? data : []))
       .catch(() => setNodes([]))
       .finally(() => setLoading(false));
+  }, [apiFetch]);
+
+  useEffect(() => {
+    apiFetch("/api/tags")
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data) => setUserTags(Array.isArray(data) ? data : []))
+      .catch(() => setUserTags([]));
   }, [apiFetch]);
 
   const today = todayISO();
@@ -178,7 +187,12 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
 
       {/* Activity log */}
       <div>
-        <ActivityLog apiFetch={apiFetch} lang={lang} t={t as Record<string, string | string[]>} />
+        <ActivityLog
+          apiFetch={apiFetch}
+          lang={lang}
+          t={t as Record<string, string | string[]>}
+          userTags={userTags}
+        />
       </div>
     </div>
   );
