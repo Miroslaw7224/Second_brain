@@ -9,6 +9,7 @@ import { getFirebaseAuth } from "./lib/firebase-client";
 import { translations } from "@/src/translations";
 import WiedzaView from "@/src/features/wiedza/WiedzaView";
 import PlanowanieView from "@/src/features/planowanie/PlanowanieView";
+import HomeView from "@/src/features/home/HomeView";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -52,7 +53,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [authError, setAuthError] = useState("");
-  const [appMode, setAppMode] = useState<"wiedza" | "planowanie">("wiedza");
+  const [appMode, setAppMode] = useState<"home" | "wiedza" | "planowanie">("home");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [checkingWaitlist, setCheckingWaitlist] = useState(false);
 
@@ -297,7 +298,11 @@ export default function App({ authenticated = false }: AppProps = {}) {
 
   return (
     <div className="flex h-screen bg-[var(--bg)] text-[var(--text)] font-sans overflow-hidden">
-      {appMode === "wiedza" ? (
+      {appMode === "home" ? (
+        <div className="flex flex-1 overflow-hidden">
+          <HomeView user={user} apiFetch={apiFetch} lang={lang} t={t} setAppMode={setAppMode} />
+        </div>
+      ) : appMode === "wiedza" ? (
         <WiedzaView
           user={user}
           apiFetch={apiFetch}

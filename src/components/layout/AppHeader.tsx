@@ -19,8 +19,8 @@ export interface AppHeaderTranslations {
 export interface AppHeaderProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: "wiedza" | "planowanie";
-  setAppMode: (mode: "wiedza" | "planowanie") => void;
+  appMode: "home" | "wiedza" | "planowanie";
+  setAppMode: (mode: "home" | "wiedza" | "planowanie") => void;
   t: AppHeaderTranslations;
 }
 

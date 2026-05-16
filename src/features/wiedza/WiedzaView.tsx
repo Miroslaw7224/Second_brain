@@ -29,8 +29,8 @@ export interface WiedzaViewProps {
   t: TranslationsEn;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: "wiedza" | "planowanie";
-  setAppMode: (mode: "wiedza" | "planowanie") => void;
+  appMode: "home" | "wiedza" | "planowanie";
+  setAppMode: (mode: "home" | "wiedza" | "planowanie") => void;
   onLogout: () => void;
   setLang: (lang: "en" | "pl") => void;
 }
