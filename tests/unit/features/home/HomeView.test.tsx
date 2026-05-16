@@ -7,6 +7,14 @@ import { translations } from "@/src/translations";
 vi.mock("@/src/components/ActivityLog", () => ({
   ActivityLog: () => <div data-testid="activity-log" />,
 }));
+vi.mock("@/src/components/layout/AppSidebar", () => ({
+  AppSidebar: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="sidebar">{children}</div>
+  ),
+}));
+vi.mock("@/src/components/layout/AppHeader", () => ({
+  AppHeader: () => <div data-testid="header" />,
+}));
 
 const t = translations["pl"];
 
@@ -26,7 +34,12 @@ test("renders stats row with zero counts when no nodes", async () => {
       apiFetch={mockApiFetch}
       lang="pl"
       t={t}
+      isSidebarOpen={true}
+      setIsSidebarOpen={vi.fn()}
+      appMode="home"
       setAppMode={vi.fn()}
+      onLogout={vi.fn()}
+      setLang={vi.fn()}
     />
   );
   await waitFor(() => {
@@ -50,7 +63,12 @@ test("renders today's tasks filtered by dueDate", async () => {
       apiFetch={mockApiFetch}
       lang="pl"
       t={t}
+      isSidebarOpen={true}
+      setIsSidebarOpen={vi.fn()}
+      appMode="home"
       setAppMode={vi.fn()}
+      onLogout={vi.fn()}
+      setLang={vi.fn()}
     />
   );
   await waitFor(() => {

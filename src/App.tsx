@@ -299,9 +299,18 @@ export default function App({ authenticated = false }: AppProps = {}) {
   return (
     <div className="flex h-screen bg-[var(--bg)] text-[var(--text)] font-sans overflow-hidden">
       {appMode === "home" ? (
-        <div className="flex flex-1 overflow-hidden">
-          <HomeView user={user} apiFetch={apiFetch} lang={lang} t={t} setAppMode={setAppMode} />
-        </div>
+        <HomeView
+          user={user}
+          apiFetch={apiFetch}
+          lang={lang}
+          t={t}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          appMode={appMode}
+          setAppMode={setAppMode}
+          onLogout={handleLogout}
+          setLang={setLang}
+        />
       ) : appMode === "wiedza" ? (
         <WiedzaView
           user={user}
