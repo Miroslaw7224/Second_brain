@@ -104,12 +104,12 @@ function runForceLayout(
         "link",
         forceLink<SimNode, SimulationLinkDatum<SimNode>>(simLinks)
           .id((d) => d.id)
-          .distance(160)
-          .strength(0.4)
+          .distance(240)
+          .strength(0.3)
       )
-      .force("charge", forceManyBody().strength(-400))
+      .force("charge", forceManyBody().strength(-800))
       .force("center", forceCenter(0, 0))
-      .force("collide", forceCollide(NODE_RADIUS + 20))
+      .force("collide", forceCollide(NODE_RADIUS + 40))
       .stop();
 
     // Run synchronously for enough ticks to stabilise
@@ -126,7 +126,7 @@ function toRFEdges(edges: KnowledgeEdge[]): Edge[] {
     id: e.id,
     source: e.fromNodeId,
     target: e.toNodeId,
-    style: { stroke: "rgba(148,163,184,0.4)", strokeWidth: 1.5 },
+    style: { stroke: "rgba(148,163,184,0.2)", strokeWidth: 1 },
     animated: false,
   }));
 }

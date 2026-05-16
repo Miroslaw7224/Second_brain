@@ -3,7 +3,7 @@ import { MessageSquare, List, Network } from "lucide-react";
 import { ApiFetch } from "./useKnowledgeNodes";
 import { KnowledgeChatPanel } from "./KnowledgeChatPanel";
 import { KnowledgeListView } from "./KnowledgeListView";
-import { KnowledgeGraphView } from "@/src/features/wiedza/KnowledgeGraphView";
+import { KnowledgeGraphView } from "./KnowledgeGraphView";
 
 type InnerTab = "chat" | "list" | "graph";
 
@@ -67,7 +67,12 @@ export function KnowledgeView({ apiFetch, lang }: Props) {
           />
         </div>
         <div className={`absolute inset-0 ${activeTab === "graph" ? "" : "hidden"}`}>
-          <KnowledgeGraphView key={graphKey} apiFetch={apiFetch} lang={lang} />
+          <KnowledgeGraphView
+            key={graphKey}
+            apiFetch={apiFetch}
+            lang={lang}
+            onClose={() => handleTabChange("list")}
+          />
         </div>
       </div>
     </div>
