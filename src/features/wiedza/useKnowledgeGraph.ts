@@ -40,14 +40,27 @@ export function useKnowledgeGraph(
     setLoading(true);
     setError(null);
 
-    Promise.all([
-      apiFetch("/api/knowledge/nodes").then((r) => r.json()),
-      apiFetch("/api/knowledge/edges").then((r) => r.json()),
-    ])
-      .then(([nodesData, edgesData]) => {
+    apiFetch("/api/knowledge/nodes")
+      .then((r) => r.json())
+      .then(async (nodesData) => {
         if (cancelled) return;
-        setNodes(Array.isArray(nodesData) ? nodesData : []);
-        setEdges(Array.isArray(edgesData) ? edgesData : []);
+        const loadedNodes: RawKnowledgeNode[] = nodesData.nodes ?? [];
+        setNodes(loadedNodes);
+
+        // Fetch edges per node (up to 80), then deduplicate
+        const nodeIds = loadedNodes.slice(0, 80).map((n) => n.id);
+        const edgeArrays = await Promise.all(
+          nodeIds.map((id) =>
+            apiFetch(`/api/knowledge/edges?nodeId=${id}`)
+              .then((r) => r.json())
+              .then((d) => (d.edges ?? []) as RawKnowledgeEdge[])
+              .catch(() => [] as RawKnowledgeEdge[])
+          )
+        );
+        if (cancelled) return;
+        const edgeMap = new Map<string, RawKnowledgeEdge>();
+        edgeArrays.flat().forEach((e) => edgeMap.set(e.id, e));
+        setEdges(Array.from(edgeMap.values()));
       })
       .catch((err) => {
         if (cancelled) return;
