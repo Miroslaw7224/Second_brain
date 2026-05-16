@@ -1,5 +1,5 @@
 "use client";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ReactFlow,
   Background,
@@ -171,7 +171,7 @@ export function KnowledgeGraphView({ apiFetch, lang }: KnowledgeGraphViewProps) 
   }
 
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Toolbar */}
       <div className="flex items-center gap-3 px-4 py-2 border-b border-[var(--border)] flex-wrap">
         <span className="text-xs text-[var(--text2)] font-bold uppercase tracking-wider">
@@ -217,8 +217,8 @@ export function KnowledgeGraphView({ apiFetch, lang }: KnowledgeGraphViewProps) 
       </div>
 
       {/* Graph + Detail panel */}
-      <div className="flex-1 flex overflow-hidden">
-        <div className="flex-1" style={{ background: "var(--bg)" }}>
+      <div className="flex-1 min-h-0 flex overflow-hidden">
+        <div className="flex-1 min-h-0" style={{ background: "var(--bg)" }}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
