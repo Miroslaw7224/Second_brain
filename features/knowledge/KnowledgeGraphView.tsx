@@ -46,9 +46,14 @@ function CircleNode({ data }: NodeProps) {
   const color = TYPE_COLORS[node.type] ?? "#6b7280";
   const label = node.title.length > 14 ? node.title.slice(0, 13) + "…" : node.title;
 
+  const handleStyle = { opacity: 0, width: 1, height: 1 };
+
   return (
     <>
-      <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
+      <Handle type="target" position={Position.Top} style={handleStyle} />
+      <Handle type="target" position={Position.Bottom} id="t-b" style={handleStyle} />
+      <Handle type="target" position={Position.Left} id="t-l" style={handleStyle} />
+      <Handle type="target" position={Position.Right} id="t-r" style={handleStyle} />
       <div
         style={{
           width: NODE_RADIUS * 2,
@@ -77,7 +82,10 @@ function CircleNode({ data }: NodeProps) {
           {label}
         </span>
       </div>
-      <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
+      <Handle type="source" position={Position.Bottom} id="s-b" style={handleStyle} />
+      <Handle type="source" position={Position.Top} id="s-t" style={handleStyle} />
+      <Handle type="source" position={Position.Left} id="s-l" style={handleStyle} />
+      <Handle type="source" position={Position.Right} id="s-r" style={handleStyle} />
     </>
   );
 }
@@ -126,7 +134,8 @@ function toRFEdges(edges: KnowledgeEdge[]): Edge[] {
     id: e.id,
     source: e.fromNodeId,
     target: e.toNodeId,
-    style: { stroke: "rgba(148,163,184,0.2)", strokeWidth: 1 },
+    type: "straight",
+    style: { stroke: "rgba(148,163,184,0.25)", strokeWidth: 1 },
     animated: false,
   }));
 }
