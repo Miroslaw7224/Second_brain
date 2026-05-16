@@ -13,6 +13,7 @@ interface MobileNavProps {
 }
 
 interface NavTab {
+  id: string;
   icon: React.ReactNode;
   labelPl: string;
   labelEn: string;
@@ -23,6 +24,7 @@ interface NavTab {
 export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavProps) {
   const tabs: NavTab[] = [
     {
+      id: "home",
       icon: <Home className="w-5 h-5" />,
       labelPl: "Home",
       labelEn: "Home",
@@ -30,6 +32,7 @@ export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavPr
       active: appMode === "home",
     },
     {
+      id: "wiedza",
       icon: <MessageCircle className="w-5 h-5" />,
       labelPl: "Wiedza",
       labelEn: "Knowledge",
@@ -37,6 +40,7 @@ export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavPr
       active: appMode === "wiedza",
     },
     {
+      id: "planowanie",
       icon: <CheckSquare className="w-5 h-5" />,
       labelPl: "Zadania",
       labelEn: "Tasks",
@@ -44,6 +48,7 @@ export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavPr
       active: appMode === "planowanie",
     },
     {
+      id: "notatki",
       icon: <FileText className="w-5 h-5" />,
       labelPl: "Notatki",
       labelEn: "Notes",
@@ -51,6 +56,7 @@ export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavPr
       active: false,
     },
     {
+      id: "more",
       icon: <MoreHorizontal className="w-5 h-5" />,
       labelPl: "Więcej",
       labelEn: "More",
@@ -65,7 +71,7 @@ export function MobileNav({ appMode, setAppMode, lang, onMoreOpen }: MobileNavPr
         const label = lang === "pl" ? tab.labelPl : tab.labelEn;
         return (
           <button
-            key={label}
+            key={tab.id}
             aria-label={label}
             onClick={tab.action}
             className={cn(
