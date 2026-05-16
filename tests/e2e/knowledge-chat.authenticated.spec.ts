@@ -17,7 +17,7 @@ test.describe("Knowledge Chat", () => {
   });
 
   test("sends a message and receives a non-empty AI response", async ({ page }) => {
-    await page.getByPlaceholder(/wpisz wiedzę|type knowledge/i).fill("Co to jest Second Brain?");
+    await page.getByPlaceholder(/wpisz wiedzę|type knowledge/i).fill("Co to jest Nexus?");
     await page.keyboard.press("Enter");
 
     // Wait for AI response to appear

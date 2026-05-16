@@ -1,6 +1,6 @@
 # Product Requirements Document
 
-**Second Brain dla Freelancerów**
+**Nexus dla Freelancerów**
 _v1.3 · MVP · Solo Founder_
 
 ---

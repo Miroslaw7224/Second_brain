@@ -17,7 +17,7 @@ function getFirestore(): admin.firestore.Firestore {
 
     if (emulatorHost) {
       admin.initializeApp({
-        projectId: projectId || "demo-secondbrain",
+        projectId: projectId || "demo-nexus",
       });
     } else {
       const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;

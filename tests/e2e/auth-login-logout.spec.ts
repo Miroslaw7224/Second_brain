@@ -12,7 +12,7 @@ test.describe("Flow logowania i wylogowania", () => {
     // 1. Wejście na stronę logowania
     await page.goto("/auth/login");
     await expect(page).toHaveURL(/\/auth\/login/);
-    await expect(page.getByRole("heading", { name: /Second Brain/i })).toBeVisible({
+    await expect(page.getByRole("heading", { name: /Nexus/i })).toBeVisible({
       timeout: 15000,
     });
     await expect(page.locator('input[type="email"]')).toBeVisible();
@@ -25,7 +25,7 @@ test.describe("Flow logowania i wylogowania", () => {
 
     // 3. Oczekiwanie na dashboard (przekierowanie po zalogowaniu)
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 15000 });
-    await expect(page.getByText(/Second Brain|Freelancer/i).first()).toBeVisible({
+    await expect(page.getByText(/Nexus|Freelancer/i).first()).toBeVisible({
       timeout: 10000,
     });
 
