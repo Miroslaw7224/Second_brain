@@ -118,7 +118,7 @@ export function AppHeader({
             <div className="flex-1 min-h-0">
               <iframe
                 src="https://tally.so/embed/81dpVO"
-                title="Feedback – Second Brain BETA"
+                title="Feedback – Nexus BETA"
                 className="w-full h-[70vh] min-h-[400px] border-0"
               />
             </div>
