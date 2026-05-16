@@ -9,9 +9,11 @@ import {
   ResponsiveContainer,
   Cell,
 } from "recharts";
+import { Play, Square } from "lucide-react";
 import { formatDuration, CALENDAR_COLORS } from "./calendarConstants";
 import type { UserTag } from "./TagsSection";
 import { eventMinutesInInclusiveRange } from "@/lib/calendarRange";
+import type { ActiveSession } from "@/src/lib/activeSession";
 
 export interface CalendarEvent {
   id: string;
@@ -31,9 +33,20 @@ interface ActivityLogProps {
   lang: "en" | "pl";
   t: TranslationDict;
   userTags?: UserTag[];
+  activeSession?: ActiveSession | null;
+  onStartSession?: () => void;
+  onEndSession?: () => void;
 }
 
-export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogProps) {
+export function ActivityLog({
+  apiFetch,
+  lang,
+  t,
+  userTags = [],
+  activeSession,
+  onStartSession,
+  onEndSession,
+}: ActivityLogProps) {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [startDate, setStartDate] = useState(() => {
@@ -148,6 +161,30 @@ export function ActivityLog({ apiFetch, lang, t, userTags = [] }: ActivityLogPro
               className="px-3 py-2 bg-[var(--bg3)] border-none rounded-lg text-sm text-[var(--text)]"
             />
           </label>
+          {onStartSession &&
+            (activeSession ? (
+              <button
+                onClick={onEndSession}
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:brightness-110"
+              >
+                <Square className="w-3 h-3" />
+                <span>
+                  {lang === "pl" ? "Zakończ" : "End"} ·{" "}
+                  {new Date(activeSession.startedAt).toLocaleTimeString(
+                    lang === "pl" ? "pl-PL" : "en-US",
+                    { hour: "2-digit", minute: "2-digit" }
+                  )}
+                </span>
+              </button>
+            ) : (
+              <button
+                onClick={onStartSession}
+                className="flex items-center gap-2 px-3 py-2 bg-[var(--bg3)] border border-[var(--border)] rounded-lg text-sm font-semibold text-[var(--text)] hover:bg-[var(--bg2)]"
+              >
+                <Play className="w-3 h-3 text-[var(--accent)]" />
+                {lang === "pl" ? "Rozpocznij pracę" : "Start work"}
+              </button>
+            ))}
         </div>
       </div>
       <div className="flex-1 overflow-auto p-6 flex gap-6 min-h-0">

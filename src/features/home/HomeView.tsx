@@ -1,7 +1,6 @@
 // src/features/home/HomeView.tsx
 "use client";
 import React, { useCallback, useEffect, useState } from "react";
-import { Play, Square } from "lucide-react";
 import type { translations } from "@/src/translations";
 import { ActivityLog } from "@/src/components/ActivityLog";
 import type { UserTag } from "@/src/components/TagsSection";
@@ -225,51 +224,6 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
         )}
       </div>
 
-      {/* My work / session */}
-      <div>
-        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text2)] mb-3">
-          {lang === "pl" ? "Moja praca" : "My work"}
-        </h3>
-        {activeSession ? (
-          <div className="flex items-center justify-between gap-3 p-4 bg-[var(--accent-bg,var(--surface))] border border-[var(--accent)] rounded-xl">
-            <div className="flex items-center gap-3 min-w-0">
-              <div
-                className="w-3 h-3 rounded-full flex-shrink-0 animate-pulse"
-                style={{ backgroundColor: activeSession.color }}
-              />
-              <div className="min-w-0">
-                <p className="text-sm font-semibold text-[var(--text)] truncate">
-                  {activeSession.title}
-                </p>
-                <p className="text-xs text-[var(--text2)]">
-                  {lang === "pl" ? "Od" : "Since"}{" "}
-                  {new Date(activeSession.startedAt).toLocaleTimeString(
-                    lang === "pl" ? "pl-PL" : "en-US",
-                    { hour: "2-digit", minute: "2-digit" }
-                  )}
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={handleEndSession}
-              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:brightness-110 flex-shrink-0"
-            >
-              <Square className="w-3 h-3" />
-              {lang === "pl" ? "Zakończ" : "End"}
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setSessionModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text)] hover:bg-[var(--bg2)] transition-colors w-full"
-          >
-            <Play className="w-4 h-4 text-[var(--accent)]" />
-            {lang === "pl" ? "Rozpocznij pracę" : "Start work"}
-          </button>
-        )}
-        {sessionEndError && <p className="text-xs text-red-400 mt-2">{sessionEndError}</p>}
-      </div>
-
       {/* Quick actions */}
       <div>
         <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text2)] mb-3">
@@ -300,6 +254,9 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
           lang={lang}
           t={t as Record<string, string | string[]>}
           userTags={userTags}
+          activeSession={activeSession}
+          onStartSession={() => setSessionModalOpen(true)}
+          onEndSession={handleEndSession}
         />
       </div>
 
