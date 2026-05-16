@@ -9,7 +9,7 @@ _v1.3 · MVP · Solo Founder_
 
 | Pole                   | Wartość                                               |
 | ---------------------- | ----------------------------------------------------- |
-| Feature / Project Name | Second Brain dla Freelancerów                         |
+| Feature / Project Name | Nexus dla Freelancerów                                |
 | Owner                  | Solo Founder (Mirosław)                               |
 | Wersja                 | v1.3 — MVP (przywrócony Firestore cosine similarity)  |
 | Cel wydania            | Walidacja problemu i gotowości do płacenia za produkt |
@@ -36,7 +36,7 @@ Istniejące narzędzia nie rozwiązują tego problemu w pełni:
 
 ## 3. Solution
 
-Second Brain to aplikacja webowa oparta na AI, która działa jak osobisty asystent pamięci dla freelancerów. Użytkownik wgrywa swoje dokumenty — notatki, wyceny, ustalenia z klientami — i może z nimi rozmawiać przez prosty chat w języku naturalnym.
+Nexus to aplikacja webowa oparta na AI, która działa jak osobisty asystent pamięci dla freelancerów. Użytkownik wgrywa swoje dokumenty — notatki, wyceny, ustalenia z klientami — i może z nimi rozmawiać przez prosty chat w języku naturalnym.
 
 | PRZED                                                                         | PO                                                                                     |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
