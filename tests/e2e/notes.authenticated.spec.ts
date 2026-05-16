@@ -40,15 +40,16 @@ test.describe("Notes", () => {
     await page.getByRole("button", { name: /nowa notatka|new note/i }).click();
     await expect(page.locator("[contenteditable]")).toBeVisible({ timeout: 10000 });
 
-    // Find title input (usually a separate text input above the editor)
+    // Find the title input — placeholder is "Tytuł notatki..." (pl) or "Note title..." (en)
     const titleInput = page
       .getByRole("textbox", { name: /tytuł|title/i })
-      .or(page.locator("input[placeholder*='tytułu'], input[placeholder*='title']").first());
+      .or(page.locator("input[placeholder*='Tytuł'], input[placeholder*='title']").first());
 
     if (await titleInput.isVisible({ timeout: 3000 }).catch(() => false)) {
       await titleInput.fill("Moja notatka e2e");
-      await page.waitForTimeout(500);
-      await expect(page.getByText("Moja notatka e2e")).toBeVisible({ timeout: 5000 });
+      // Save the note so the title appears as a text node in the list
+      await page.getByRole("button", { name: /zapisz|save/i }).click();
+      await expect(page.getByText("Moja notatka e2e").first()).toBeVisible({ timeout: 10000 });
     }
   });
 });

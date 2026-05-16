@@ -1,5 +1,11 @@
 import { initializeApp, getApps, type FirebaseApp } from "firebase/app";
-import { initializeAuth, browserLocalPersistence, type Auth } from "firebase/auth";
+import {
+  initializeAuth,
+  getAuth,
+  browserLocalPersistence,
+  browserPopupRedirectResolver,
+  type Auth,
+} from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -24,8 +30,16 @@ let auth: Auth | undefined;
 export function getFirebaseAuth(): Auth {
   if (auth) return auth;
   ensureFirebaseConfig();
-  app = getApps().length ? (getApps()[0] as FirebaseApp) : initializeApp(firebaseConfig);
-  auth = initializeAuth(app, { persistence: [browserLocalPersistence] });
+  if (getApps().length) {
+    app = getApps()[0] as FirebaseApp;
+    auth = getAuth(app);
+  } else {
+    app = initializeApp(firebaseConfig);
+    auth = initializeAuth(app, {
+      persistence: [browserLocalPersistence],
+      popupRedirectResolver: browserPopupRedirectResolver,
+    });
+  }
   return auth;
 }
 

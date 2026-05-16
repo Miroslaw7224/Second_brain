@@ -5,18 +5,22 @@ test.describe("Knowledge Chat", () => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 20000 });
 
-    // Navigate to Knowledge > Chat tab
+    // Navigate to Knowledge > Baza wiedzy (Knowledge Base) chat tab
     const knowledgeBtn = page.getByRole("button", { name: /^(Wiedza|Knowledge)$/ });
     await knowledgeBtn.click();
-    // Chat panel should already be the default tab — verify textarea is visible
-    await expect(page.getByRole("textbox")).toBeVisible({ timeout: 15000 });
+    // Click the "Baza wiedzy" sidebar tab to open KnowledgeView with chat panel
+    await page.getByRole("button", { name: /baza wiedzy/i }).click();
+    // Chat textarea should now be visible (distinct from header search by placeholder)
+    await expect(page.getByPlaceholder(/wpisz wiedzę|type knowledge/i)).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("sends a message and receives a non-empty AI response", async ({ page }) => {
-    await page.getByRole("textbox").fill("Co to jest Second Brain?");
+    await page.getByPlaceholder(/wpisz wiedzę|type knowledge/i).fill("Co to jest Second Brain?");
     await page.keyboard.press("Enter");
 
-    // Wait for loading state to disappear and AI message to appear
+    // Wait for AI response to appear
     await expect(page.locator("[data-testid='chat-message-assistant']").first()).toBeVisible({
       timeout: 30000,
     });
@@ -29,7 +33,9 @@ test.describe("Knowledge Chat", () => {
 
   test("saves a URL to knowledge base via chat", async ({ page }) => {
     // Type a save command with a URL
-    await page.getByRole("textbox").fill("zapamiętaj https://nextjs.org");
+    await page
+      .getByPlaceholder(/wpisz wiedzę|type knowledge/i)
+      .fill("zapamiętaj https://nextjs.org");
     await page.keyboard.press("Enter");
 
     // Pending node preview should appear
@@ -41,11 +47,11 @@ test.describe("Knowledge Chat", () => {
 
   test("clears chat when trash button is clicked", async ({ page }) => {
     // Send a message first
-    await page.getByRole("textbox").fill("Cześć");
+    await page.getByPlaceholder(/wpisz wiedzę|type knowledge/i).fill("Cześć");
     await page.keyboard.press("Enter");
     await expect(page.getByText("Cześć")).toBeVisible({ timeout: 10000 });
 
-    // Click clear button
+    // Click clear button (has title="Wyczyść czat")
     await page.getByTitle(/wyczyść|clear/i).click();
 
     // Chat should be empty
