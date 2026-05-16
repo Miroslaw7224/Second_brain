@@ -179,7 +179,7 @@ export default function HomeView({
         {null}
       </AppSidebar>
 
-      <main className="flex-1 min-w-0 flex flex-col relative overflow-hidden">
+      <main className="flex-1 min-w-0 flex flex-col relative overflow-hidden pb-16 md:pb-0">
         <AppHeader
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}

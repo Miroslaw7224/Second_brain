@@ -170,7 +170,7 @@ export default function WiedzaView({
         />
       </AppSidebar>
 
-      <main className="flex-1 min-w-0 flex flex-col relative">
+      <main className="flex-1 min-w-0 flex flex-col relative pb-16 md:pb-0">
         <AppHeader
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}

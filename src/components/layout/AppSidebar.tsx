@@ -51,7 +51,7 @@ export function AppSidebar({
     <motion.aside
       initial={false}
       animate={{ width: isSidebarOpen ? 320 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-      className="bg-[var(--bg2)] border-r border-[var(--border)] flex flex-col overflow-hidden"
+      className="bg-[var(--bg2)] border-r border-[var(--border)] hidden md:flex flex-col overflow-hidden"
     >
       <div className="p-6 flex items-center gap-3 border-b border-[var(--border)]">
         <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center">
