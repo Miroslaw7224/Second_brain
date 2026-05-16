@@ -1,4 +1,4 @@
-# Second Brain (Freelancer Edition)
+# Nexus (Freelancer Edition)
 
 Aplikacja do zarządzania wiedzą i planowaniem z wykorzystaniem AI (RAG, planowanie). Stack: Next.js 14 (App Router), Firebase (Auth, Firestore), Gemini.
 

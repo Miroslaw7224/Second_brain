@@ -1,6 +1,6 @@
 # Product Requirements Document
 
-**Second Brain dla Freelancerów**
+**Nexus dla Freelancerów**
 _v1.3 · MVP · Solo Founder_
 
 ---
@@ -9,7 +9,7 @@ _v1.3 · MVP · Solo Founder_
 
 | Pole                   | Wartość                                               |
 | ---------------------- | ----------------------------------------------------- |
-| Feature / Project Name | Second Brain dla Freelancerów                         |
+| Feature / Project Name | Nexus dla Freelancerów                                |
 | Owner                  | Solo Founder (Mirosław)                               |
 | Wersja                 | v1.3 — MVP (przywrócony Firestore cosine similarity)  |
 | Cel wydania            | Walidacja problemu i gotowości do płacenia za produkt |
@@ -36,7 +36,7 @@ Istniejące narzędzia nie rozwiązują tego problemu w pełni:
 
 ## 3. Solution
 
-Second Brain to aplikacja webowa oparta na AI, która działa jak osobisty asystent pamięci dla freelancerów. Użytkownik wgrywa swoje dokumenty — notatki, wyceny, ustalenia z klientami — i może z nimi rozmawiać przez prosty chat w języku naturalnym.
+Nexus to aplikacja webowa oparta na AI, która działa jak osobisty asystent pamięci dla freelancerów. Użytkownik wgrywa swoje dokumenty — notatki, wyceny, ustalenia z klientami — i może z nimi rozmawiać przez prosty chat w języku naturalnym.
 
 | PRZED                                                                         | PO                                                                                     |
 | ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -201,3 +201,54 @@ flowchart TD
 > **Pamiętaj: MVP ma odpowiedzieć na jedno pytanie — czy ktoś za to zapłaci?**
 
 ---
+
+## 12. Backlog ulepszeń (2026-05-16)
+
+### 🔴 Monetyzacja / SaaS
+
+| #   | Ulepszenie                    | Opis                                                                                                  |
+| --- | ----------------------------- | ----------------------------------------------------------------------------------------------------- |
+| M1  | **Stripe**                    | Integracja płatności — plan Solo $19/msc. Konieczna do pierwszej konwersji.                           |
+| M2  | **Free Trial 7 dni**          | Mechanizm blokowania dostępu po upływie okresu próbnego (bez karty kredytowej).                       |
+| M3  | **Limit dokumentów per plan** | Enforcement 50 doc/user na planie Solo. Brak obecnie.                                                 |
+| M4  | **Onboarding checklist**      | "Dodaj pierwszą notatkę → zadaj pytanie → zapisz odpowiedź" — zwiększa aktywację nowych użytkowników. |
+
+### 🟠 Core AI / Główna wartość
+
+| #   | Ulepszenie                            | Opis                                                                                           |
+| --- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| A1  | **Cytowanie źródeł w AI**             | PRD wymaga odpowiedzi z informacją o źródle dokumentu. Zweryfikować kompletność implementacji. |
+| A2  | **Globalne wyszukiwanie semantyczne** | `Cmd+K` — embeddingi są już w Firestore, brakuje UI do szybkiego cross-feature search.         |
+| A3  | **Upload PDF/DOCX**                   | Firebase Storage już w stacku. Pierwsza "extended" funkcja z PRD.                              |
+
+### 🟡 Integracje (post-MVP)
+
+| #   | Ulepszenie                         | Opis                                                                                                                   |
+| --- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| I1  | **Import z Gmaila**                | Ustalenia z klientami żyją w mailach. Kluczowe dla freelancerów.                                                       |
+| I2  | **Import z Google Drive / Notion** | Eliminuje ręczne kopiowanie dokumentów.                                                                                |
+| I3  | **Tagi cross-feature**             | Tagi istnieją tylko dla zasobów. Ujednolicony system (notatki + zadania + zasoby) daje filtrowanie per klient/projekt. |
+
+### 🟢 UX / Funkcjonalność
+
+| #   | Ulepszenie                  | Opis                                                                                     |
+| --- | --------------------------- | ---------------------------------------------------------------------------------------- |
+| U1  | **Eksport do Markdown/PDF** | Notatki i odpowiedzi AI eksportowalne — buduje zaufanie, brak vendor lock-in.            |
+| U2  | **Zadania cykliczne**       | Model `Task` bez pola `recurrence`. Ważne dla freelancerów (faktury, raporty cykliczne). |
+
+### 🔵 Techniczne
+
+| #   | Ulepszenie                                    | Opis                                                                                               |
+| --- | --------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| T1  | **Firestore real-time listeners**             | `onSnapshot` zamiast jednorazowego fetch — synchronizacja między zakładkami i urządzeniami.        |
+| T2  | **Zustand**                                   | Uproszczenie stanu globalnego (`lang`, `user`, `activeSection` przekazywane przez wiele poziomów). |
+| T3  | **Migracja embeddingów do Pinecone/pgvector** | Próg z PRD: >2000 chunków LUB latencja >500ms → wtedy migracja (1–2 dni pracy).                    |
+
+---
+
+### W trakcie realizacji (sprint 2026-05-16)
+
+- ✅ Dashboard "Home" — widok startowy z zadaniami na dziś, ostatnimi notatkami, przypomnieniami
+- ✅ Wizualizacja grafu wiedzy — XYFlow + KnowledgeNode/KnowledgeEdge (killer feature)
+- ✅ Mobilność — responsywność sidebara i mind-map na małych ekranach
+- ✅ Zmiana nazwy na Nexus — branding, tytuły stron, README

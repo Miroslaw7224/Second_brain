@@ -49,8 +49,8 @@ export interface PlanowanieViewProps {
   t: TranslationsEn;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: "wiedza" | "planowanie";
-  setAppMode: (mode: "wiedza" | "planowanie") => void;
+  appMode: "home" | "wiedza" | "planowanie";
+  setAppMode: (mode: "home" | "wiedza" | "planowanie") => void;
   onLogout: () => void;
   setLang: (lang: "en" | "pl") => void;
 }
@@ -281,6 +281,8 @@ export default function PlanowanieView({
         onLogout={onLogout}
         documentsCount={0}
         t={sidebarT}
+        onGoHome={() => setAppMode("home")}
+        activeMode={appMode}
       >
         <PlanowanieSidebarContent
           planningTab={planningTab}
@@ -293,7 +295,7 @@ export default function PlanowanieView({
         />
       </AppSidebar>
 
-      <main className="flex-1 min-w-0 flex flex-col relative">
+      <main className="flex-1 min-w-0 flex flex-col relative pb-16 md:pb-0">
         <AppHeader
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}

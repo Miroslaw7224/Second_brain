@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { AppSidebar } from "@/src/components/layout/AppSidebar";
 
 const t = {
-  title: "Second Brain",
+  title: "Nexus",
   subtitle: "Freelancer Edition",
   logout: "Wyloguj",
   proPlan: "PRO",
@@ -26,12 +26,14 @@ describe("AppSidebar", () => {
         onLogout={onLogout}
         documentsCount={10}
         t={t}
+        onGoHome={vi.fn()}
+        activeMode="wiedza"
       >
         <p>Panel content</p>
       </AppSidebar>
     );
 
-    expect(screen.getByRole("heading", { name: "Second Brain" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Nexus" })).toBeInTheDocument();
     expect(screen.getByText("Jan K")).toBeInTheDocument();
     expect(screen.getByText("Panel content")).toBeInTheDocument();
   });
@@ -48,6 +50,8 @@ describe("AppSidebar", () => {
         onLogout={onLogout}
         documentsCount={0}
         t={t}
+        onGoHome={vi.fn()}
+        activeMode="wiedza"
       >
         <span />
       </AppSidebar>

@@ -17,6 +17,17 @@ vi.mock("@xyflow/react", () => ({
   Background: () => null,
   Controls: () => null,
   MiniMap: () => null,
+  Handle: () => null,
+  useNodesState: (initial: any[]) => {
+    const [state, setState] = React.useState(initial);
+    return [state, setState, () => {}];
+  },
+  useEdgesState: (initial: any[]) => {
+    const [state, setState] = React.useState(initial);
+    return [state, setState, () => {}];
+  },
+  BackgroundVariant: { Lines: "lines", Dots: "dots", Cross: "cross" },
+  Position: { Left: "left", Top: "top", Right: "right", Bottom: "bottom" },
 }));
 
 vi.mock("@/features/knowledge/KnowledgeNodePanel", () => ({

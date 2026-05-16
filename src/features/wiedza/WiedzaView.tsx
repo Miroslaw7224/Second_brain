@@ -29,8 +29,8 @@ export interface WiedzaViewProps {
   t: TranslationsEn;
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: "wiedza" | "planowanie";
-  setAppMode: (mode: "wiedza" | "planowanie") => void;
+  appMode: "home" | "wiedza" | "planowanie";
+  setAppMode: (mode: "home" | "wiedza" | "planowanie") => void;
   onLogout: () => void;
   setLang: (lang: "en" | "pl") => void;
 }
@@ -151,6 +151,8 @@ export default function WiedzaView({
         onLogout={onLogout}
         documentsCount={documents.length}
         t={sidebarT}
+        onGoHome={() => setAppMode("home")}
+        activeMode={appMode}
       >
         <WiedzaSidebarContent
           activeTab={activeTab}
@@ -168,7 +170,7 @@ export default function WiedzaView({
         />
       </AppSidebar>
 
-      <main className="flex-1 min-w-0 flex flex-col relative">
+      <main className="flex-1 min-w-0 flex flex-col relative pb-16 md:pb-0">
         <AppHeader
           isSidebarOpen={isSidebarOpen}
           setIsSidebarOpen={setIsSidebarOpen}

@@ -4,7 +4,7 @@ test.describe("Dashboard (zalogowany)", () => {
   test("pokazuje shell i przełącza Wiedza / Planowanie", async ({ page }) => {
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/dashboard/, { timeout: 20000 });
-    await expect(page.getByRole("heading", { name: "Second Brain" })).toBeVisible({
+    await expect(page.getByRole("heading", { name: "Nexus" })).toBeVisible({
       timeout: 20000,
     });
     const modeKnowledge = page.getByRole("button", { name: /^(Wiedza|Knowledge)$/ });

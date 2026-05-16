@@ -4,8 +4,9 @@
  */
 
 import React from "react";
-import { Brain } from "lucide-react";
+import { Brain, Home } from "lucide-react";
 import { motion } from "motion/react";
+import { cn } from "@/src/lib/cn";
 
 export interface AppSidebarUser {
   id: string;
@@ -30,6 +31,8 @@ export interface AppSidebarProps {
   documentsCount: number;
   t: AppSidebarTranslations;
   children: React.ReactNode;
+  onGoHome: () => void;
+  activeMode: "home" | "wiedza" | "planowanie";
 }
 
 export function AppSidebar({
@@ -41,12 +44,14 @@ export function AppSidebar({
   documentsCount,
   t,
   children,
+  onGoHome,
+  activeMode,
 }: AppSidebarProps) {
   return (
     <motion.aside
       initial={false}
       animate={{ width: isSidebarOpen ? 320 : 0, opacity: isSidebarOpen ? 1 : 0 }}
-      className="bg-[var(--bg2)] border-r border-[var(--border)] flex flex-col overflow-hidden"
+      className="bg-[var(--bg2)] border-r border-[var(--border)] hidden md:flex flex-col overflow-hidden"
     >
       <div className="p-6 flex items-center gap-3 border-b border-[var(--border)]">
         <div className="w-10 h-10 bg-[var(--accent)] rounded-xl flex items-center justify-center">
@@ -66,7 +71,21 @@ export function AppSidebar({
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">{children}</div>
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        <button
+          onClick={onGoHome}
+          className={cn(
+            "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold mb-2",
+            activeMode === "home"
+              ? "bg-[var(--accent)] text-white border-[var(--accent)]"
+              : "bg-[var(--surface)] border-transparent hover:bg-[var(--bg2)] hover:border-[var(--bg3)] text-[var(--text)]"
+          )}
+        >
+          <Home className="w-5 h-5 flex-shrink-0" />
+          <span>Home</span>
+        </button>
+        {children}
+      </div>
 
       <div className="p-4 border-t border-[var(--border)] space-y-4">
         <div className="flex items-center gap-3 p-3 bg-[var(--bg3)] rounded-xl">

@@ -19,8 +19,8 @@ export interface AppHeaderTranslations {
 export interface AppHeaderProps {
   isSidebarOpen: boolean;
   setIsSidebarOpen: (open: boolean) => void;
-  appMode: "wiedza" | "planowanie";
-  setAppMode: (mode: "wiedza" | "planowanie") => void;
+  appMode: "home" | "wiedza" | "planowanie";
+  setAppMode: (mode: "home" | "wiedza" | "planowanie") => void;
   t: AppHeaderTranslations;
 }
 
@@ -44,7 +44,7 @@ export function AppHeader({
               className={cn("w-5 h-5 transition-transform", isSidebarOpen && "rotate-180")}
             />
           </button>
-          <div className="flex bg-[var(--toggle-bg)] p-1 rounded-xl border border-[var(--border)]">
+          <div className="hidden md:flex bg-[var(--toggle-bg)] p-1 rounded-xl border border-[var(--border)]">
             <button
               onClick={() => setAppMode("wiedza")}
               className={cn(
@@ -68,13 +68,13 @@ export function AppHeader({
               {t.modePlanowanie}
             </button>
           </div>
-          <div className="flex items-center gap-2 ml-2">
+          <div className="hidden md:flex items-center gap-2 ml-2">
             <div className="w-2 h-2 bg-[var(--green)] rounded-full animate-pulse" />
             <span className="text-sm font-semibold text-[var(--text)]">{t.brainActive}</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="relative">
+          <div className="hidden md:block relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text3)]" />
             <input
               type="text"
@@ -85,7 +85,7 @@ export function AppHeader({
           <ThemeToggle />
           <button
             onClick={() => setFeedbackOpen(true)}
-            className="flex items-center gap-2 px-3 py-2 hover:bg-[var(--bg3)] rounded-full transition-colors text-[var(--text2)] hover:text-[var(--text)] text-sm font-medium"
+            className="hidden md:flex items-center gap-2 px-3 py-2 hover:bg-[var(--bg3)] rounded-full transition-colors text-[var(--text2)] hover:text-[var(--text)] text-sm font-medium"
             title={t.feedback}
           >
             <MessageCircle className="w-5 h-5" />
@@ -118,7 +118,7 @@ export function AppHeader({
             <div className="flex-1 min-h-0">
               <iframe
                 src="https://tally.so/embed/81dpVO"
-                title="Feedback – Second Brain BETA"
+                title="Feedback – Nexus BETA"
                 className="w-full h-[70vh] min-h-[400px] border-0"
               />
             </div>

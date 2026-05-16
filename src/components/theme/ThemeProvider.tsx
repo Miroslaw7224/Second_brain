@@ -2,12 +2,22 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 
-const STORAGE_KEY = "secondbrain-theme";
+const OLD_KEY = "secondbrain-theme";
+const STORAGE_KEY = "nexus-theme";
 
 export type Theme = "dark" | "light";
 
 function getInitialTheme(): Theme {
   if (typeof window === "undefined") return "dark";
+  // migrate from old key only when new key does not yet have a stored theme
+  const existing = window.localStorage.getItem(STORAGE_KEY);
+  if (!(existing === "dark" || existing === "light")) {
+    const migrated = window.localStorage.getItem(OLD_KEY);
+    if (migrated === "dark" || migrated === "light") {
+      window.localStorage.setItem(STORAGE_KEY, migrated);
+      window.localStorage.removeItem(OLD_KEY);
+    }
+  }
   const stored = window.localStorage.getItem(STORAGE_KEY);
   if (stored === "dark" || stored === "light") return stored;
   return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";

@@ -1,9 +1,18 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { Timestamp } from "firebase-admin/firestore";
 
 const mockSearchService = vi.hoisted(() => ({
   searchNodes: vi.fn(),
 }));
+
+const mockDnsLookup = vi.hoisted(() =>
+  vi.fn(async () => [{ address: "8.8.8.8", family: 4 } as const])
+);
+
+vi.mock("node:dns/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:dns/promises")>();
+  return { ...actual, lookup: mockDnsLookup };
+});
 
 const mockNodeService = vi.hoisted(() => ({
   createNode: vi.fn(),
@@ -39,6 +48,82 @@ const fakeNode = {
   createdBy: "user" as const,
 };
 
+describe("isPublicUrl — SSRF protection", () => {
+  let isPublicUrl: (url: string) => Promise<boolean>;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    mockDnsLookup.mockResolvedValue([{ address: "8.8.8.8", family: 4 }]);
+    ({ isPublicUrl } = await import("@/services/knowledgeAIService"));
+  });
+
+  it("dopuszcza publiczne HTTPS URL", async () => {
+    await expect(isPublicUrl("https://example.com/path")).resolves.toBe(true);
+    await expect(isPublicUrl("https://jan.ai")).resolves.toBe(true);
+    await expect(isPublicUrl("http://vercel.com")).resolves.toBe(true);
+  });
+
+  it("blokuje localhost", async () => {
+    await expect(isPublicUrl("http://localhost")).resolves.toBe(false);
+    await expect(isPublicUrl("http://localhost:8080/admin")).resolves.toBe(false);
+    await expect(isPublicUrl("https://localhost/secret")).resolves.toBe(false);
+  });
+
+  it("blokuje 127.x.x.x loopback", async () => {
+    await expect(isPublicUrl("http://127.0.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://127.1.2.3:9000")).resolves.toBe(false);
+  });
+
+  it("blokuje 169.254.x.x — cloud metadata (AWS/GCP/Azure)", async () => {
+    await expect(isPublicUrl("http://169.254.169.254/latest/meta-data/")).resolves.toBe(false);
+    await expect(
+      isPublicUrl("http://169.254.169.254/latest/meta-data/iam/security-credentials/")
+    ).resolves.toBe(false);
+  });
+
+  it("blokuje prywatne zakresy RFC 1918", async () => {
+    await expect(isPublicUrl("http://10.0.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://10.255.255.255")).resolves.toBe(false);
+    await expect(isPublicUrl("http://172.16.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://172.31.255.255")).resolves.toBe(false);
+    await expect(isPublicUrl("http://192.168.1.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://192.168.100.200:8080")).resolves.toBe(false);
+  });
+
+  it("blokuje 100.64-127.x.x shared address space", async () => {
+    await expect(isPublicUrl("http://100.64.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://100.127.255.255")).resolves.toBe(false);
+  });
+
+  it("blokuje IPv6 loopback i prywatne zakresy", async () => {
+    await expect(isPublicUrl("http://[::1]/")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fc00::1]")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fd12:3456:789a::1]")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fe80::1]")).resolves.toBe(false);
+  });
+
+  it("blokuje hostnames które rozwiązują się na prywatne IP", async () => {
+    mockDnsLookup.mockResolvedValueOnce([{ address: "10.0.0.1", family: 4 }]);
+    await expect(isPublicUrl("http://evil.example/private")).resolves.toBe(false);
+  });
+
+  it("blokuje protokoły inne niż http/https", async () => {
+    await expect(isPublicUrl("ftp://example.com")).resolves.toBe(false);
+    await expect(isPublicUrl("file:///etc/passwd")).resolves.toBe(false);
+    await expect(isPublicUrl("javascript:alert(1)")).resolves.toBe(false);
+  });
+
+  it("blokuje nieprawidłowe URL", async () => {
+    await expect(isPublicUrl("not-a-url")).resolves.toBe(false);
+    await expect(isPublicUrl("")).resolves.toBe(false);
+  });
+
+  it("nie blokuje 172.15.x.x ani 172.32.x.x — poza zakresem prywatnym", async () => {
+    await expect(isPublicUrl("http://172.15.0.1")).resolves.toBe(true);
+    await expect(isPublicUrl("http://172.32.0.1")).resolves.toBe(true);
+  });
+});
+
 describe("knowledgeAIService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -71,41 +156,6 @@ describe("knowledgeAIService", () => {
       );
       expect(result.text).toBe("Deadline projektu X to 20 maja.");
       expect(result.sources).toContain("Projekt X");
-    });
-  });
-
-  describe("query — tryb zapisu (save command)", () => {
-    it("tworzy węzeł gdy wiadomość zawiera 'zapamiętaj'", async () => {
-      mockOpenai.generateChatCompletion.mockResolvedValueOnce(
-        JSON.stringify({
-          type: "note",
-          title: "Projekt X deadline",
-          content: "Deadline projektu X to 20 maja.",
-          tags: ["projekt"],
-          dueDate: null,
-        })
-      );
-
-      mockNodeService.createNode.mockResolvedValue({
-        ...fakeNode,
-        id: "new-node",
-        title: "Projekt X deadline",
-      });
-      mockSearchService.searchNodes.mockResolvedValue([]);
-      mockFirestoreKnowledge.getKnowledgeNode.mockResolvedValue(null);
-
-      const { query } = await import("@/services/knowledgeAIService");
-      const result = await query("user-1", {
-        message: "zapamiętaj że projekt X ma deadline 20 maja",
-        lang: "pl",
-      });
-
-      expect(mockNodeService.createNode).toHaveBeenCalledWith(
-        "user-1",
-        expect.objectContaining({ title: "Projekt X deadline", createdBy: "ai" })
-      );
-      expect(result.text).toContain("Zapisano");
-      expect(result.sources).toContain("Projekt X deadline");
     });
   });
 

@@ -2,6 +2,8 @@ import * as firestoreKnowledge from "@/lib/firestore-knowledge";
 import { generateChatCompletion } from "@/lib/openai";
 import * as knowledgeSearchService from "@/services/knowledgeSearchService";
 import { KnowledgeNode, KnowledgeNodeType } from "@/types/knowledge";
+import { lookup as dnsLookup } from "node:dns/promises";
+import { isIPv4, isIPv6 } from "node:net";
 
 const SYSTEM_PROMPT = `Jesteś asystentem osobistej bazy wiedzy. Prowadzisz konwersację — masz dostęp do historii rozmowy i MUSISZ z niej korzystać.
 
@@ -40,27 +42,175 @@ export type ExtractedNode = {
   dueDate?: string;
 };
 
-// Fetch page title and meta description — free, no external API, 3s timeout
+const FETCH_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+const MAX_FETCH_REDIRECTS = 15;
+
+function isPrivateIpv4Octets(a: number, b: number): boolean {
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true;
+  if (a === 0) return true;
+  return false;
+}
+
+function isBlockedIpv4Dotted(ip: string): boolean {
+  const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/.exec(ip);
+  if (!m) return true;
+  const [a, b, c, d] = [Number(m[1]), Number(m[2]), Number(m[3]), Number(m[4])];
+  if ([a, b, c, d].some((n) => n > 255)) return true;
+  return isPrivateIpv4Octets(a, b);
+}
+
+/** Expand IPv6 with a single "::" shorthand to 8 hextets, or null if invalid. */
+function expandIpv6Hextets(addrRaw: string): string[] | null {
+  let addr = addrRaw.toLowerCase().split("%")[0]!;
+  const v4Mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(addr);
+  if (v4Mapped) return null;
+  const doubleSep = "::";
+  if (!addr.includes(doubleSep)) {
+    const parts = addr.split(":").filter((p) => p.length > 0);
+    if (parts.length !== 8) return null;
+    return parts.map((h) => h.padStart(4, "0"));
+  }
+  const partsSplit = addr.split(doubleSep);
+  if (partsSplit.length !== 2) return null;
+  const [leftRaw, rightRaw] = partsSplit;
+  const left = leftRaw ? leftRaw.split(":").filter(Boolean) : [];
+  const right = rightRaw ? rightRaw.split(":").filter(Boolean) : [];
+  const missing = 8 - left.length - right.length;
+  if (missing < 0) return null;
+  const mid = Array(missing).fill("0") as string[];
+  const merged = [...left, ...mid, ...right];
+  if (merged.length !== 8) return null;
+  return merged.map((h) => h.padStart(4, "0"));
+}
+
+function isBlockedIpv6Normalized(addrRaw: string): boolean {
+  const base = addrRaw.replace(/^\[|\]$/g, "").replace(/^\s+|\s+$/g, "");
+  const fm = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(base);
+  if (fm) return isBlockedIpv4Dotted(fm[1]!);
+
+  const hextets = expandIpv6Hextets(base);
+  if (!hextets) {
+    return isIPv6(base);
+  }
+
+  const lastOnlyOne =
+    parseInt(hextets[7]!, 16) === 1 && hextets.slice(0, 7).every((h) => h === "0000");
+  if (lastOnlyOne) return true;
+
+  const first = parseInt(hextets[0]!, 16);
+  // fc00::/7 unique local addresses
+  if ((first & 0xfe00) === 0xfc00) return true;
+  // fe80::/10 link-local
+  if (first >= 0xfe80 && first <= 0xfebf) return true;
+
+  return false;
+}
+
+function resolvedAddressIsBlocked(address: string): boolean {
+  const a = address.replace(/^\[|\]$/g, "").trim();
+  const mapped = /^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/i.exec(a);
+  if (mapped) return isBlockedIpv4Dotted(mapped[1]!);
+  if (isIPv4(a)) return isBlockedIpv4Dotted(a);
+  if (isIPv6(a)) return isBlockedIpv6Normalized(a);
+  return true;
+}
+
+async function hostnameResolvesOnlyToPublic(hostname: string): Promise<boolean> {
+  const h = hostname.toLowerCase();
+  if (!h || h === "localhost") return false;
+
+  try {
+    const records = await dnsLookup(h, { all: true });
+    if (!records.length) return false;
+    for (const rec of records) {
+      const ip = typeof rec === "object" && "address" in rec ? rec.address : "";
+      if (!ip || resolvedAddressIsBlocked(ip)) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Block SSRF targets: literal private IPs plus hostnames resolving to blocked addresses. */
+export async function isPublicUrl(rawUrl: string): Promise<boolean> {
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    return false;
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return false;
+
+  const hostname = parsed.hostname.toLowerCase();
+  if (!hostname) return false;
+  // IPv6 hostnames contain ":" once compressed
+  const isLiteralV6Host = hostname.includes(":") || isIPv6(hostname);
+  const isLiteralV4Host = !isLiteralV6Host && isIPv4(hostname);
+
+  if (isLiteralV4Host) {
+    return !isBlockedIpv4Dotted(hostname);
+  }
+  if (isLiteralV6Host) {
+    const v6Addr = hostname.replace(/^\[|\]$/g, "");
+    if (!isIPv6(v6Addr)) return false;
+    return !isBlockedIpv6Normalized(v6Addr);
+  }
+
+  return hostnameResolvesOnlyToPublic(hostname);
+}
+
+// Fetch page title and meta description — free, no external API, 3s timeout.
+// Uses manual redirects and re-validates each hop after DNS/IP checks.
 async function fetchPageMeta(url: string): Promise<{ title: string; description: string } | null> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 3000);
-    const res = await fetch(url, {
-      signal: controller.signal,
-      headers: { "User-Agent": "Mozilla/5.0 (compatible; SecondBrain/1.0)" },
-    });
-    clearTimeout(timer);
-    if (!res.ok) return null;
-    const html = await res.text();
-    const titleMatch = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
-    const descMatch =
-      html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{1,400})["']/i) ??
-      html.match(/<meta[^>]+content=["']([^"']{1,400})["'][^>]+name=["']description["']/i) ??
-      html.match(/<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']{1,400})["']/i);
-    const title = titleMatch?.[1]?.trim() ?? "";
-    const description = descMatch?.[1]?.trim() ?? "";
-    if (!title && !description) return null;
-    return { title, description };
+    let currentUrl = url;
+
+    try {
+      for (let hop = 0; hop <= MAX_FETCH_REDIRECTS; hop++) {
+        if (!(await isPublicUrl(currentUrl))) return null;
+        const res = await fetch(currentUrl, {
+          redirect: "manual",
+          signal: controller.signal,
+          headers: { "User-Agent": "Mozilla/5.0 (compatible; SecondBrain/1.0)" },
+        });
+
+        if (FETCH_REDIRECT_STATUSES.has(res.status)) {
+          const loc = res.headers.get("location") ?? res.headers.get("Location");
+          if (!loc) return null;
+          try {
+            currentUrl = new URL(loc, currentUrl).href;
+          } catch {
+            return null;
+          }
+          continue;
+        }
+
+        if (!res.ok) return null;
+        const html = await res.text();
+        const titleMatch = html.match(/<title[^>]*>([^<]{1,200})<\/title>/i);
+        const descMatch =
+          html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']{1,400})["']/i) ??
+          html.match(/<meta[^>]+content=["']([^"']{1,400})["'][^>]+name=["']description["']/i) ??
+          html.match(
+            /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']{1,400})["']/i
+          );
+        const title = titleMatch?.[1]?.trim() ?? "";
+        const description = descMatch?.[1]?.trim() ?? "";
+        if (!title && !description) return null;
+        return { title, description };
+      }
+      return null;
+    } finally {
+      clearTimeout(timer);
+    }
   } catch {
     return null;
   }

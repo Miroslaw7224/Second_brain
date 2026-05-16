@@ -364,6 +364,7 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                           type="button"
                           onClick={() => deleteTask(task.id)}
                           className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
+                          aria-label={lang === "pl" ? "Usuń" : "Delete"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -471,6 +472,7 @@ export function TasksSection({ apiFetch, lang, t }: TasksSectionProps) {
                           type="button"
                           onClick={() => deleteTask(task.id)}
                           className="p-1.5 hover:bg-red-500/10 text-red-500 rounded-lg flex-shrink-0"
+                          aria-label={lang === "pl" ? "Usuń" : "Delete"}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>

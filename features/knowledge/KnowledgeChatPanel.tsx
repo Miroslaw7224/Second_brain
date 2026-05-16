@@ -168,6 +168,7 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
             }}
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-[var(--text3)] hover:text-red-400 hover:bg-red-50/10 transition-colors"
             aria-label={lang === "pl" ? "Wyczyść czat" : "Clear chat"}
+            title={lang === "pl" ? "Wyczyść czat" : "Clear chat"}
           >
             <Trash2 size={13} />
             {lang === "pl" ? "Wyczyść czat" : "Clear chat"}
@@ -195,6 +196,9 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
         {messages.map((msg, i) => (
           <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
+              data-testid={
+                msg.role === "assistant" ? "chat-message-assistant" : "chat-message-user"
+              }
               className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
                 msg.role === "user"
                   ? "bg-[var(--accent)] text-white"
@@ -319,8 +323,11 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
             style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
+            type="button"
             onClick={handleSend}
             disabled={!input.trim() || isLoading || pendingNodes.length > 0}
+            aria-label={lang === "pl" ? "Wyślij wiadomość" : "Send message"}
+            data-testid="chat-send-button"
             className="px-4 py-2 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
           >
             <Send size={16} />

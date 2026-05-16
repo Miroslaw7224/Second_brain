@@ -9,6 +9,9 @@ import { getFirebaseAuth } from "./lib/firebase-client";
 import { translations } from "@/src/translations";
 import WiedzaView from "@/src/features/wiedza/WiedzaView";
 import PlanowanieView from "@/src/features/planowanie/PlanowanieView";
+import HomeView from "@/src/features/home/HomeView";
+import { MobileNav } from "@/src/components/layout/MobileNav";
+import { MobileMoreDrawer } from "@/src/components/layout/MobileMoreDrawer";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -52,8 +55,9 @@ export default function App({ authenticated = false }: AppProps = {}) {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [authError, setAuthError] = useState("");
-  const [appMode, setAppMode] = useState<"wiedza" | "planowanie">("wiedza");
+  const [appMode, setAppMode] = useState<"home" | "wiedza" | "planowanie">("home");
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [moreDrawerOpen, setMoreDrawerOpen] = useState(false);
   const [checkingWaitlist, setCheckingWaitlist] = useState(false);
 
   const WAITLIST_ERROR_MSG =
@@ -181,9 +185,7 @@ export default function App({ authenticated = false }: AppProps = {}) {
                 <Brain className="text-white w-6 h-6" />
               </div>
               <div>
-                <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">
-                  Second Brain
-                </h1>
+                <h1 className="font-bold text-lg tracking-tight text-[var(--text)]">Nexus</h1>
                 <p className="text-xs text-[var(--text2)] font-medium uppercase tracking-wider">
                   Freelancer Edition
                 </p>
@@ -299,7 +301,20 @@ export default function App({ authenticated = false }: AppProps = {}) {
 
   return (
     <div className="flex h-screen bg-[var(--bg)] text-[var(--text)] font-sans overflow-hidden">
-      {appMode === "wiedza" ? (
+      {appMode === "home" ? (
+        <HomeView
+          user={user}
+          apiFetch={apiFetch}
+          lang={lang}
+          t={t}
+          isSidebarOpen={isSidebarOpen}
+          setIsSidebarOpen={setIsSidebarOpen}
+          appMode={appMode}
+          setAppMode={setAppMode}
+          onLogout={handleLogout}
+          setLang={setLang}
+        />
+      ) : appMode === "wiedza" ? (
         <WiedzaView
           user={user}
           apiFetch={apiFetch}
@@ -326,6 +341,18 @@ export default function App({ authenticated = false }: AppProps = {}) {
           setLang={setLang}
         />
       )}
+      <MobileNav
+        appMode={appMode}
+        setAppMode={setAppMode}
+        lang={lang}
+        onMoreOpen={() => setMoreDrawerOpen(true)}
+      />
+      <MobileMoreDrawer
+        isOpen={moreDrawerOpen}
+        onClose={() => setMoreDrawerOpen(false)}
+        onLogout={handleLogout}
+        lang={lang}
+      />
     </div>
   );
 }
