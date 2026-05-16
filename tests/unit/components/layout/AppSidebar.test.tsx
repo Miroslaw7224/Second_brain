@@ -26,6 +26,8 @@ describe("AppSidebar", () => {
         onLogout={onLogout}
         documentsCount={10}
         t={t}
+        onGoHome={vi.fn()}
+        activeMode="wiedza"
       >
         <p>Panel content</p>
       </AppSidebar>
@@ -48,6 +50,8 @@ describe("AppSidebar", () => {
         onLogout={onLogout}
         documentsCount={0}
         t={t}
+        onGoHome={vi.fn()}
+        activeMode="wiedza"
       >
         <span />
       </AppSidebar>

@@ -281,6 +281,8 @@ export default function PlanowanieView({
         onLogout={onLogout}
         documentsCount={0}
         t={sidebarT}
+        onGoHome={() => setAppMode("home")}
+        activeMode={appMode}
       >
         <PlanowanieSidebarContent
           planningTab={planningTab}

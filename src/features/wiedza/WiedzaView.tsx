@@ -151,6 +151,8 @@ export default function WiedzaView({
         onLogout={onLogout}
         documentsCount={documents.length}
         t={sidebarT}
+        onGoHome={() => setAppMode("home")}
+        activeMode={appMode}
       >
         <WiedzaSidebarContent
           activeTab={activeTab}
