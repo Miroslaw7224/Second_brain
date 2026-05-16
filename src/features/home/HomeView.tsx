@@ -1,9 +1,17 @@
 // src/features/home/HomeView.tsx
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import { Play, Square } from "lucide-react";
 import type { translations } from "@/src/translations";
 import { ActivityLog } from "@/src/components/ActivityLog";
 import type { UserTag } from "@/src/components/TagsSection";
+import { StartSessionModal } from "@/src/components/StartSessionModal";
+import {
+  getActiveSession,
+  setActiveSession,
+  clearActiveSession,
+  type ActiveSession,
+} from "@/src/lib/activeSession";
 
 type T = (typeof translations)["en"];
 
@@ -43,6 +51,9 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
   const [nodes, setNodes] = useState<KnowledgeNode[]>([]);
   const [loading, setLoading] = useState(true);
   const [userTags, setUserTags] = useState<UserTag[]>([]);
+  const [activeSession, setActiveSessionState] = useState<ActiveSession | null>(null);
+  const [sessionModalOpen, setSessionModalOpen] = useState(false);
+  const [sessionEndError, setSessionEndError] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch("/api/knowledge/nodes")
@@ -58,6 +69,58 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
       .then((data) => setUserTags(Array.isArray(data) ? data : []))
       .catch(() => setUserTags([]));
   }, [apiFetch]);
+
+  useEffect(() => {
+    if (user?.id) setActiveSessionState(getActiveSession(user.id));
+  }, [user?.id]);
+
+  const handleStartSession = useCallback(
+    (payload: { title: string; tags: string[]; color: string }) => {
+      if (!user?.id) return;
+      const session: ActiveSession = {
+        title: payload.title,
+        startedAt: new Date().toISOString(),
+        tags: payload.tags,
+        color: payload.color,
+      };
+      setActiveSessionState(session);
+      setActiveSession(user.id, session);
+    },
+    [user?.id]
+  );
+
+  const handleEndSession = useCallback(async () => {
+    if (!activeSession || !user?.id) return;
+    setSessionEndError(null);
+    const started = new Date(activeSession.startedAt);
+    const now = Date.now();
+    const date = new Date();
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const startMinutes = Math.floor((started.getHours() * 60 + started.getMinutes()) / 15) * 15;
+    const durationMinutes = Math.ceil((now - started.getTime()) / (15 * 60 * 1000)) * 15;
+    try {
+      const res = await apiFetch("/api/calendar/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          date: dateStr,
+          start_minutes: startMinutes,
+          duration_minutes: durationMinutes,
+          title: activeSession.title,
+          tags: activeSession.tags,
+          color: activeSession.color,
+        }),
+      });
+      if (!res.ok) {
+        const errBody = await res.json().catch(() => ({}));
+        throw new Error((errBody as { error?: string }).error ?? `HTTP ${res.status}`);
+      }
+      setActiveSessionState(null);
+      clearActiveSession(user.id);
+    } catch (err) {
+      setSessionEndError(err instanceof Error ? err.message : "Failed to save");
+    }
+  }, [activeSession, user?.id, apiFetch]);
 
   const today = todayISO();
   const limit48h = in48hISO();
@@ -162,6 +225,51 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
         )}
       </div>
 
+      {/* My work / session */}
+      <div>
+        <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text2)] mb-3">
+          {lang === "pl" ? "Moja praca" : "My work"}
+        </h3>
+        {activeSession ? (
+          <div className="flex items-center justify-between gap-3 p-4 bg-[var(--accent-bg,var(--surface))] border border-[var(--accent)] rounded-xl">
+            <div className="flex items-center gap-3 min-w-0">
+              <div
+                className="w-3 h-3 rounded-full flex-shrink-0 animate-pulse"
+                style={{ backgroundColor: activeSession.color }}
+              />
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-[var(--text)] truncate">
+                  {activeSession.title}
+                </p>
+                <p className="text-xs text-[var(--text2)]">
+                  {lang === "pl" ? "Od" : "Since"}{" "}
+                  {new Date(activeSession.startedAt).toLocaleTimeString(
+                    lang === "pl" ? "pl-PL" : "en-US",
+                    { hour: "2-digit", minute: "2-digit" }
+                  )}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={handleEndSession}
+              className="flex items-center gap-2 px-3 py-1.5 bg-[var(--accent)] text-white rounded-lg text-sm font-semibold hover:brightness-110 flex-shrink-0"
+            >
+              <Square className="w-3 h-3" />
+              {lang === "pl" ? "Zakończ" : "End"}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setSessionModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-3 bg-[var(--surface)] border border-[var(--border)] rounded-xl text-sm font-semibold text-[var(--text)] hover:bg-[var(--bg2)] transition-colors w-full"
+          >
+            <Play className="w-4 h-4 text-[var(--accent)]" />
+            {lang === "pl" ? "Rozpocznij pracę" : "Start work"}
+          </button>
+        )}
+        {sessionEndError && <p className="text-xs text-red-400 mt-2">{sessionEndError}</p>}
+      </div>
+
       {/* Quick actions */}
       <div>
         <h3 className="text-xs font-bold uppercase tracking-widest text-[var(--text2)] mb-3">
@@ -194,6 +302,32 @@ export default function HomeView({ user, apiFetch, lang, t, setAppMode }: HomeVi
           userTags={userTags}
         />
       </div>
+
+      {sessionModalOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[var(--bg2)] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="text-base font-bold text-[var(--text)] mb-4">
+              {lang === "pl" ? "Rozpocznij sesję pracy" : "Start work session"}
+            </h3>
+            <StartSessionModal
+              existingTags={userTags.map((u) => u.tag)}
+              tagTitles={Object.fromEntries(userTags.map((u) => [u.tag, u.title ?? u.tag]))}
+              tagColors={Object.fromEntries(userTags.map((u) => [u.tag, u.color]))}
+              onSubmit={(payload) => {
+                handleStartSession(payload);
+                setSessionModalOpen(false);
+              }}
+              onCancel={() => setSessionModalOpen(false)}
+              submitLabel={lang === "pl" ? "Rozpocznij" : "Start"}
+              cancelLabel={lang === "pl" ? "Anuluj" : "Cancel"}
+              titleLabel={lang === "pl" ? "Tytuł" : "Title"}
+              tagsLabel={lang === "pl" ? "Tagi" : "Tags"}
+              tagPlaceholder={lang === "pl" ? "Dodaj tag..." : "Add tag..."}
+              suggestionsLabel={lang === "pl" ? "Ostatnie tagi" : "Recent tags"}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
