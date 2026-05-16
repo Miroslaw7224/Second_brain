@@ -17,7 +17,6 @@ import { WiedzaSidebarContent } from "./WiedzaSidebarContent";
 import { NotesPanel } from "./NotesPanel";
 import { MindMapsTab } from "@/src/features/mind-maps/MindMapsTab";
 import { KnowledgeView } from "@/features/knowledge/KnowledgeView";
-import { KnowledgeGraphView } from "./KnowledgeGraphView";
 
 type TranslationsEn = (typeof translations)["en"];
 
@@ -48,9 +47,9 @@ export default function WiedzaView({
   onLogout,
   setLang,
 }: WiedzaViewProps) {
-  const [activeTab, setActiveTab] = useState<
-    "notes" | "resources" | "mindmaps" | "knowledge" | "graph"
-  >("notes");
+  const [activeTab, setActiveTab] = useState<"notes" | "resources" | "mindmaps" | "knowledge">(
+    "notes"
+  );
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteEditMode, setNoteEditMode] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +165,6 @@ export default function WiedzaView({
           notesTab={t.notesTab}
           tabResources={(t.tabResources as string) ?? "Zasoby"}
           tabMindMaps={(t.tabMindMaps as string) ?? "Mapy myśli"}
-          tabGraph={(t.tabGraph as string) ?? "Graf"}
           knowledge={t.knowledge}
           noDocs={t.noDocs}
         />
@@ -202,8 +200,6 @@ export default function WiedzaView({
             </div>
           ) : activeTab === "knowledge" ? (
             <KnowledgeView apiFetch={apiFetch} lang={lang} />
-          ) : activeTab === "graph" ? (
-            <KnowledgeGraphView apiFetch={apiFetch} lang={lang} />
           ) : (
             <NotesPanel
               notes={notes}

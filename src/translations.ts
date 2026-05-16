@@ -122,7 +122,6 @@ export const translations = {
     tabContent: "Content",
     tabResources: "Resources",
     tabMindMaps: "Mind maps",
-    tabGraph: "Graph",
     mindMapsHeaderSubtitleWithMap: "Edit the tree and node notes. Changes are saved automatically.",
     mindMapsHeaderSubtitleNoMap: "Choose a map or create a new one.",
     mindMapsNewMap: "New map",
@@ -350,7 +349,6 @@ export const translations = {
     tabContent: "Treść",
     tabResources: "Zasoby",
     tabMindMaps: "Mapy myśli",
-    tabGraph: "Graf",
     mindMapsHeaderSubtitleWithMap:
       "Edytuj drzewo i notatki węzłów. Zmiany zapisują się automatycznie.",
     mindMapsHeaderSubtitleNoMap: "Wybierz mapę lub utwórz nową.",

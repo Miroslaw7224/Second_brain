@@ -1,11 +1,11 @@
 import React, { type RefObject } from "react";
-import { Plus, FileText, Link, Trash2, Loader2, Network, Brain, GitFork } from "lucide-react";
+import { Plus, FileText, Link, Trash2, Loader2, Network, Brain } from "lucide-react";
 import { cn } from "@/src/lib/cn";
 import type { Document } from "./useWiedzaData";
 
 export interface WiedzaSidebarContentProps {
-  activeTab: "notes" | "resources" | "mindmaps" | "knowledge" | "graph";
-  setActiveTab: (tab: "notes" | "resources" | "mindmaps" | "knowledge" | "graph") => void;
+  activeTab: "notes" | "resources" | "mindmaps" | "knowledge";
+  setActiveTab: (tab: "notes" | "resources" | "mindmaps" | "knowledge") => void;
   documents: Document[];
   onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onDeleteDoc: (id: string) => void;
@@ -14,7 +14,6 @@ export interface WiedzaSidebarContentProps {
   notesTab: string;
   tabResources: string;
   tabMindMaps: string;
-  tabGraph: string;
   knowledge: string;
   noDocs: string;
 }
@@ -30,11 +29,10 @@ export function WiedzaSidebarContent({
   notesTab,
   tabResources,
   tabMindMaps,
-  tabGraph,
   knowledge,
   noDocs,
 }: WiedzaSidebarContentProps) {
-  const tabClass = (tab: "notes" | "resources" | "mindmaps" | "knowledge" | "graph") =>
+  const tabClass = (tab: "notes" | "resources" | "mindmaps" | "knowledge") =>
     cn(
       "w-full flex items-center gap-3 p-3 rounded-xl transition-all border text-left text-sm font-semibold",
       activeTab === tab
@@ -72,10 +70,6 @@ export function WiedzaSidebarContent({
         >
           <Brain className="w-5 h-5 flex-shrink-0" />
           <span>Baza wiedzy</span>
-        </button>
-        <button type="button" onClick={() => setActiveTab("graph")} className={tabClass("graph")}>
-          <GitFork className="w-5 h-5 flex-shrink-0" />
-          <span>{tabGraph}</span>
         </button>
       </div>
       <div className="flex items-center justify-between mb-4 px-2">
