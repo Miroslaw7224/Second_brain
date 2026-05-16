@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Add translations for Home view
+## Task 1: Add translations for Home view
 
 **Files:**
 
@@ -69,7 +69,7 @@ git commit -m "feat(home): add translations for Dashboard Home view"
 
 ---
 
-### Task 2: Create HomeView component
+## Task 2: Create HomeView component
 
 **Files:**
 
@@ -353,7 +353,7 @@ git commit -m "feat(home): add HomeView component with tasks, events, quick acti
 
 ---
 
-### Task 3: Add "home" to appMode and wire HomeView in App.tsx
+## Task 3: Add "home" to appMode and wire HomeView in App.tsx
 
 **Files:**
 
@@ -466,7 +466,7 @@ git commit -m "feat(home): wire HomeView as default appMode in App.tsx"
 
 ---
 
-### Task 4: Add Home nav item to AppSidebar
+## Task 4: Add Home nav item to AppSidebar
 
 **Files:**
 
@@ -534,7 +534,7 @@ git commit -m "feat(home): add Home nav button to AppSidebar"
 
 ---
 
-### Task 5: Manual smoke test
+## Task 5: Manual smoke test
 
 - [ ] **Step 1: Start dev server**
 

@@ -44,7 +44,9 @@ export function useKnowledgeGraph(
       .then((r) => r.json())
       .then(async (nodesData) => {
         if (cancelled) return;
-        const loadedNodes: RawKnowledgeNode[] = nodesData.nodes ?? [];
+        const loadedNodes: RawKnowledgeNode[] = Array.isArray(nodesData)
+          ? nodesData
+          : (nodesData?.nodes ?? []);
         setNodes(loadedNodes);
 
         // Fetch edges per node (up to 80), then deduplicate

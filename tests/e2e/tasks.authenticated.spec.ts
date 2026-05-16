@@ -45,7 +45,7 @@ test.describe("Task Management", () => {
 
     // Verify updated title appears in the task list (API save completes)
     await expect(page.locator("li", { hasText: updatedTitle })).toBeVisible({ timeout: 10000 });
-    expect(await page.getByText(originalTitle).count()).toBe(0);
+    await expect(page.getByText(originalTitle)).toHaveCount(0, { timeout: 10000 });
   });
 
   test("deletes a task", async ({ page }) => {

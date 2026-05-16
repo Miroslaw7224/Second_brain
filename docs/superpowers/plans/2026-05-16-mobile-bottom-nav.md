@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Create MobileNav component
+## Task 1: Create MobileNav component
 
 **Files:**
 
@@ -156,7 +156,7 @@ git commit -m "feat(mobile): add MobileNav bottom bar component"
 
 ---
 
-### Task 2: Create MobileMoreDrawer component
+## Task 2: Create MobileMoreDrawer component
 
 **Files:**
 
@@ -289,7 +289,7 @@ git commit -m "feat(mobile): add MobileMoreDrawer bottom sheet component"
 
 ---
 
-### Task 3: Wire MobileNav into App.tsx and hide desktop sidebar on mobile
+## Task 3: Wire MobileNav into App.tsx and hide desktop sidebar on mobile
 
 **Files:**
 
@@ -384,7 +384,7 @@ git commit -m "feat(mobile): wire MobileNav into App, hide sidebar on mobile"
 
 ---
 
-### Task 4: Simplify AppHeader on mobile
+## Task 4: Simplify AppHeader on mobile
 
 **Files:**
 
@@ -440,7 +440,7 @@ git commit -m "feat(mobile): simplify AppHeader for mobile — hide desktop-only
 
 ---
 
-### Task 5: Manual smoke test on mobile viewport
+## Task 5: Manual smoke test on mobile viewport
 
 - [ ] **Step 1: Start dev server**
 

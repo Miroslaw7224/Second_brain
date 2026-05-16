@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Update translations (single source of truth)
+## Task 1: Update translations (single source of truth)
 
 **Files:**
 
@@ -54,7 +54,7 @@ git commit -m "feat(rename): update translations title Second Brain → Nexus"
 
 ---
 
-### Task 2: Update theme storage key (with migration shim)
+## Task 2: Update theme storage key (with migration shim)
 
 **Files:**
 
@@ -118,7 +118,7 @@ git commit -m "feat(rename): migrate theme storage key secondbrain-theme → nex
 
 ---
 
-### Task 3: Update Next.js metadata and layout
+## Task 3: Update Next.js metadata and layout
 
 **Files:**
 
@@ -144,7 +144,7 @@ git commit -m "feat(rename): update page title to Nexus"
 
 ---
 
-### Task 4: Update App.tsx login screen
+## Task 4: Update App.tsx login screen
 
 **Files:**
 
@@ -191,7 +191,7 @@ git commit -m "feat(rename): update login screen branding to Nexus"
 
 ---
 
-### Task 5: Update landing page components
+## Task 5: Update landing page components
 
 **Files:**
 
@@ -232,7 +232,7 @@ git commit -m "feat(rename): update landing page and login screen to Nexus"
 
 ---
 
-### Task 6: Update services and remaining TS files
+## Task 6: Update services and remaining TS files
 
 **Files:**
 
@@ -275,7 +275,7 @@ git commit -m "feat(rename): update services, legal pages, and tests to Nexus"
 
 ---
 
-### Task 7: Update README and docs
+## Task 7: Update README and docs
 
 **Files:**
 

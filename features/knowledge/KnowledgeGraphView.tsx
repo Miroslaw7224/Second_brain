@@ -42,6 +42,12 @@ const TYPE_COLORS: Record<string, string> = {
 
 const NODE_RADIUS = 38;
 
+const GRAPH_BACK_LABEL = { en: "Back to list", pl: "Wróć do listy" } as const;
+
+function graphBackLabel(lang: "pl" | "en"): string {
+  return GRAPH_BACK_LABEL[lang] ?? GRAPH_BACK_LABEL.en;
+}
+
 // Context for hover state — edge components read this to highlight themselves
 const HoverContext = createContext<string | null>(null);
 
@@ -290,7 +296,7 @@ export function KnowledgeGraphView({ apiFetch, lang, onClose }: Props) {
             className="flex items-center gap-2 text-sm text-[var(--text2)] hover:text-[var(--text)] transition-colors"
           >
             <ArrowLeft size={16} />
-            Wróć do listy
+            {graphBackLabel(lang)}
           </button>
           <span className="text-[var(--text3)] text-sm">
             {knNodes.length} {lang === "pl" ? "węzłów" : "nodes"}

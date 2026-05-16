@@ -8,7 +8,8 @@ export function ThemeScript() {
   var oldKey = 'secondbrain-theme';
   var key = 'nexus-theme';
   var migrated = localStorage.getItem(oldKey);
-  if (migrated === 'dark' || migrated === 'light') {
+  var prev = localStorage.getItem(key);
+  if ((!prev || (prev !== 'dark' && prev !== 'light')) && (migrated === 'dark' || migrated === 'light')) {
     localStorage.setItem(key, migrated);
     localStorage.removeItem(oldKey);
   }

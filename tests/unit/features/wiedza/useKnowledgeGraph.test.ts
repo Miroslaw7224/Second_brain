@@ -25,7 +25,7 @@ beforeEach(() => {
   mockFetch.mockReset();
   mockFetch
     .mockResolvedValueOnce({ ok: true, json: async () => [mockNode] })
-    .mockResolvedValueOnce({ ok: true, json: async () => [mockEdge] });
+    .mockResolvedValueOnce({ ok: true, json: async () => ({ edges: [mockEdge] }) });
 });
 
 test("returns nodes and edges from API", async () => {

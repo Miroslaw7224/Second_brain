@@ -46,7 +46,7 @@ export const KnowledgeNodeCard = memo(function KnowledgeNodeCard({
       }}
       className="rounded-xl px-3 py-2 min-w-[100px] max-w-[160px] cursor-pointer"
     >
-      <Handle type="target" position={Position.Top} className="!bg-transparent !border-0" />
+      <Handle type="target" position={Position.Top} className="bg-transparent! border-0!" />
       <div className="flex items-center gap-1.5 mb-0.5">
         <span className="text-xs">{TYPE_ICONS[data.type]}</span>
         <span
@@ -74,7 +74,7 @@ export const KnowledgeNodeCard = memo(function KnowledgeNodeCard({
           {data.tags.slice(0, 2).join(", ")}
         </p>
       )}
-      <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-0" />
+      <Handle type="source" position={Position.Bottom} className="bg-transparent! border-0!" />
     </div>
   );
 });

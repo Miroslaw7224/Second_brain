@@ -134,7 +134,7 @@ describe("KnowledgeChatPanel", () => {
 
 - [ ] **Step 2: Run tests**
 
-```
+```bash
 npx vitest run tests/unit/components/knowledge/KnowledgeChatPanel.test.tsx
 ```
 
@@ -142,7 +142,7 @@ Expected: 6 tests pass. If a test fails due to a missing aria attribute or text 
 
 - [ ] **Step 3: Commit**
 
-```
+```bash
 git add tests/unit/components/knowledge/KnowledgeChatPanel.test.tsx
 git commit -m "test: add KnowledgeChatPanel component tests (chat flow + save command)"
 ```
@@ -215,7 +215,7 @@ describe("KnowledgeView", () => {
 
 - [ ] **Step 3: Run tests**
 
-```
+```bash
 npx vitest run tests/unit/components/knowledge/KnowledgeView.test.tsx
 ```
 
@@ -223,7 +223,7 @@ Expected: 3 tests pass. If the tab button text differs, inspect the component an
 
 - [ ] **Step 4: Commit**
 
-```
+```bash
 git add tests/unit/components/knowledge/KnowledgeView.test.tsx
 git commit -m "test: add KnowledgeView tab switching tests"
 ```
@@ -347,7 +347,7 @@ describe("TaskDetailModal", () => {
 
 - [ ] **Step 3: Run tests**
 
-```
+```bash
 npx vitest run tests/unit/components/tasks/TaskDetailModal.test.tsx
 ```
 
@@ -355,7 +355,7 @@ Expected: 5 tests pass. Adjust selectors if aria names differ — use `screen.de
 
 - [ ] **Step 4: Commit**
 
-```
+```bash
 git add tests/unit/components/tasks/TaskDetailModal.test.tsx
 git commit -m "test: add TaskDetailModal component tests"
 ```
@@ -393,24 +393,30 @@ vi.mock("@tiptap/react", () => {
     on: () => {},
     off: () => {},
   };
+  let lastOnUpdate:
+    | ((p: { editor: typeof editorInstance }) => void)
+    | undefined;
   return {
     useEditor: ({ content, onUpdate }: { content?: string; onUpdate?: (p: { editor: typeof editorInstance }) => void }) => {
       currentContent = content ?? "";
+      lastOnUpdate = onUpdate;
       return {
         ...editorInstance,
-        // Trigger onUpdate simulation via a DOM event in tests
+        onUpdate,
       };
     },
-    EditorContent: ({ editor }: { editor: unknown }) => (
+    EditorContent: ({ editor, onUpdate }: { editor: unknown; onUpdate?: typeof lastOnUpdate }) => {
+      const handler = onUpdate ?? lastOnUpdate;
+      return (
       <div
         data-testid="tiptap-editor"
         contentEditable
         suppressContentEditableWarning
-        onInput={(e) => {
-          if (onUpdate) onUpdate({ editor: editorInstance });
+        onInput={() => {
+          if (handler) handler({ editor: editorInstance });
         }}
-      />
-    ),
+      />);
+    },
   };
 });
 
@@ -456,7 +462,7 @@ describe("NoteEditor", () => {
 
 - [ ] **Step 2: Run tests**
 
-```
+```bash
 npx vitest run tests/unit/components/NoteEditor.test.tsx
 ```
 
@@ -464,7 +470,7 @@ Expected: 3 tests pass. This component is complex — if more Tiptap extensions 
 
 - [ ] **Step 3: Commit**
 
-```
+```bash
 git add tests/unit/components/NoteEditor.test.tsx
 git commit -m "test: add NoteEditor component tests with Tiptap mock"
 ```
@@ -475,7 +481,7 @@ git commit -m "test: add NoteEditor component tests with Tiptap mock"
 
 - [ ] **Run full unit test suite**
 
-```
+```bash
 npx vitest run
 ```
 

@@ -273,9 +273,7 @@ describe("KnowledgeChatPanel", () => {
     render(<KnowledgeChatPanel apiFetch={apiFetch} lang="pl" />);
     await user.type(screen.getByRole("textbox"), "Pytanie przyciskiem");
 
-    // Click the send button (icon-only button)
-    const sendButton = screen.getAllByRole("button").find((b) => !b.hasAttribute("aria-label"));
-    if (sendButton) await user.click(sendButton);
+    await user.click(screen.getByTestId("chat-send-button"));
 
     await waitFor(() => {
       expect(screen.getByText("Kliknięcie działa")).toBeInTheDocument();

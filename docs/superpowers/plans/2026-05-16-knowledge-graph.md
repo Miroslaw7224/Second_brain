@@ -10,7 +10,7 @@
 
 ---
 
-### Task 1: Create useKnowledgeGraph data hook
+## Task 1: Create useKnowledgeGraph data hook
 
 **Files:**
 
@@ -171,7 +171,7 @@ git commit -m "feat(graph): add useKnowledgeGraph data hook"
 
 ---
 
-### Task 2: Create KnowledgeNodeCard custom XYFlow node
+## Task 2: Create KnowledgeNodeCard custom XYFlow node
 
 **Files:**
 
@@ -320,7 +320,7 @@ git commit -m "feat(graph): add KnowledgeNodeCard custom XYFlow node component"
 
 ---
 
-### Task 3: Create KnowledgeGraphView main component
+## Task 3: Create KnowledgeGraphView main component
 
 **Files:**
 
@@ -678,7 +678,7 @@ git commit -m "feat(graph): add KnowledgeGraphView with force-directed layout an
 
 ---
 
-### Task 4: Add "Graf" tab to WiedzaView and WiedzaSidebarContent
+## Task 4: Add "Graf" tab to WiedzaView and WiedzaSidebarContent
 
 **Files:**
 
@@ -772,7 +772,7 @@ git commit -m "feat(graph): add Graf tab to WiedzaView with KnowledgeGraphView"
 
 ---
 
-### Task 5: Manual smoke test
+## Task 5: Manual smoke test
 
 - [ ] **Step 1: Start dev server**
 

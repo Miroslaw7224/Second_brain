@@ -323,8 +323,11 @@ export function KnowledgeChatPanel({ apiFetch, lang, onNodeSaved }: Props) {
             style={{ fieldSizing: "content" } as React.CSSProperties}
           />
           <button
+            type="button"
             onClick={handleSend}
             disabled={!input.trim() || isLoading || pendingNodes.length > 0}
+            aria-label={lang === "pl" ? "Wyślij wiadomość" : "Send message"}
+            data-testid="chat-send-button"
             className="px-4 py-2 rounded-xl bg-[var(--accent)] text-white hover:opacity-90 transition-opacity disabled:opacity-50 shrink-0"
           >
             <Send size={16} />

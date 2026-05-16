@@ -39,7 +39,10 @@ export function NotesPanel({
 }: NotesPanelProps) {
   return (
     <div className="flex-1 flex overflow-hidden">
-      <div className="w-64 border-r border-[var(--border)] bg-[var(--surface)] overflow-y-auto p-4 space-y-2">
+      <div
+        data-testid="notes-sidebar-list"
+        className="w-64 border-r border-[var(--border)] bg-[var(--surface)] overflow-y-auto p-4 space-y-2"
+      >
         <button
           onClick={() => {
             setSelectedNote({

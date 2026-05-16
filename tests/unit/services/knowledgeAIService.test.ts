@@ -5,6 +5,15 @@ const mockSearchService = vi.hoisted(() => ({
   searchNodes: vi.fn(),
 }));
 
+const mockDnsLookup = vi.hoisted(() =>
+  vi.fn(async () => [{ address: "8.8.8.8", family: 4 } as const])
+);
+
+vi.mock("node:dns/promises", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("node:dns/promises")>();
+  return { ...actual, lookup: mockDnsLookup };
+});
+
 const mockNodeService = vi.hoisted(() => ({
   createNode: vi.fn(),
 }));
@@ -40,72 +49,78 @@ const fakeNode = {
 };
 
 describe("isPublicUrl — SSRF protection", () => {
-  let isPublicUrl: (url: string) => boolean;
+  let isPublicUrl: (url: string) => Promise<boolean>;
 
   beforeEach(async () => {
     vi.resetModules();
+    mockDnsLookup.mockResolvedValue([{ address: "8.8.8.8", family: 4 }]);
     ({ isPublicUrl } = await import("@/services/knowledgeAIService"));
   });
 
-  it("dopuszcza publiczne HTTPS URL", () => {
-    expect(isPublicUrl("https://example.com/path")).toBe(true);
-    expect(isPublicUrl("https://jan.ai")).toBe(true);
-    expect(isPublicUrl("http://vercel.com")).toBe(true);
+  it("dopuszcza publiczne HTTPS URL", async () => {
+    await expect(isPublicUrl("https://example.com/path")).resolves.toBe(true);
+    await expect(isPublicUrl("https://jan.ai")).resolves.toBe(true);
+    await expect(isPublicUrl("http://vercel.com")).resolves.toBe(true);
   });
 
-  it("blokuje localhost", () => {
-    expect(isPublicUrl("http://localhost")).toBe(false);
-    expect(isPublicUrl("http://localhost:8080/admin")).toBe(false);
-    expect(isPublicUrl("https://localhost/secret")).toBe(false);
+  it("blokuje localhost", async () => {
+    await expect(isPublicUrl("http://localhost")).resolves.toBe(false);
+    await expect(isPublicUrl("http://localhost:8080/admin")).resolves.toBe(false);
+    await expect(isPublicUrl("https://localhost/secret")).resolves.toBe(false);
   });
 
-  it("blokuje 127.x.x.x loopback", () => {
-    expect(isPublicUrl("http://127.0.0.1")).toBe(false);
-    expect(isPublicUrl("http://127.1.2.3:9000")).toBe(false);
+  it("blokuje 127.x.x.x loopback", async () => {
+    await expect(isPublicUrl("http://127.0.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://127.1.2.3:9000")).resolves.toBe(false);
   });
 
-  it("blokuje 169.254.x.x — cloud metadata (AWS/GCP/Azure)", () => {
-    expect(isPublicUrl("http://169.254.169.254/latest/meta-data/")).toBe(false);
-    expect(isPublicUrl("http://169.254.169.254/latest/meta-data/iam/security-credentials/")).toBe(
-      false
-    );
+  it("blokuje 169.254.x.x — cloud metadata (AWS/GCP/Azure)", async () => {
+    await expect(isPublicUrl("http://169.254.169.254/latest/meta-data/")).resolves.toBe(false);
+    await expect(
+      isPublicUrl("http://169.254.169.254/latest/meta-data/iam/security-credentials/")
+    ).resolves.toBe(false);
   });
 
-  it("blokuje prywatne zakresy RFC 1918", () => {
-    expect(isPublicUrl("http://10.0.0.1")).toBe(false);
-    expect(isPublicUrl("http://10.255.255.255")).toBe(false);
-    expect(isPublicUrl("http://172.16.0.1")).toBe(false);
-    expect(isPublicUrl("http://172.31.255.255")).toBe(false);
-    expect(isPublicUrl("http://192.168.1.1")).toBe(false);
-    expect(isPublicUrl("http://192.168.100.200:8080")).toBe(false);
+  it("blokuje prywatne zakresy RFC 1918", async () => {
+    await expect(isPublicUrl("http://10.0.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://10.255.255.255")).resolves.toBe(false);
+    await expect(isPublicUrl("http://172.16.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://172.31.255.255")).resolves.toBe(false);
+    await expect(isPublicUrl("http://192.168.1.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://192.168.100.200:8080")).resolves.toBe(false);
   });
 
-  it("blokuje 100.64-127.x.x shared address space", () => {
-    expect(isPublicUrl("http://100.64.0.1")).toBe(false);
-    expect(isPublicUrl("http://100.127.255.255")).toBe(false);
+  it("blokuje 100.64-127.x.x shared address space", async () => {
+    await expect(isPublicUrl("http://100.64.0.1")).resolves.toBe(false);
+    await expect(isPublicUrl("http://100.127.255.255")).resolves.toBe(false);
   });
 
-  it("blokuje IPv6 loopback i prywatne zakresy", () => {
-    expect(isPublicUrl("http://[::1]/")).toBe(false);
-    expect(isPublicUrl("http://[fc00::1]")).toBe(false);
-    expect(isPublicUrl("http://[fd12:3456:789a::1]")).toBe(false);
-    expect(isPublicUrl("http://[fe80::1]")).toBe(false);
+  it("blokuje IPv6 loopback i prywatne zakresy", async () => {
+    await expect(isPublicUrl("http://[::1]/")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fc00::1]")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fd12:3456:789a::1]")).resolves.toBe(false);
+    await expect(isPublicUrl("http://[fe80::1]")).resolves.toBe(false);
   });
 
-  it("blokuje protokoły inne niż http/https", () => {
-    expect(isPublicUrl("ftp://example.com")).toBe(false);
-    expect(isPublicUrl("file:///etc/passwd")).toBe(false);
-    expect(isPublicUrl("javascript:alert(1)")).toBe(false);
+  it("blokuje hostnames które rozwiązują się na prywatne IP", async () => {
+    mockDnsLookup.mockResolvedValueOnce([{ address: "10.0.0.1", family: 4 }]);
+    await expect(isPublicUrl("http://evil.example/private")).resolves.toBe(false);
   });
 
-  it("blokuje nieprawidłowe URL", () => {
-    expect(isPublicUrl("not-a-url")).toBe(false);
-    expect(isPublicUrl("")).toBe(false);
+  it("blokuje protokoły inne niż http/https", async () => {
+    await expect(isPublicUrl("ftp://example.com")).resolves.toBe(false);
+    await expect(isPublicUrl("file:///etc/passwd")).resolves.toBe(false);
+    await expect(isPublicUrl("javascript:alert(1)")).resolves.toBe(false);
   });
 
-  it("nie blokuje 172.15.x.x ani 172.32.x.x — poza zakresem prywatnym", () => {
-    expect(isPublicUrl("http://172.15.0.1")).toBe(true);
-    expect(isPublicUrl("http://172.32.0.1")).toBe(true);
+  it("blokuje nieprawidłowe URL", async () => {
+    await expect(isPublicUrl("not-a-url")).resolves.toBe(false);
+    await expect(isPublicUrl("")).resolves.toBe(false);
+  });
+
+  it("nie blokuje 172.15.x.x ani 172.32.x.x — poza zakresem prywatnym", async () => {
+    await expect(isPublicUrl("http://172.15.0.1")).resolves.toBe(true);
+    await expect(isPublicUrl("http://172.32.0.1")).resolves.toBe(true);
   });
 });
 

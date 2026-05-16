@@ -87,6 +87,7 @@ export default function HomeView({
 
   useEffect(() => {
     if (user?.id) setActiveSessionState(getActiveSession(user.id));
+    else setActiveSessionState(null);
   }, [user?.id]);
 
   const handleStartSession = useCallback(
@@ -109,8 +110,7 @@ export default function HomeView({
     setSessionEndError(null);
     const started = new Date(activeSession.startedAt);
     const now = Date.now();
-    const date = new Date();
-    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const dateStr = `${started.getFullYear()}-${String(started.getMonth() + 1).padStart(2, "0")}-${String(started.getDate()).padStart(2, "0")}`;
     const startMinutes = Math.floor((started.getHours() * 60 + started.getMinutes()) / 15) * 15;
     const durationMinutes = Math.ceil((now - started.getTime()) / (15 * 60 * 1000)) * 15;
     try {

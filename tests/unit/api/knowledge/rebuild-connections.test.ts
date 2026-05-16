@@ -52,6 +52,7 @@ describe("POST /api/knowledge/rebuild-connections", () => {
   it("returns 0 when no nodes exist", async () => {
     mockListNodes.mockResolvedValue([]);
     const res = await POST(makeRequest());
+    expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.rebuilt).toBe(0);
     expect(mockBuildConnections).not.toHaveBeenCalled();

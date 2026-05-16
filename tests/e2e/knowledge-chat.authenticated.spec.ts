@@ -17,17 +17,16 @@ test.describe("Knowledge Chat", () => {
   });
 
   test("sends a message and receives a non-empty AI response", async ({ page }) => {
+    const assistant = page.locator("[data-testid='chat-message-assistant']");
+    const beforeCount = await assistant.count();
+
     await page.getByPlaceholder(/wpisz wiedzę|type knowledge/i).fill("Co to jest Nexus?");
     await page.keyboard.press("Enter");
 
-    // Wait for AI response to appear
-    await expect(page.locator("[data-testid='chat-message-assistant']").first()).toBeVisible({
-      timeout: 30000,
-    });
-    const responseText = await page
-      .locator("[data-testid='chat-message-assistant']")
-      .first()
-      .textContent();
+    await expect
+      .poll(async () => assistant.count(), { timeout: 30000 })
+      .toBeGreaterThan(beforeCount);
+    const responseText = await assistant.last().textContent();
     expect(responseText?.length).toBeGreaterThan(10);
   });
 

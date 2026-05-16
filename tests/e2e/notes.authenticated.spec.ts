@@ -32,8 +32,12 @@ test.describe("Notes", () => {
       await page.waitForTimeout(1500);
     }
 
-    // Note should appear in the list
-    await expect(page.getByText("Test notatka e2e")).toBeVisible({ timeout: 15000 });
+    // Note should persist in sidebar list after reload (avoids matching unsaved editor text only)
+    await page.reload();
+    await expect(page.getByTestId("notes-sidebar-list")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByTestId("notes-sidebar-list").getByText("Test notatka e2e")).toBeVisible({
+      timeout: 15000,
+    });
   });
 
   test("note title is editable", async ({ page }) => {
@@ -45,11 +49,9 @@ test.describe("Notes", () => {
       .getByRole("textbox", { name: /tytuł|title/i })
       .or(page.locator("input[placeholder*='Tytuł'], input[placeholder*='title']").first());
 
-    if (await titleInput.isVisible({ timeout: 3000 }).catch(() => false)) {
-      await titleInput.fill("Moja notatka e2e");
-      // Save the note so the title appears as a text node in the list
-      await page.getByRole("button", { name: /zapisz|save/i }).click();
-      await expect(page.getByText("Moja notatka e2e").first()).toBeVisible({ timeout: 10000 });
-    }
+    await expect(titleInput).toBeVisible({ timeout: 3000 });
+    await titleInput.fill("Moja notatka e2e");
+    await page.getByRole("button", { name: /zapisz|save/i }).click();
+    await expect(page.getByText("Moja notatka e2e").first()).toBeVisible({ timeout: 10000 });
   });
 });
