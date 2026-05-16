@@ -1,5 +1,5 @@
 import React, { memo } from "react";
-import { Handle, Position, type NodeProps } from "@xyflow/react";
+import { Handle, Position, type Node, type NodeProps } from "@xyflow/react";
 
 export type KnowledgeNodeType = "note" | "task" | "resource" | "chat" | "document" | "event";
 
@@ -10,6 +10,8 @@ export interface KnowledgeNodeData {
   tags?: string[];
   [key: string]: unknown;
 }
+
+export type KnowledgeNode = Node<KnowledgeNodeData>;
 
 const NODE_COLORS: Record<KnowledgeNodeType, { bg: string; border: string; text: string }> = {
   chat: { bg: "rgba(96,165,250,0.15)", border: "#60a5fa", text: "#93c5fd" },
@@ -32,7 +34,7 @@ const TYPE_ICONS: Record<KnowledgeNodeType, string> = {
 export const KnowledgeNodeCard = memo(function KnowledgeNodeCard({
   data,
   selected,
-}: NodeProps<KnowledgeNodeData>) {
+}: NodeProps<KnowledgeNode>) {
   const colors = NODE_COLORS[data.type] ?? NODE_COLORS.note;
 
   return (
