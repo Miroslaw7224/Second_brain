@@ -89,7 +89,8 @@ function dragTo(taskText: string, columnName: string) {
 describe("ProjectTasksBoard (przez ProjectsView)", () => {
   it("renderuje cztery kolumny z zadaniami i licznik Teraz", async () => {
     render(<ProjectsView apiFetch={makeApi(detail(board()))} />);
-    await screen.findByRole("region", { name: "Kolumna Teraz" });
+    // Pierwsze renderowanie ProjectsView w pliku: pod obciążeniem pełnego przebiegu przekracza domyślne 1 s.
+    await screen.findByRole("region", { name: "Kolumna Teraz" }, { timeout: 5000 });
     expect(within(column("Teraz")).getByText("Drugie")).toBeInTheDocument();
     expect(within(column("Teraz")).getByText("1/3")).toBeInTheDocument();
     expect(within(column("Następne")).getByText("Trzecie")).toBeInTheDocument();
