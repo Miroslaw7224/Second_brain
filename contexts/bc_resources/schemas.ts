@@ -36,6 +36,7 @@ export type ResourceDto = {
   isFavorite?: boolean;
   createdAt?: string;
   updatedAt?: string;
+  notePath?: string;
 };
 
 export function toResourceDto(resource: Resource): ResourceDto {
@@ -50,5 +51,6 @@ export function toResourceDto(resource: Resource): ResourceDto {
     isFavorite: resource.isFavorite,
     createdAt: resource.createdAt,
     updatedAt: resource.updatedAt,
+    notePath: resource.notePath,
   };
 }

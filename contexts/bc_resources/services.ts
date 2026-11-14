@@ -1,3 +1,4 @@
+import { buildKnowledgeLinkIndex, normalizeHost } from "@/contexts/bc_nexus_docs/services";
 import * as repositories from "./repositories";
 import { TAG_MERGE_MAP, type Resource } from "./models";
 
@@ -35,8 +36,28 @@ export async function addResource(data: {
   });
 }
 
+function attachNotePaths(resources: Resource[]): Resource[] {
+  if (resources.length === 0) return resources;
+  let index: ReturnType<typeof buildKnowledgeLinkIndex>;
+  try {
+    index = buildKnowledgeLinkIndex();
+  } catch {
+    return resources; // most jest dodatkiem: lista zasobów ładuje się bez niego
+  }
+  return resources.map((r) => {
+    const host = normalizeHost(r.url);
+    const notePath =
+      r.noteId !== undefined && index.paths.has(r.noteId)
+        ? r.noteId
+        : host !== null
+          ? index.hostToPath.get(host)
+          : undefined;
+    return notePath === undefined ? r : { ...r, notePath };
+  });
+}
+
 export async function getResources(): Promise<Resource[]> {
-  return repositories.getResources();
+  return attachNotePaths(await repositories.getResources());
 }
 
 export async function deleteResource(resourceId: string): Promise<void> {

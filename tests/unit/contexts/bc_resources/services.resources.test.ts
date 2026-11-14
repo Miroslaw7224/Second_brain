@@ -5,12 +5,24 @@ const mockAdd = vi.hoisted(() => vi.fn());
 const mockGetAll = vi.hoisted(() => vi.fn());
 const mockDelete = vi.hoisted(() => vi.fn());
 const mockUpdate = vi.hoisted(() => vi.fn());
+const mockLinkIndex = vi.hoisted(() => vi.fn());
 
 vi.mock("@/contexts/bc_resources/repositories", () => ({
   addResource: (...a: unknown[]) => mockAdd(...a),
   getResources: (...a: unknown[]) => mockGetAll(...a),
   deleteResource: (...a: unknown[]) => mockDelete(...a),
   updateResource: (...a: unknown[]) => mockUpdate(...a),
+}));
+
+vi.mock("@/contexts/bc_nexus_docs/services", () => ({
+  buildKnowledgeLinkIndex: (...a: unknown[]) => mockLinkIndex(...a),
+  normalizeHost: (url: string) => {
+    try {
+      return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+    } catch {
+      return null;
+    }
+  },
 }));
 
 import {
@@ -31,6 +43,8 @@ describe("bc_resources services (resources)", () => {
     mockGetAll.mockReset();
     mockDelete.mockReset();
     mockUpdate.mockReset();
+    mockLinkIndex.mockReset();
+    mockLinkIndex.mockReturnValue({ hostToPath: new Map(), paths: new Set() });
     vi.stubGlobal(
       "fetch",
       vi
@@ -230,5 +244,50 @@ describe("normalizeTags", () => {
   });
   it("zwraca pustą tablicę dla pustego wejścia", () => {
     expect(normalizeTags([])).toEqual([]);
+  });
+});
+
+describe("getResources: notePath", () => {
+  const base = { description: "", title: "T", tags: [] as string[] };
+  const index = {
+    hostToPath: new Map([["github.com", "Knowledge/gh.md"]]),
+    paths: new Set(["Knowledge/gh.md", "Knowledge/own.md"]),
+  };
+
+  beforeEach(() => {
+    mockGetAll.mockReset();
+    mockLinkIndex.mockReset();
+  });
+
+  it("noteId wskazujący widoczny dokument wygrywa nad hostem", async () => {
+    mockLinkIndex.mockReturnValue(index);
+    mockGetAll.mockResolvedValue([
+      { id: "1", url: "https://github.com/a", noteId: "Knowledge/own.md", ...base },
+    ]);
+    expect((await getResources())[0].notePath).toBe("Knowledge/own.md");
+  });
+
+  it("noteId spoza listy jest ignorowany i działa host", async () => {
+    mockLinkIndex.mockReturnValue(index);
+    mockGetAll.mockResolvedValue([
+      { id: "1", url: "https://www.github.com/a", noteId: "Knowledge/nie-ma.md", ...base },
+    ]);
+    expect((await getResources())[0].notePath).toBe("Knowledge/gh.md");
+  });
+
+  it("brak trafienia: brak notePath", async () => {
+    mockLinkIndex.mockReturnValue(index);
+    mockGetAll.mockResolvedValue([{ id: "1", url: "https://nigdzie.example", ...base }]);
+    expect((await getResources())[0].notePath).toBeUndefined();
+  });
+
+  it("błąd budowy indeksu nie psuje listy", async () => {
+    mockLinkIndex.mockImplementation(() => {
+      throw new Error("vault");
+    });
+    mockGetAll.mockResolvedValue([{ id: "1", url: "https://github.com/a", ...base }]);
+    const result = await getResources();
+    expect(result).toHaveLength(1);
+    expect(result[0].notePath).toBeUndefined();
   });
 });

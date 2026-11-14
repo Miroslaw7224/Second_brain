@@ -10,6 +10,7 @@ export type Resource = {
   isFavorite?: boolean;
   createdAt?: string; // ISO 8601
   updatedAt?: string; // ISO 8601
+  notePath?: string; // pochodne: ścieżka dokumentu Knowledge/, nie zapisywane w YAML
 };
 
 /** Scalanie wariantów tagów przy zapisie: klucz = tag małymi literami, wartość = tag docelowy. */
