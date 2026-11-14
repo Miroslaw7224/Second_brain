@@ -28,3 +28,43 @@ export type ParsedCodex = {
   warnings: CodexWarning[];
   wikilinks: string[];
 };
+
+/** Strefa zapisu dziennika: `work` trafia wyłącznie do `Work/` (ignorowanego przez git). */
+export type OwnerZone = "personal" | "work";
+
+type EventBase = { owner: OwnerZone; projectId?: string };
+
+/** Zdarzenie przyjmowane z API: `ts` nadaje serwer, `run` dla `start` też. */
+export type ChecklistEventInput =
+  | (EventBase & { type: "start"; checklist: string; task: string })
+  | (EventBase & { type: "toggle"; run: string; item: string; checked: boolean })
+  | (EventBase & { type: "note"; run: string; item: string; text: string })
+  | (EventBase & { type: "end"; run: string; done: number; total: number });
+
+type Stamped = { run: string; ts: string };
+
+/** Zdarzenie zapisane w dzienniku (jedna linia JSON). */
+export type ChecklistEvent =
+  | (EventBase & Stamped & { type: "start"; checklist: string; task: string })
+  | (EventBase & Stamped & { type: "toggle"; item: string; checked: boolean })
+  | (EventBase & Stamped & { type: "note"; item: string; text: string })
+  | (EventBase & Stamped & { type: "end"; done: number; total: number });
+
+export type ItemState = { checked: boolean; note: string };
+
+export type RunState = {
+  run: string;
+  owner: OwnerZone;
+  checklist: string;
+  task: string;
+  startedAt: string;
+  ended: boolean;
+  items: Record<string, ItemState>;
+};
+
+export type JournalState = {
+  runs: RunState[];
+  eventCount: number;
+  skippedLines: number;
+  unterminatedTail: boolean;
+};

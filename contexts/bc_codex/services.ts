@@ -1,11 +1,14 @@
-import { allocateName, slugify } from "@/lib/nexus/slug";
 import type {
   Checklist,
+  ChecklistEvent,
   CodexRule,
   CodexSection,
   CodexWarning,
+  JournalState,
+  OwnerZone,
   ParsedCodex,
   RuleLevel,
+  RunState,
   SectionBlock,
 } from "./models";
 
@@ -15,6 +18,26 @@ const ITEM_RE = /^- \[( |x|X)\] (.+)$/;
 const REF_RE = /\[([A-Z][A-Z0-9]*-[0-9]+)\]/g;
 const CHECKLISTS_HEADING_RE = /^(\d+\.\s*)?Checklisty$/i;
 const WIKILINK_RE = /\[\[([^\]\n]+)\]\]/g;
+
+/** Krótki identyfikator z tytułu: małe litery, `[a-z0-9-]`, bez znaków diakrytycznych. Nigdy pusty. */
+function slugify(title: string): string {
+  const slug = title
+    .replace(/[łŁ]/g, "l")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return slug === "" ? "bez-tytulu" : slug;
+}
+
+/** `base`, a gdy zajęte `base-2`, `base-3`, … */
+function allocateName(base: string, isTaken: (name: string) => boolean): string {
+  if (!isTaken(base)) return base;
+  for (let n = 2; ; n += 1) {
+    if (!isTaken(`${base}-${n}`)) return `${base}-${n}`;
+  }
+}
 
 function firstLineAfterFrontmatter(lines: string[]): number {
   if (lines[0] !== "---") return 0;
@@ -166,4 +189,93 @@ export function parseCodex(source: string): ParsedCodex {
   }
 
   return { title, sections, rules, checklists, warnings, wikilinks };
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+const nonEmpty = (value: unknown): value is string => typeof value === "string" && value !== "";
+const count = (value: unknown): value is number =>
+  typeof value === "number" && Number.isInteger(value) && value >= 0;
+
+/** Linia dziennika → zdarzenie albo `null`, gdy kształt nie zgadza się ze specem §4.2 (m.in. brak `owner`). */
+function parseEvent(value: unknown): ChecklistEvent | null {
+  if (!isRecord(value)) return null;
+  const { run, ts, owner, projectId, type } = value;
+  if (!nonEmpty(run) || !nonEmpty(ts)) return null;
+  if (owner !== "personal" && owner !== "work") return null;
+  if (projectId !== undefined && typeof projectId !== "string") return null;
+  const base = {
+    run,
+    ts,
+    owner: owner as OwnerZone,
+    ...(typeof projectId === "string" ? { projectId } : {}),
+  };
+  if (type === "start" && nonEmpty(value.checklist) && typeof value.task === "string") {
+    return { ...base, type, checklist: value.checklist, task: value.task };
+  }
+  if (type === "toggle" && nonEmpty(value.item) && typeof value.checked === "boolean") {
+    return { ...base, type, item: value.item, checked: value.checked };
+  }
+  if (type === "note" && nonEmpty(value.item) && typeof value.text === "string") {
+    return { ...base, type, item: value.item, text: value.text };
+  }
+  if (type === "end" && count(value.done) && count(value.total)) {
+    return { ...base, type, done: value.done, total: value.total };
+  }
+  return null;
+}
+
+/**
+ * Odtwarza stan uruchomień z dziennika JSONL (czysta funkcja). Kolejność zdarzeń to kolejność
+ * w pliku (`ts` informacyjnie). Linia uszkodzona albo niezgodna z kształtem zdarzenia jest pomijana
+ * i liczona; ostatnia linia bez `\n` jest ignorowana (ktoś może ją jeszcze dopisywać).
+ */
+export function replayJournal(text: string | null): JournalState {
+  const state: JournalState = { runs: [], eventCount: 0, skippedLines: 0, unterminatedTail: false };
+  if (text === null || text === "") return state;
+  const lines = text.split("\n");
+  const tail = lines.pop() ?? "";
+  state.unterminatedTail = tail.trim() !== "";
+  const byRun = new Map<string, RunState>();
+  for (const line of lines) {
+    if (line.trim() === "") continue;
+    let event: ChecklistEvent | null = null;
+    try {
+      event = parseEvent(JSON.parse(line));
+    } catch {
+      event = null;
+    }
+    if (!event) {
+      state.skippedLines += 1;
+      continue;
+    }
+    state.eventCount += 1;
+    if (event.type === "start") {
+      if (!byRun.has(event.run)) {
+        const created: RunState = {
+          run: event.run,
+          owner: event.owner,
+          checklist: event.checklist,
+          task: event.task,
+          startedAt: event.ts,
+          ended: false,
+          items: {},
+        };
+        byRun.set(event.run, created);
+        state.runs.push(created);
+      }
+      continue;
+    }
+    const run = byRun.get(event.run);
+    if (!run) continue;
+    if (event.type === "end") {
+      run.ended = true;
+    } else {
+      const item = run.items[event.item] ?? { checked: false, note: "" };
+      if (event.type === "toggle") item.checked = event.checked;
+      else item.note = event.text;
+      run.items[event.item] = item;
+    }
+  }
+  return state;
 }
