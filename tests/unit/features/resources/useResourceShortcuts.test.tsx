@@ -47,6 +47,15 @@ describe("useResourceShortcuts", () => {
     expect(screen.getByLabelText("szukaj")).not.toHaveFocus();
   });
 
+  it("Esc w innym polu tekstowym nie woła onClear", async () => {
+    const user = userEvent.setup();
+    const onClear = vi.fn();
+    render(<Harness onClear={onClear} />);
+    await user.click(screen.getByLabelText("inne"));
+    await user.keyboard("{Escape}");
+    expect(onClear).not.toHaveBeenCalled();
+  });
+
   it("Esc nic nie robi, gdy enabled=false", async () => {
     const user = userEvent.setup();
     const onClear = vi.fn();

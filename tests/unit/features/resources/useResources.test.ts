@@ -138,3 +138,38 @@ test("dense zapamiętuje wybór w localStorage", async () => {
   const again = renderHook(() => useResources(apiFetch, {}));
   await waitFor(() => expect(again.result.current.dense).toBe(true));
 });
+
+test("handleSaveEdit: odpowiedź bez notePath usuwa stary notePath zasobu", async () => {
+  const original = {
+    id: "e1",
+    description: "",
+    url: "https://a.example",
+    title: "A",
+    tags: [],
+    notePath: "Knowledge/a.md",
+  };
+  apiFetch.mockImplementation(async (url: string, options?: RequestInit) => {
+    if (options?.method === "PUT") {
+      return {
+        ok: true,
+        json: async () => ({
+          id: "e1",
+          description: "",
+          url: "https://b.example",
+          title: "A",
+          tags: [],
+        }),
+      };
+    }
+    return { ok: true, json: async () => [original] };
+  });
+  const { result } = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.resources[0].notePath).toBe("Knowledge/a.md");
+  act(() => result.current.openEditModal(result.current.resources[0]));
+  await act(async () => {
+    await result.current.handleSaveEdit();
+  });
+  expect(result.current.resources[0].url).toBe("https://b.example");
+  expect(result.current.resources[0].notePath).toBeUndefined();
+});

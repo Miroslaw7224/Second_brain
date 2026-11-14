@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import type { NoteResource, TranslationDict } from "./resourceTypes";
 import {
   collectResourceTags,
@@ -214,11 +214,11 @@ export function useResources(
     setFixOnly(false);
   };
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setSelectedTags([]);
     setFixOnly(false);
     setSearchQuery("");
-  };
+  }, []);
 
   const toggleFixOnly = () => setFixOnly((v) => !v);
 
@@ -391,7 +391,11 @@ export function useResources(
       if (res.ok) {
         const updated = await res.json();
         setResources((prev) =>
-          prev.map((r) => (r.id === editingResource.id ? { ...r, ...updated, id: r.id } : r))
+          prev.map((r) =>
+            r.id === editingResource.id
+              ? { ...r, ...updated, id: r.id, notePath: updated.notePath }
+              : r
+          )
         );
         closeEditModal();
       }

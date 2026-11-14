@@ -78,7 +78,11 @@ export function NotesPanel({
   const [split, setSplit] = useState(false);
   const [nexusPath, setNexusPath] = useState<string | null>(initialNexusPath ?? null);
   useEffect(() => {
-    if (initialNexusPath) onInitialNexusPathConsumed?.();
+    if (initialNexusPath) {
+      setSelectedNote(null);
+      setNoteEditMode(false);
+      onInitialNexusPathConsumed?.();
+    }
     // tylko przy montowaniu: panel jest montowany warunkowo przy wejściu na kartę Notatki
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

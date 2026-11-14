@@ -22,6 +22,8 @@ export function useResourceShortcuts(opts: {
         return;
       }
       if (e.key === "Escape" && enabled) {
+        // Esc w polach formularza nie kasuje filtrów; tylko poza polami albo w wyszukiwarce.
+        if (isTypingTarget(e.target) && e.target !== searchRef.current) return;
         onClear();
         searchRef.current?.blur();
       }

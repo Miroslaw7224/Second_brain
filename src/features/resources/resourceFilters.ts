@@ -43,7 +43,7 @@ export function countResourceTags(resources: readonly NoteResource[]): TagCount[
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pl"));
 }
 
-const CLOUDFLARE_TITLE = /^just a moment/i;
+const CLOUDFLARE_TITLE = /^(just a moment|attention required)/i;
 
 /** Zasób do poprawy: tytuł ze strony Cloudflare, tytuł równy URL-owi albo brak miniatury. */
 export function resourceNeedsFix(r: NoteResource): boolean {

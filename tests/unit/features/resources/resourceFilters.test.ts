@@ -60,6 +60,9 @@ describe("resourceNeedsFix", () => {
     expect(resourceNeedsFix(res({ ...ok, title: "Just a moment…" }))).toBe(true);
     expect(resourceNeedsFix(res({ ...ok, title: "just a moment..." }))).toBe(true);
   });
+  it("true dla tytułu „Attention Required” (zgodnie z isBlockedTitle)", () => {
+    expect(resourceNeedsFix(res({ ...ok, title: "Attention Required! | Cloudflare" }))).toBe(true);
+  });
   it("true, gdy tytuł równa się URL", () => {
     expect(resourceNeedsFix(res({ ...ok, title: "https://a.com" }))).toBe(true);
   });
