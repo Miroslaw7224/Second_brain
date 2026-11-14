@@ -14,7 +14,7 @@ export function filterResourcesByTags(
   return resources.filter((r) => (r.tags || []).some((tag) => selectedTags.includes(tag)));
 }
 
-/** Matches a trimmed, case-insensitive query against title, description, or URL. */
+/** Matches a trimmed, case-insensitive query against title, description, URL, or tags. */
 export function filterResourcesBySearch(
   resources: readonly NoteResource[],
   searchQuery: string
@@ -25,7 +25,8 @@ export function filterResourcesBySearch(
     (r) =>
       (r.title ?? "").toLowerCase().includes(q) ||
       (r.description ?? "").toLowerCase().includes(q) ||
-      (r.url ?? "").toLowerCase().includes(q)
+      (r.url ?? "").toLowerCase().includes(q) ||
+      (r.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
   );
 }
 
