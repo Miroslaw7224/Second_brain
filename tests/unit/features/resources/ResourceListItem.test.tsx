@@ -164,4 +164,15 @@ describe("ResourceListItem: otwieranie i edycja", () => {
     expect(onOpenEdit).toHaveBeenCalledWith(resource);
     expect(open).not.toHaveBeenCalled();
   });
+
+  it("w trybie gęstym ukrywa opis i tagi", () => {
+    render(
+      <ul>
+        <ResourceListItem {...baseProps} dense resource={mockResource()} onOpenEdit={vi.fn()} />
+      </ul>
+    );
+    expect(screen.getByText("Example Title")).toBeInTheDocument();
+    expect(screen.queryByText("Test description")).not.toBeInTheDocument();
+    expect(screen.queryByText("tag1")).not.toBeInTheDocument();
+  });
 });

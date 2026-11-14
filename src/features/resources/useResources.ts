@@ -78,6 +78,16 @@ function resolveLabels(t: TranslationDict): UseResourcesLabels {
   };
 }
 
+const DENSE_KEY = "monolith.resources.dense";
+
+function readDense(): boolean {
+  try {
+    return window.localStorage.getItem(DENSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export interface UseResourcesResult {
   resources: NoteResource[];
   loading: boolean;
@@ -92,6 +102,8 @@ export interface UseResourcesResult {
   fixOnly: boolean;
   toggleFixOnly: () => void;
   fixCount: number;
+  dense: boolean;
+  setDense: (v: boolean) => void;
   filteredResources: NoteResource[];
   labels: UseResourcesLabels;
   // Add form
@@ -156,6 +168,16 @@ export function useResources(
   const [blockFormatError, setBlockFormatError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [fixOnly, setFixOnly] = useState(false);
+  const [dense, setDenseState] = useState(false);
+  useEffect(() => setDenseState(readDense()), []);
+  const setDense = (value: boolean) => {
+    setDenseState(value);
+    try {
+      window.localStorage.setItem(DENSE_KEY, value ? "1" : "0");
+    } catch {
+      /* brak storage: wybór działa tylko do końca sesji */
+    }
+  };
   const [formExpanded, setFormExpanded] = useState(false);
   const [blockFormatExpanded, setBlockFormatExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -410,6 +432,8 @@ export function useResources(
     fixOnly,
     toggleFixOnly,
     fixCount,
+    dense,
+    setDense,
     filteredResources,
     labels,
     addDescription,

@@ -13,6 +13,7 @@ export interface ResourceListItemProps {
   onToggleFavorite: (r: NoteResource) => void;
   onCopy: (url: string) => void;
   onDelete: (id: string) => void;
+  dense?: boolean;
 }
 
 export function ResourceListItem({
@@ -24,6 +25,7 @@ export function ResourceListItem({
   onToggleFavorite,
   onCopy,
   onDelete,
+  dense = false,
 }: ResourceListItemProps) {
   const favicon = getFaviconUrl(r.url);
   const [showFavicon, setShowFavicon] = React.useState(true);
@@ -31,7 +33,7 @@ export function ResourceListItem({
   const openUrl = () => window.open(r.url, "_blank", "noopener,noreferrer");
 
   return (
-    <li className="ars-res-item">
+    <li className={`ars-res-item${dense ? " ars-res-item--dense" : ""}`}>
       <div
         className="ars-res-main"
         onClick={openUrl}
@@ -70,17 +72,19 @@ export function ResourceListItem({
               <span className="ars-res-title-text">{r.title}</span>
             )}
           </div>
-          <p className="ars-res-desc">{r.description}</p>
-          <div className="ars-res-meta">
-            {(r.tags || []).map((tag) => (
-              <span key={tag} className="chip ars-res-tag">
-                <span className="ars-hash" aria-hidden="true">
-                  #
+          {!dense && <p className="ars-res-desc">{r.description}</p>}
+          {!dense && (
+            <div className="ars-res-meta">
+              {(r.tags || []).map((tag) => (
+                <span key={tag} className="chip ars-res-tag">
+                  <span className="ars-hash" aria-hidden="true">
+                    #
+                  </span>
+                  {tag}
                 </span>
-                {tag}
-              </span>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="ars-res-actions">

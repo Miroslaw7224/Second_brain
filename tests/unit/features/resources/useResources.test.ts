@@ -123,3 +123,14 @@ test("formularz dodawania jest domyślnie zwinięty", async () => {
   await waitFor(() => expect(result.current.loading).toBe(false));
   expect(result.current.formExpanded).toBe(false);
 });
+
+test("dense zapamiętuje wybór w localStorage", async () => {
+  localStorage.removeItem("monolith.resources.dense");
+  const { result } = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.dense).toBe(false);
+  act(() => result.current.setDense(true));
+  expect(localStorage.getItem("monolith.resources.dense")).toBe("1");
+  const again = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(again.result.current.dense).toBe(true));
+});

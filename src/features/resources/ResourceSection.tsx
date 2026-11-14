@@ -26,6 +26,8 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
     fixOnly,
     toggleFixOnly,
     fixCount,
+    dense,
+    setDense,
     filteredResources,
     labels,
     addDescription,
@@ -88,6 +90,14 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
             aria-label={labels.resourceSearchPlaceholder}
             title="/ — szukaj, Esc — wyczyść"
           />
+          <button
+            type="button"
+            className={`btn btn--sm ${dense ? "chip--accent" : "btn--ghost"}`}
+            aria-pressed={dense}
+            onClick={() => setDense(!dense)}
+          >
+            Gęsto
+          </button>
         </div>
       </header>
 
@@ -162,6 +172,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                   <ResourceListItem
                     key={r.id}
                     resource={r}
+                    dense={dense}
                     titleUnavailableLabel={labels.resourceTitleUnavailable}
                     resourceFavoriteLabel={labels.resourceFavorite}
                     resourceEditLabel={labels.resourceEdit}
