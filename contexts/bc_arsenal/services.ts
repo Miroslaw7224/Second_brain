@@ -1,7 +1,10 @@
 import { listProjects } from "@/contexts/bc_projects/services";
+import { DomainError } from "@/lib/errors";
 import {
   SUMMARY_MAX,
+  WORK_TARGET_NOTE,
   type ArsenalCatalog,
+  type DeployInstructions,
   type DeployMode,
   type DeployTarget,
   type Deployment,
@@ -156,4 +159,79 @@ export function listArsenal(): ArsenalCatalog {
   skills.sort((a, b) => cmp(a.name, b.name));
   prompts.sort((a, b) => cmp(a.name, b.name));
   return { entries: [...skills, ...prompts], targets, skipped };
+}
+
+function assertSlug(slug: string): void {
+  if (!SLUG_RE.test(slug)) throw new DomainError("Nieprawidłowy slug skilla", 400);
+}
+
+function findSkill(catalog: ArsenalCatalog, slug: string): SkillEntry {
+  assertSlug(slug);
+  const skill = catalog.entries.find((e): e is SkillEntry => e.kind === "skill" && e.slug === slug);
+  if (skill === undefined) throw new DomainError("Nie znaleziono skilla", 404);
+  return skill;
+}
+
+function findTarget(catalog: ArsenalCatalog, projectId: string): DeployTarget {
+  const target = catalog.targets.find((t) => t.id === projectId);
+  if (target === undefined) throw new DomainError("Nie znaleziono projektu", 404);
+  return target;
+}
+
+const shQuote = (value: string): string => `'${value.replace(/'/g, `'\\''`)}'`;
+
+/** Polecenie dla użytkownika (uruchamiane z katalogu Monolith); aplikacja niczego nie wykonuje. */
+export function buildDeployCommand(slug: string, localPath: string): string {
+  return `scripts/deploy-skill.sh ${slug} ${shQuote(localPath)}`;
+}
+
+/** Prompt dla agenta: dostosuj skill do projektu i zapisz w jego repozytorium. */
+export function buildAdaptPrompt(skill: SkillEntry, target: DeployTarget): string {
+  const dest = `${target.localPath}/.claude/skills/${skill.slug}`;
+  const lines = [
+    `Dostosuj skill „${skill.name}” do projektu „${target.name}” (${target.localPath}) i zapisz go w repozytorium projektu.`,
+    "",
+    "Kroki:",
+    `1. Przeczytaj ${target.localPath}/CLAUDE.md oraz plik opisujący stos projektu (package.json, pyproject.toml lub odpowiednik).`,
+    "2. Przepisz skill poniżej tak, by pasował do konwencji, komend i struktury katalogów tego projektu. Nie zmieniaj jego celu.",
+    `3. Zapisz wynik jako ${dest}/SKILL.md (frontmatter: name, description).`,
+  ];
+  if (skill.templates.length > 0) {
+    lines.push(`4. Szablony poniżej zapisz obok SKILL.md w ${dest}/ (dostosuj je tak samo).`);
+  }
+  lines.push(
+    "",
+    `Nie zmieniaj niczego poza ${dest}/ i niczego nie uruchamiaj.`,
+    "",
+    "--- SKILL ---",
+    skill.body.trimEnd(),
+    "--- KONIEC SKILLA ---"
+  );
+  for (const template of skill.templates) {
+    lines.push(
+      "",
+      `--- SZABLON: ${template.name} ---`,
+      template.text.trimEnd(),
+      "--- KONIEC SZABLONU ---"
+    );
+  }
+  return lines.join("\n");
+}
+
+export function getDeployInstructions(
+  slug: string,
+  projectId: string,
+  mode: DeployMode
+): DeployInstructions {
+  const catalog = listArsenal();
+  const skill = findSkill(catalog, slug);
+  const target = findTarget(catalog, projectId);
+  if (target.localPath.trim() === "") {
+    throw new DomainError("Projekt nie ma local_path w rejestrze", 409);
+  }
+  const text =
+    mode === "full"
+      ? buildDeployCommand(skill.slug, target.localPath)
+      : buildAdaptPrompt(skill, target);
+  return { mode, text, ...(target.owner === "work" && { note: WORK_TARGET_NOTE }) };
 }
