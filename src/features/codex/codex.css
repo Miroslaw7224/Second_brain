@@ -273,6 +273,7 @@
   border: 1px solid var(--line);
 }
 .kod-root .tabs__btn {
+  white-space: nowrap;
   height: 28px;
   padding: 0 var(--s-3);
   border: 0;
@@ -707,6 +708,7 @@
 }
 .kod-run__head {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--s-3);
@@ -1034,4 +1036,11 @@
 }
 .kod-task-input {
   width: 100%;
+}
+
+/* W jednej kolumnie spis treści nie może być przyklejony: przykrywałby reguły i checklistę. */
+@media (max-width: 1100px) {
+  .kod-toc {
+    position: static;
+  }
 }
