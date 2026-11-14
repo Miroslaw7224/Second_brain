@@ -1,0 +1,161 @@
+.asv-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  align-items: center;
+  margin-bottom: var(--s-4);
+}
+.asv-search {
+  min-width: 240px;
+  flex: 1;
+}
+.asv-chips {
+  display: flex;
+  gap: var(--s-2);
+}
+.asv-chip,
+.asv-btn {
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: var(--r-md);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-sm);
+  cursor: pointer;
+}
+.asv-chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  color: var(--accent-text, var(--accent));
+}
+.asv-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.asv-check {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.asv-layout {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  gap: var(--s-4);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .asv-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.asv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.asv-item {
+  display: grid;
+  gap: var(--s-1, 4px);
+  width: 100%;
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+  color: var(--text);
+  cursor: pointer;
+}
+.asv-item[aria-pressed="true"] {
+  border-color: var(--accent);
+}
+.asv-badge {
+  font-size: var(--fs-xs);
+  color: var(--accent);
+  text-transform: uppercase;
+}
+.asv-badge[data-kind="prompt"] {
+  color: #38bdf8;
+}
+.asv-summary,
+.asv-meta,
+.asv-hint {
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.asv-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+.asv-chip-static {
+  font-size: var(--fs-xs);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 0 var(--s-2);
+}
+
+.asv-detail {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4);
+  display: grid;
+  gap: var(--s-3);
+}
+.asv-body {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  background: var(--surface-2);
+  border-radius: var(--r-md);
+  padding: var(--s-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 420px;
+  overflow: auto;
+  margin: 0;
+}
+.asv-actions {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+.asv-templates,
+.asv-deployed {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.asv-templates li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.asv-deploy {
+  display: grid;
+  gap: var(--s-3);
+}
+.asv-modes {
+  border: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s-2);
+}
+.asv-note {
+  color: #fbbf24;
+  font-size: var(--fs-sm);
+}
+.asv-error {
+  color: #f87171;
+}
+.asv-ok {
+  color: #4ade80;
+  font-size: var(--fs-sm);
+}
+.asv-empty {
+  color: var(--muted);
+}
