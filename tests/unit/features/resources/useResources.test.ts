@@ -1,8 +1,10 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
-import { beforeEach, expect, test, vi } from "vitest";
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { useResources } from "@/src/features/resources/useResources";
 
 const apiFetch = vi.fn();
+
+afterEach(cleanup);
 
 beforeEach(() => {
   apiFetch.mockImplementation(async (url: string, options?: RequestInit) => {
@@ -116,6 +118,8 @@ test("toggleFixOnly zawęża listę do zasobów do poprawy", async () => {
   expect(result.current.filteredResources.map((r) => r.id)).toEqual(["bad"]);
   act(() => result.current.clearTagFilter());
   expect(result.current.fixOnly).toBe(false);
+  // Bez ulubionych sortowanie jest stabilne: kolejność wejściowa.
+  expect(result.current.filteredResources.map((r) => r.id)).toEqual(["ok", "bad"]);
 });
 
 test("formularz dodawania jest domyślnie zwinięty", async () => {

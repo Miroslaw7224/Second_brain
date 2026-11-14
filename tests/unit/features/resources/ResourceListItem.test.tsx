@@ -150,6 +150,31 @@ describe("ResourceListItem: otwieranie i edycja", () => {
     expect(onOpenEdit).not.toHaveBeenCalled();
   });
 
+  it("wiersz jest linkiem dostępnym z klawiatury: Enter i spacja otwierają URL, nie edycję", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ url: "https://open.me" })}
+          onOpenEdit={onOpenEdit}
+        />
+      </ul>
+    );
+    const row = screen.getByRole("link");
+    row.focus();
+    expect(row).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenLastCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    await user.keyboard(" ");
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(open).toHaveBeenLastCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    expect(onOpenEdit).not.toHaveBeenCalled();
+  });
+
   it("ołówek otwiera edycję i nie otwiera URL", async () => {
     const open = vi.spyOn(window, "open").mockReturnValue(null);
     const onOpenEdit = vi.fn();
