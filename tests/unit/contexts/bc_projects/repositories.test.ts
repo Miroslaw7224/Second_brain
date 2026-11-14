@@ -13,11 +13,11 @@ import {
 } from "@/contexts/bc_projects/repositories";
 import { ConflictError, DomainError, NotFoundError } from "@/lib/errors";
 import { PathOutsideVaultError, WorkAreaBlockedError } from "@/lib/nexus/vault-fs";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const REGISTRY = "Projects/_registry.yaml";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 function entry(
   partial: Partial<RegistryEntry> & Pick<RegistryEntry, "id" | "folder">

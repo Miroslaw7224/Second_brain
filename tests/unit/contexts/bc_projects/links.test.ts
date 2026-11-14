@@ -5,9 +5,9 @@ import { readRegistry } from "@/contexts/bc_projects/repositories";
 import { ProjectPatchInputSchema } from "@/contexts/bc_projects/schemas";
 import { setProjectLinks } from "@/contexts/bc_projects/services";
 import { PATCH as detailPATCH } from "@/app/api/projects/[id]/route";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const TODAY = new Date(2026, 10, 14);
 
 const REGISTRY = `projects:

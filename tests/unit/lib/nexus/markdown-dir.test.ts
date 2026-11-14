@@ -11,9 +11,9 @@ import {
   listEntries,
   updateEntry,
 } from "@/lib/nexus/markdown-dir";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const note = (id: string, body = "tekst", extra = "") =>
   `---\nid: ${id}\ntitle: T ${id}\n${extra}---\n\n${body}\n`;
 

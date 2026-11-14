@@ -7,7 +7,7 @@ import {
   primaryCategory,
   readMapSources,
 } from "@/contexts/bc_map/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const TECH_STACK = `# Wspólny stack
 
@@ -70,7 +70,7 @@ describe("primaryCategory", () => {
 });
 
 describe("readMapSources", () => {
-  const vault = useTempVault();
+  const vault = setupTempVault();
 
   it("czyta notatki trzech obszarów; pomija _*, attachments/, Work/ i pliki bez katalogu projektu", () => {
     vault.write("tech-stack-wspolny.md", TECH_STACK);

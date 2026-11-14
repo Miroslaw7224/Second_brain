@@ -1,13 +1,13 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const mockListProjects = vi.hoisted(() => vi.fn());
 vi.mock("@/contexts/bc_projects/services", () => ({ listProjects: mockListProjects }));
 
 import * as services from "@/contexts/bc_arsenal/services";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 beforeEach(() => {
   mockListProjects.mockReset();

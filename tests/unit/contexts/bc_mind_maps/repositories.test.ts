@@ -11,13 +11,13 @@ import {
   saveMindMap,
 } from "@/contexts/bc_mind_maps/repositories";
 import type { MindMapNode } from "@/contexts/bc_mind_maps/models";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const T1 = "2026-11-12T10:00:00.000Z";
 const T2 = "2026-11-12T11:00:00.000Z";
 const ROOT: MindMapNode = { id: "root", label: "Mapa", note: "", collapsed: false, children: [] };
 
-const vault = useTempVault();
+const vault = setupTempVault();
 afterEach(() => vi.useRealTimers());
 const at = (iso: string) => {
   vi.useFakeTimers();

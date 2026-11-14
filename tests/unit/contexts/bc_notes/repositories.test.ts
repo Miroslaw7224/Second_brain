@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { DomainError } from "@/lib/errors";
 import { parseFrontmatter } from "@/lib/nexus/frontmatter";
 import { createNote, deleteNote, getNotes, updateNote } from "@/contexts/bc_notes/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const NOW = "2026-11-12T10:00:00.000Z";
 const FIXTURE = `---
@@ -19,7 +19,7 @@ x_obsidian: tak
 Treść **pogrubiona**
 `;
 
-const vault = useTempVault();
+const vault = setupTempVault();
 afterEach(() => vi.useRealTimers());
 const freeze = () => {
   vi.useFakeTimers();

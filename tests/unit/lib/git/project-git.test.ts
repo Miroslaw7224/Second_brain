@@ -13,9 +13,9 @@ import {
   snapshotRepo,
   type GitCommand,
 } from "@/lib/git/project-git";
-import { useTempRepos } from "../../helpers/tempGit";
+import { setupTempRepos } from "../../helpers/tempGit";
 
-const repos = useTempRepos();
+const repos = setupTempRepos();
 
 describe("snapshotRepo", () => {
   it("czyste repo z jednym commitem", () => {

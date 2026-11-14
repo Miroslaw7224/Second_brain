@@ -18,9 +18,9 @@ import { PACK_BUDGET_TOKENS as SERVICE_BUDGET } from "@/contexts/bc_projects/ser
 import { PATCH as detailPATCH } from "@/app/api/projects/[id]/route";
 import { POST as listPOST } from "@/app/api/projects/route";
 import { ConflictError, DomainError } from "@/lib/errors";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const TODAY = new Date(2026, 10, 14);
 
 const REGISTRY = `# NEXUS Project Registry

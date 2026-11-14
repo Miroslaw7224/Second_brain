@@ -3,10 +3,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { listVaultFilesRecursive } from "@/lib/nexus/vault-fs";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 describe("listVaultFilesRecursive", () => {
-  const vault = useTempVault();
+  const vault = setupTempVault();
 
   it("schodzi do podfolderów i zwraca tylko .md, posortowane, względem korzenia vaulta", () => {
     vault.write("Knowledge/b.md", "b");

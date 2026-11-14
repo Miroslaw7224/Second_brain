@@ -8,7 +8,7 @@ import {
   getUserTags,
   updateUserTag,
 } from "@/contexts/bc_tags/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const FILE = "Resources/tags.yaml";
 const STORED = [
@@ -23,7 +23,7 @@ const STORED = [
   { id: "tagB", tag: "Beta", title: "Beta title", created: "2026-03-01T10:00:00.000Z" },
 ];
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const seed = () => vault.write(FILE, formatYamlList("tags", STORED, GENERATED_BY_IMPORT));
 
 describe("tags repository", () => {

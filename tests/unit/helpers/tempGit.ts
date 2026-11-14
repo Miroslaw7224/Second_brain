@@ -25,7 +25,7 @@ function git(cwd: string, args: string[], env?: Record<string, string>): void {
 }
 
 /** Tymczasowe repozytoria git; sprzątane po każdym teście. */
-export function useTempRepos(): { create(): TempRepo } {
+export function setupTempRepos(): { create(): TempRepo } {
   const created: string[] = [];
 
   afterEach(() => {

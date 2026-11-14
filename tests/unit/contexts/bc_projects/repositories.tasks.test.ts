@@ -4,9 +4,9 @@ import type { RegistryEntry } from "@/contexts/bc_projects/models";
 import { readProjectBoard, writeProjectTasks } from "@/contexts/bc_projects/repositories";
 import { ConflictError, DomainError } from "@/lib/errors";
 import { PathOutsideVaultError, WorkAreaBlockedError } from "@/lib/nexus/vault-fs";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const TASKS = "Projects/demo/tasks.md";
 const CTX = { today: "2026-11-13" };
 

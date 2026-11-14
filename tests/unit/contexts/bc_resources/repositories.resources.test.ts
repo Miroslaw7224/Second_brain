@@ -8,7 +8,7 @@ import {
   getResources,
   updateResource,
 } from "@/contexts/bc_resources/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const FILE = "Resources/resources.yaml";
 const STORED = [
@@ -37,7 +37,7 @@ const STORED = [
   },
 ];
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const seed = () => vault.write(FILE, formatYamlList("resources", STORED, GENERATED_BY_IMPORT));
 
 describe("resources repository", () => {

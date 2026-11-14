@@ -3,9 +3,9 @@ import fs from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { listNexusPaths, readNexusDoc } from "@/contexts/bc_nexus_docs/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 describe("listNexusPaths", () => {
   it("zwraca pliki .md z Knowledge i Projects, bez Notes, Work i dowiązań", () => {

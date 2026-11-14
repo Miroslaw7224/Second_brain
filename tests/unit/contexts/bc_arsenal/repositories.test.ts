@@ -7,9 +7,9 @@ import {
   writeDeployed,
 } from "@/contexts/bc_arsenal/repositories";
 import { parseFrontmatter } from "@/lib/nexus/frontmatter";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 describe("readSkillFiles", () => {
   it("zwraca tylko Arsenal/Skills/<slug>/skill.md, klucz = nazwa folderu", () => {
