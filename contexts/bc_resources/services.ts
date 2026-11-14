@@ -88,20 +88,23 @@ export function isBlockedTitle(title: string): boolean {
 }
 
 const NAMED_ENTITIES: Record<string, string> = {
-  "&amp;": "&",
-  "&lt;": "<",
-  "&gt;": ">",
-  "&quot;": '"',
-  "&#39;": "'",
-  "&#x27;": "'",
-  "&nbsp;": " ",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  quot: '"',
+  nbsp: " ",
 };
 
+/** Dekodowanie w jednym przebiegu (bez podwójnego dekodowania); kod poza zakresem Unicode zostaje jak jest. */
 export function decodeHtmlEntities(text: string): string {
-  return text
-    .replace(/&(?:amp|lt|gt|quot|nbsp|#39|#x27);/gi, (m) => NAMED_ENTITIES[m.toLowerCase()] ?? m)
-    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(parseInt(h, 16)));
+  return text.replace(
+    /&(?:(amp|lt|gt|quot|nbsp)|#(\d+)|#x([0-9a-f]+));/gi,
+    (match, name?: string, dec?: string, hex?: string) => {
+      if (name !== undefined) return NAMED_ENTITIES[name.toLowerCase()];
+      const codePoint = dec !== undefined ? Number(dec) : parseInt(hex as string, 16);
+      return codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : match;
+    }
+  );
 }
 
 /** Host bez `www.` jako tytuł zastępczy; przy nieprawidłowym adresie sam adres. */
@@ -119,7 +122,7 @@ async function fetchPageMetadata(url: string): Promise<{ title: string; thumbnai
     const html = await res.text();
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const ogImage = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
-    const rawTitle = decodeHtmlEntities(titleMatch?.[1]?.trim() ?? "");
+    const rawTitle = decodeHtmlEntities(titleMatch?.[1] ?? "").trim();
     return {
       title: rawTitle === "" ? url : isBlockedTitle(rawTitle) ? hostTitle(url) : rawTitle,
       thumbnailUrl: ogImage?.[1],

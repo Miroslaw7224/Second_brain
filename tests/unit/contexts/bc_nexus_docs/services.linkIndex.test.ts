@@ -62,4 +62,15 @@ describe("buildKnowledgeLinkIndex", () => {
       "Knowledge/d.md",
     ]);
   });
+
+  it("pomija dokumenty większe niż MAX_DOC_BYTES (otwarcie dałoby 413)", () => {
+    vault.write(
+      "Knowledge/big.md",
+      "---\ntitle: Duży\nsource_urls:\n  - https://big.example.com\n---\n" +
+        "x".repeat(1_048_576 + 1)
+    );
+    const idx = buildKnowledgeLinkIndex();
+    expect(idx.paths.has("Knowledge/big.md")).toBe(false);
+    expect(idx.hostToPath.has("big.example.com")).toBe(false);
+  });
 });

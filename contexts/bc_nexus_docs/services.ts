@@ -177,7 +177,7 @@ export function buildKnowledgeLinkIndex(): KnowledgeLinkIndex {
   for (const rel of listVisiblePaths()) {
     if (!rel.startsWith("Knowledge/")) continue;
     const raw = readNexusDoc(rel);
-    if (raw === null) continue;
+    if (raw === null || raw.bytes > MAX_DOC_BYTES) continue; // getDoc dałby 413
     const hosts = sourceUrls(raw.meta)
       .map(normalizeHost)
       .filter((h): h is string => h !== null);

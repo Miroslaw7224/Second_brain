@@ -142,6 +142,27 @@ describe("bc_resources services (resources)", () => {
 
       expect(mockAdd).toHaveBeenCalledWith(expect.objectContaining({ title: "Q&A \u2013 Docs" }));
     });
+
+    it("tytuł złożony z samych encji białych znaków wraca do URL", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response("<html><head><title>&nbsp;</title></head></html>", { status: 200 })
+          )
+      );
+      mockAdd.mockImplementation(async (payload: Record<string, unknown>) => ({
+        id: "r5",
+        ...payload,
+      }));
+
+      await addResource({ description: "x", url: "https://nbsp.example" });
+
+      expect(mockAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "https://nbsp.example" })
+      );
+    });
   });
 
   describe("getResources / deleteResource / updateResource", () => {
@@ -229,6 +250,11 @@ describe("pomocnicze tytułu", () => {
     expect(decodeHtmlEntities("A &lt;b&gt; &quot;c&quot; &#39;d&#39; &#x27;e&#x27; &nbsp;f")).toBe(
       "A <b> \"c\" 'd' 'e'  f"
     );
+  });
+  it("decodeHtmlEntities dekoduje w jednym przebiegu i nie rzuca dla kodu poza zakresem", () => {
+    expect(decodeHtmlEntities("&amp;#39;")).toBe("&#39;");
+    expect(() => decodeHtmlEntities("&#99999999;")).not.toThrow();
+    expect(decodeHtmlEntities("&#99999999; &#x110000;")).toBe("&#99999999; &#x110000;");
   });
 });
 
