@@ -361,11 +361,6 @@
   align-items: center;
   gap: 5px;
 }
-.kod-filebar__actions {
-  display: flex;
-  gap: var(--s-2);
-  align-items: center;
-}
 .kod-tiles {
   --cols: 4;
   margin-bottom: var(--s-5);
@@ -682,16 +677,6 @@
   border-radius: 4px;
   color: var(--accent-text);
 }
-.kod-rule__sublist {
-  margin: var(--s-2) 0 0;
-  padding-left: 20px;
-  font-size: var(--fs-xs);
-  color: var(--muted);
-  line-height: 1.5;
-}
-.kod-rule__sublist li {
-  margin-bottom: 3px;
-}
 .kod-checklists {
   display: flex;
   flex-direction: column;
@@ -926,16 +911,6 @@
   max-width: 680px;
   margin: 0 auto;
 }
-.kod-empty-box__icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--r-md);
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  display: grid;
-  place-items: center;
-  color: var(--accent-text);
-}
 .kod-empty-box__title {
   font: 700 var(--fs-xl)/1.2 var(--font-display);
   margin: 0;
@@ -961,10 +936,6 @@
 .kod-error-box {
   border-color: var(--danger);
   background: color-mix(in srgb, var(--danger) 8%, var(--surface));
-}
-.kod-error-box .kod-empty-box__icon {
-  color: var(--danger);
-  border-color: var(--danger);
 }
 
 /* --- dodatki aplikacji (poza makietą) --- */
