@@ -143,6 +143,30 @@ describe("bc_resources services (resources)", () => {
       expect(mockAdd).toHaveBeenCalledWith(expect.objectContaining({ title: "Q&A \u2013 Docs" }));
     });
 
+    it("dekoduje encje HTML w og:image (thumbnailUrl)", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi
+          .fn()
+          .mockResolvedValue(
+            new Response(
+              `<html><head><title>OG</title><meta property="og:image" content="https://x.test/og?a=1&amp;b=2"></head></html>`,
+              { status: 200 }
+            )
+          )
+      );
+      mockAdd.mockImplementation(async (payload: Record<string, unknown>) => ({
+        id: "r-og",
+        ...payload,
+      }));
+
+      await addResource({ description: "x", url: "https://x.test/page" });
+
+      expect(mockAdd).toHaveBeenCalledWith(
+        expect.objectContaining({ thumbnailUrl: "https://x.test/og?a=1&b=2" })
+      );
+    });
+
     it("tytuł złożony z samych encji białych znaków wraca do URL", async () => {
       vi.stubGlobal(
         "fetch",
