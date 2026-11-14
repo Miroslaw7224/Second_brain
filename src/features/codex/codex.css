@@ -2,6 +2,66 @@
    (bez paska trybów demo); klasy wspólne szkieletu makiet (shell.css: btn, chip, tabs, tile, ...)
    są zawężone do `.kod-root`, żeby nie wyciekały do innych kart. */
 
+/* Tokeny karty (wg docs/mockups/karty/tokens.css: wspólne + motyw data-card="kodeks"), zawężone do `.kod-root`,
+   tak jak robią to pozostałe karty (np. `.prj`, `.ars`). */
+.kod-root {
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 16px;
+  --r-pill: 999px;
+  --font-body: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 24px;
+  --fs-2xl: 34px;
+  --fs-3xl: 48px;
+  --shell-bg: #0d0d10;
+  --shell-line: #26262c;
+  --shell-text: #e8e8ec;
+  --shell-muted: #9a9aa6;
+  --rail-w: 76px;
+  --status-h: 30px;
+  --c-kokpit: #ff9f1c;
+  --c-kalendarz: #ff3b1f;
+  --c-zadania: #b6ff2e;
+  --c-projekty: #3d95ff;
+  --c-notatki: #f3ff3a;
+  --c-plotno: #22d3ee;
+  --c-arsenal: #b47bff;
+  --c-mapa: #ff2bd6;
+  --c-kodeks: #3ddc84;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --bg: #15161a;
+  --surface: #1e1f24;
+  --surface-2: #282a30;
+  --line: #373a42;
+  --text: #f0f0f2;
+  --muted: #a8aab2;
+  --accent: #3ddc84;
+  --accent-text: #5ee89b;
+  --accent-ink: #03150a;
+  --accent-soft: rgba(61, 220, 132, 0.14);
+  --glow: rgba(61, 220, 132, 0.5);
+  --ok: #5eead4;
+  --warn: #facc15;
+  --danger: #ff6b6b;
+  --font-display: "Manrope", var(--font-body);
+  --pattern: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.045) 1px, transparent 0) 0 0 /
+    22px 22px;
+  font-family: var(--font-body);
+  color: var(--text);
+}
+
 /* --- wspólne klasy makiet (z shell.css) --- */
 .kod-root .view-head {
   display: flex;
@@ -911,7 +971,7 @@
   min-width: 0;
   min-height: 0;
   overflow: auto;
-  background: var(--bg);
+  background: var(--pattern), var(--bg);
   padding: var(--s-5) var(--s-6) var(--s-6);
 }
 .kod-rule__content p {
