@@ -60,7 +60,7 @@ Karta wpisu pokazuje nazwę, `summary` i chipy projektów z `deployed`. Filtry: 
 
 ### 3.4 Wdrażanie do projektu
 
-W szczegółach skilla użytkownik wybiera projekt docelowy (z `_registry.yaml`, pole `local_path`) i tryb:
+W szczegółach skilla użytkownik wybiera projekt docelowy i tryb. Lista projektów pochodzi z `listProjects()` kontekstu `bc_projects` (wołanego przez jego `services`, bez czytania `_registry.yaml` wprost); ścieżka docelowa to pole `localPath` (`local_path` w rejestrze). W odróżnieniu od `bc_nexus_docs` Arsenał **nie ukrywa projektów z `owner: work`**: skille wdraża się także do nich, więc takie projekty są na liście i w chipach `deployed`, oznaczone jak w paczce kontekstu (`OWNER_WORK_WARNING`). `deployed.project` spoza listy to wpis pomijany z licznikiem (sekcja 6). Tryby:
 
 - **W całości:** aplikacja generuje polecenie kopiujące `skill.md` jako `SKILL.md` (z zamianą nazwy) wraz z `templates/` do `<local_path>/.claude/skills/<slug>/`. Skrypt `scripts/deploy-skill.sh` powstaje w etapie 2 i jest uruchamiany przez użytkownika.
 - **Zredagowany:** aplikacja generuje gotowy prompt dla agenta (np. wywołanie `ask-helper --role task`) zawierający treść skilla, wskazanie `CLAUDE.md` i stacku projektu oraz polecenie „dostosuj i zapisz w repo”.
@@ -112,10 +112,10 @@ Dane zasobów zostają w `Vault/Resources/resources.yaml` (`bc_resources`). Stan
 | 5   | Skróty: `/` przenosi fokus do wyszukiwarki, `Esc` czyści zapytanie i filtry                                     | `ResourceSection.tsx`, `useResources.ts`                             |
 | 6   | Tryb gęsty listy i kompaktowe ulubione zamiast kafli 76×76 px                                                   | `ResourceListItem.tsx`, `ResourceFavoritesBar.tsx`, CSS              |
 | 7   | Widok „do poprawy”: filtr zasobów z tytułem „Just a moment…”, tytułem równym URL i bez miniatury                | `useResources.ts`, `resourceFilters.ts`                              |
-| 8   | Przy dodawaniu zasobu odrzucić tytuł „Just a moment…” (strona Cloudflare) i użyć domeny jako tytułu zastępczego | `resourceParsing.ts` (do potwierdzenia w planie)                     |
+| 8   | Przy dodawaniu zasobu odrzucić tytuł „Just a moment…” (strona Cloudflare) i użyć domeny jako tytułu zastępczego | `contexts/bc_resources/services.ts` (`fetchPageMetadata`)            |
 | 9   | Normalizacja tagów przy zapisie (scalanie wariantów, np. „Agent AI/kurs/nauka” i „Learning/Kursy”)              | `contexts/bc_resources/services.ts`; mapa scalania ustalana w planie |
 
-Przy zasobie z URL pojawia się też **most do Bazy wiedzy**: link „notatka” otwierający notatkę w Notatkach. Reguła: jeśli zasób ma `note_id` (pole już istnieje w modelu, dziś puste we wszystkich zasobach), wygrywa; w przeciwnym razie host URL zasobu jest porównywany z hostami z `source_urls` notatek w `Knowledge/`. Przy braku trafienia link się nie pokazuje; przy wielu trafieniach pokazywane jest pierwsze. UI do wpisywania `note_id` nie powstaje w v1. Dopasowanie po domenie jest heurystyką (np. `github.com` pasuje do wielu notatek).
+Przy zasobie z URL pojawia się też **most do Bazy wiedzy**: link „notatka” otwierający notatkę w Notatkach. Reguła: jeśli zasób ma `note_id` (pole już istnieje w modelu, dziś puste we wszystkich zasobach) i jest ścieżką istniejącej notatki w `Knowledge/` (względną względem Vaulta, jak `path` w `bc_nexus_docs`), wygrywa; `note_id` niebędący taką ścieżką jest ignorowany i działa reguła następna: host URL zasobu jest porównywany z hostami z `source_urls` notatek w `Knowledge/`. Przy braku trafienia link się nie pokazuje; przy wielu trafieniach pokazywane jest pierwsze. UI do wpisywania `note_id` nie powstaje w v1. Dopasowanie po domenie jest heurystyką (np. `github.com` pasuje do wielu notatek).
 
 Jednorazowe sprzątnięcie obecnych złych danych (13 tytułów, encje HTML) wykonuje agent jako osobne zadanie z kontrolą `git diff` w repo NEXUS, nie kod aplikacji.
 
@@ -134,7 +134,7 @@ Odłożone: słownik tagów z `tags.yaml` (osiem rekordów niezgodnych z tagami 
 
 - Jednostkowe: parser frontmattera skilla (w tym zastępcze `summary`), schemat kursu, walidacja `certificate_file`, dopasowanie hosta do `source_urls`, normalizacja tagów, wyszukiwanie z tagami, odrzucanie tytułu „Just a moment…”.
 - Komponent: klik wiersza otwiera URL, ołówek otwiera edycję, skróty `/` i `Esc`, filtr „do poprawy”.
-- `tests/unit/architecture.static.test.ts` bez zmian, bo nie powstaje nowy katalog w `lib/`. Gdyby plan wymagał zmiany testu, idzie osobnym commitem przed kodem (CLAUDE.md).
+- `tests/unit/architecture.static.test.ts`: etap 1 go nie zmienia. Etap 2 go zmienia: `contexts/bc_arsenal/repositories` czyta Vault przez `lib/nexus/vault-fs`, więc trafia do `VAULT_FS_IMPORTERS` (precedens: `4198926` dla `bc_nexus_docs`; jeśli plan pokaże, że wystarczy `markdown-dir`/`yaml-store`, wpis niepotrzebny). Zmiana testu idzie osobnym commitem przed kodem (CLAUDE.md).
 
 ## 7. Etapy
 
@@ -165,6 +165,5 @@ Pomysły z burzy mózgów świadomie wyniesione poza Arsenał. Każdy musi wróc
 **Do sprawdzenia w planach:**
 
 - Czy `nexus-kb-audit` lub inne skille NEXUS skanują cały `Vault/` i zobaczą `Vault/Arsenal/` (etap 2, przed migracją).
-- Pochodzenie tytułów „Just a moment…” (czy winne jest `resourceParsing.ts`; etap 1).
 - Mapa scalania tagów (etap 1).
 - Dokładna lista skilli globalnych do skopiowania do Vaulta i ich przypisania do projektów (etap 2, przegląd po projektach).
