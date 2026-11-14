@@ -448,3 +448,16 @@ Opinie traktuj jak hipotezy: zweryfikuj w kodzie przed zmianą (CLAUDE.md).
 - §4.7 makieta → tabela odwzorowania w Task 8; pominięcia wymienione w ustaleniu 8.
 - §8 część B → Task 11; część C (treść) → Task 3.
 - Poza planem (świadomie): `ZAPIS-1` w `kodeks.md` (czeka na zatwierdzenie), integracja z Kokpitem/Projektami (spec §6), `projectId` w UI.
+
+---
+
+## Odchylenia przy wykonaniu (2026-11-14)
+
+- **Task 9 i 10 w jednym commicie** (`00058a6`): po podpięciu Kodeksu żadna karta nie jest zaślepką, więc test `CardPlaceholder` zostałby czerwony; osobne commity zostawiłyby pośredni stan z pękającym testem.
+- **Reguła 5 testu architektury nie przeszkodziła** (`repositories` → `lib/workGuard` jest dozwolone), więc zmiana testu poza Task 1 nie była potrzebna. Za to `services` nie może importować `lib/nexus/*` ani `schemas`: parser ma własny `slugify`/`allocateName`, a linie dziennika waliduje ręcznie (`parseEvent`), zod zostaje w `schemas` (wejście API).
+- **Repozytorium** zwraca wyniki zamiast wyjątków dla `config-error`/`blocked`; `VaultConfigError` poza `getCodex` jest mapowany na `DomainError(503)`.
+- **Liczby w makiecie są błędne:** źródło (`data-level`) ma 6 MUST i 5 SHOULD, a liczniki makiety mówią 7/4. `kodeks.md` ma 6/5; odwołanie `[SEC-4]` usunięto (reguły SEC nie ma).
+- **Zmiany po review `agy` (`7ee9f51`):** opis zadania per strefa, odświeżenie stanu po błędzie zapisu (bez drugiego `start`), parser: wieloakapitowe reguły / tabulator / `# ...` w treści, spis treści przy filtrze, usunięte `counts` z DTO.
+- **Pominięte z makiety dodatkowo:** ikony w pustym stanie, w `owner: work` oraz nieużywane selektory CSS (`.kod-rule__sublist`, `.kod-filebar__actions`, `.kod-empty-box__icon`); do przycięcia po obejrzeniu w przeglądarce.
+- **Do sprawdzenia w przeglądarce (nie zrobione):** Task 11 krok 4. Zapisy próbne wyłącznie w kopii vaulta.
+- **Znane ograniczenie:** `getChecklistState` czyta tylko bieżący miesiąc; uruchomienie rozpoczęte w ostatnim dniu miesiąca i kontynuowane po północy nie jest powiązane między plikami `RRRR-MM.jsonl`.
