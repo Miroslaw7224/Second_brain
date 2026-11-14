@@ -205,24 +205,6 @@
   font-size: 14px;
 }
 
-.card-placeholder {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  padding: 32px 16px;
-  color: var(--text2);
-  text-align: center;
-}
-
-.card-placeholder__title {
-  color: var(--text);
-  font-size: 24px;
-  font-weight: 700;
-}
-
 /* Podwidoki kart (zakładki) */
 .card-subtabs {
   --c: var(--shell-muted);
