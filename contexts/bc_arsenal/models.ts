@@ -19,6 +19,8 @@ export type SkillEntry = EntryBase & {
   kind: "skill";
   slug: string;
   origin?: string;
+  /** `description` z frontmattera (kiedy skill się uruchamia); tylko do promptu wdrożenia, nie w DTO. */
+  description?: string;
   deployed: Deployment[];
   templates: TemplateFile[];
 };
