@@ -22,8 +22,9 @@ export function toInboxDto(items: InboxItem[], closed: number): InboxDto {
 const oneLine = (max: number) =>
   z
     .string()
-    .transform((v) => v.replace(/\s+/g, " ").trim())
-    .pipe(z.string().min(1, "text required").max(max, `Maksymalnie ${max} znaków`));
+    .overwrite((v) => v.replace(/\s+/g, " ").trim())
+    .min(1, "text required")
+    .max(max, `Maksymalnie ${max} znaków`);
 
 /** Kopia reguł `taskText` z `bc_projects/schemas` (schemas nie importuje innego kontekstu; `applyTaskOp` z serwisu niczego nie waliduje). */
 const TRAILING_DONE_DATE_RE = /\s—\s\d{4}-\d{2}-\d{2}$/;

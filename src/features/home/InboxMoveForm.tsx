@@ -34,7 +34,7 @@ export function InboxMoveForm({
   onSubmit: (body: MoveInboxBody) => void;
   onCancel: () => void;
 }) {
-  const [target, setTarget] = useState<MoveTarget>(defaultTarget(item.type));
+  const [chosen, setChosen] = useState<MoveTarget>(defaultTarget(item.type));
   const [text, setText] = useState(item.text);
   const [title, setTitle] = useState(defaultNoteTitle(item.text));
   const [projectId, setProjectId] = useState("");
@@ -51,10 +51,8 @@ export function InboxMoveForm({
   }, [apiFetch]);
 
   const noProjects = projects !== null && projects.length === 0;
-
-  useEffect(() => {
-    if (noProjects) setTarget((t) => (t === "project" ? "task" : t));
-  }, [noProjects]);
+  // bez projektów w rejestrze cel „projekt” jest zablokowany i zastępuje go zadanie ogólne (bez efektu: brak migotania)
+  const target: MoveTarget = noProjects && chosen === "project" ? "task" : chosen;
 
   const selected = projects?.find((p) => p.id === projectId);
   const body = toMoveBody({ target, text, projectId, column, title });
@@ -70,7 +68,7 @@ export function InboxMoveForm({
               name="inbox-move-target"
               checked={target === t.value}
               disabled={t.value === "project" && noProjects}
-              onChange={() => setTarget(t.value)}
+              onChange={() => setChosen(t.value)}
             />{" "}
             {t.label}
           </label>
