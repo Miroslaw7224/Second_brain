@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DomainError, NotFoundError } from "@/lib/errors";
+import { ConflictError, DomainError, NotFoundError } from "@/lib/errors";
 
 const mockList = vi.hoisted(() => vi.fn());
 const mockAdd = vi.hoisted(() => vi.fn());
@@ -9,6 +9,7 @@ const mockResolve = vi.hoisted(() => vi.fn());
 const mockRemove = vi.hoisted(() => vi.fn());
 const mockCountClosed = vi.hoisted(() => vi.fn());
 const mockClearClosed = vi.hoisted(() => vi.fn());
+const mockMove = vi.hoisted(() => vi.fn());
 vi.mock("@/contexts/bc_inbox/services", () => ({
   listItems: mockList,
   addItem: mockAdd,
@@ -16,6 +17,7 @@ vi.mock("@/contexts/bc_inbox/services", () => ({
   remove: mockRemove,
   countClosed: mockCountClosed,
   clearClosed: mockClearClosed,
+  moveItem: mockMove,
 }));
 
 import {
@@ -23,6 +25,7 @@ import {
   createItem,
   deleteItem,
   listInbox,
+  moveItem,
   resolveItem,
 } from "@/contexts/bc_inbox/router";
 
@@ -124,5 +127,50 @@ describe("DELETE /api/inbox (wyczyść zamknięte)", () => {
     vi.spyOn(console, "error").mockImplementation(() => {});
     mockClearClosed.mockRejectedValue(new Error("boom"));
     expect((await clearClosedItems()).status).toBe(500);
+  });
+});
+
+describe("POST /api/inbox/[id]/move", () => {
+  const move = (body: unknown, id = "e1") =>
+    moveItem(
+      new NextRequest(`http://localhost/api/inbox/${id}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: typeof body === "string" ? body : JSON.stringify(body),
+      }),
+      { params: Promise.resolve({ id }) }
+    );
+  const project = { target: "project", projectId: "nexus", column: "next", text: "Zrób X" };
+
+  it("200: przekazuje id i znormalizowane wejście do serwisu, zwraca ok + ref", async () => {
+    mockMove.mockResolvedValue({ target: "project", ref: "nexus" });
+    const res = await move({ ...project, text: "  Zrób\nX " });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, target: "project", ref: "nexus" });
+    expect(mockMove).toHaveBeenCalledWith("e1", { ...project, text: "Zrób X" });
+  });
+
+  it("200: trzy cele; warning trafia do odpowiedzi", async () => {
+    mockMove.mockResolvedValueOnce({ target: "task", ref: "t1" });
+    expect((await move({ target: "task", text: "a" })).status).toBe(200);
+    mockMove.mockResolvedValueOnce({ target: "note", ref: "n1", warning: "w" });
+    const res = await move({ target: "note", title: "T", text: "a" });
+    expect(await res.json()).toEqual({ ok: true, target: "note", ref: "n1", warning: "w" });
+  });
+
+  it("400: zły kształt, kolumna now, zły JSON; serwis nie jest wołany", async () => {
+    expect((await move({ ...project, column: "now" })).status).toBe(400);
+    expect((await move({ target: "task", text: "" })).status).toBe(400);
+    expect((await move("{")).status).toBe(400);
+    expect(mockMove).not.toHaveBeenCalled();
+  });
+
+  it("404 (wpis albo projekt), 409 (konflikt tasks.md), 422 (limit)", async () => {
+    mockMove.mockRejectedValueOnce(new NotFoundError("Nie ma otwartego wpisu e1"));
+    expect((await move(project)).status).toBe(404);
+    mockMove.mockRejectedValueOnce(new ConflictError("Plik zadań zmienił się w międzyczasie"));
+    expect((await move(project)).status).toBe(409);
+    mockMove.mockRejectedValueOnce(new DomainError("Limit", 422));
+    expect((await move(project)).status).toBe(422);
   });
 });

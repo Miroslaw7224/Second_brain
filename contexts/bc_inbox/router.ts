@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { handleServiceError } from "@/lib/http/apiError";
 import { parseBody } from "@/lib/http/parseBody";
-import { CreateInboxItemSchema, toInboxDto, toInboxItemDto } from "./schemas";
+import {
+  CreateInboxItemSchema,
+  MoveInboxItemSchema,
+  toInboxDto,
+  toInboxItemDto,
+  toMoveResultDto,
+} from "./schemas";
 import * as services from "./services";
 
 export async function listInbox(): Promise<NextResponse> {
@@ -33,6 +39,21 @@ export async function resolveItem(
   try {
     await services.resolve(id);
     return NextResponse.json({ ok: true });
+  } catch (err) {
+    return handleServiceError(err);
+  }
+}
+
+/** POST: przenosi otwarty wpis do zadania projektu, zadania ogólnego albo notatki (UI i agent CLI). */
+export async function moveItem(
+  request: NextRequest,
+  ctx: { params: Promise<{ id: string }> }
+): Promise<NextResponse> {
+  const parsed = await parseBody(request, MoveInboxItemSchema, { details: false });
+  if (parsed.success === false) return parsed.response;
+  const { id } = await ctx.params;
+  try {
+    return NextResponse.json(toMoveResultDto(await services.moveItem(id, parsed.data)));
   } catch (err) {
     return handleServiceError(err);
   }
