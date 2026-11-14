@@ -125,7 +125,7 @@ async function fetchPageMetadata(url: string): Promise<{ title: string; thumbnai
     const rawTitle = decodeHtmlEntities(titleMatch?.[1] ?? "").trim();
     return {
       title: rawTitle === "" ? url : isBlockedTitle(rawTitle) ? hostTitle(url) : rawTitle,
-      thumbnailUrl: ogImage?.[1],
+      thumbnailUrl: ogImage?.[1] ? decodeHtmlEntities(ogImage[1]) : undefined,
     };
   } catch {
     return { title: url };
