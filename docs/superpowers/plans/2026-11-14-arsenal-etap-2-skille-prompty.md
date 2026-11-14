@@ -83,8 +83,6 @@ git commit -m "test(architektura): bc_arsenal/repositories w VAULT_FS_IMPORTERS"
 - [ ] **Step 1: Napisz `models.ts`**
 
 ```ts
-import type { Frontmatter } from "@/lib/nexus/frontmatter";
-
 /** Skille jako dokumenty: `Vault/Arsenal/Skills/<slug>/skill.md` (+ opcjonalny `templates/`). */
 export const SKILLS_DIR = "Arsenal/Skills";
 /** Prompty zostają w Bazie wiedzy (czytane bez przenoszenia). */
@@ -135,7 +133,7 @@ export type RawFile = {
   path: string;
   /** Nazwa folderu skilla albo nazwa pliku promptu bez `.md`. */
   key: string;
-  parsed: { meta: Frontmatter; body: string } | null;
+  parsed: { meta: Record<string, unknown>; body: string } | null;
 };
 ```
 

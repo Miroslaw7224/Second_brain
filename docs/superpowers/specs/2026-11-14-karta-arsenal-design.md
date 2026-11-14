@@ -39,14 +39,15 @@ Plik `Vault/Arsenal/Skills/<slug>/skill.md`. Nazwa `skill.md` (nie `SKILL.md`) i
 
 Frontmatter:
 
-| Pole       | Znaczenie                                                                                                                  |
-| ---------- | -------------------------------------------------------------------------------------------------------------------------- |
-| `name`     | nazwa skilla (jak w oryginalnym `SKILL.md`)                                                                                |
-| `slug`     | zgodny z nazwą folderu, kebab-case                                                                                         |
-| `type`     | zawsze `skill-doc`                                                                                                         |
-| `summary`  | jedno zdanie do listy, np. „zasady pisania commitów”, do 90 znaków. Gdy brak, lista bierze pierwsze zdanie z `description` |
-| `origin`   | `global` / `nexus` / `monolith` / nazwa projektu: skąd skill pochodzi                                                      |
-| `deployed` | lista wdrożeń: `{ project, mode: full\|adapted, date }`; `project` to `id` z `Vault/Projects/_registry.yaml`               |
+| Pole          | Znaczenie                                                                                                                  |
+| ------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `name`        | nazwa skilla (jak w oryginalnym `SKILL.md`)                                                                                |
+| `slug`        | zgodny z nazwą folderu, kebab-case                                                                                         |
+| `type`        | zawsze `skill-doc`                                                                                                         |
+| `summary`     | jedno zdanie do listy, np. „zasady pisania commitów”, do 90 znaków. Gdy brak, lista bierze pierwsze zdanie z `description` |
+| `origin`      | `global` / `nexus` / `monolith` / nazwa projektu: skąd skill pochodzi                                                      |
+| `description` | opis do aktywacji skilla (zachowany z oryginalnego `SKILL.md`; źródło zastępczego `summary`)                               |
+| `deployed`    | lista wdrożeń: `{ project, mode: full\|adapted, date }`; `project` to `id` z `Vault/Projects/_registry.yaml`               |
 
 Szablony skilla leżą w `Vault/Arsenal/Skills/<slug>/templates/`. Aplikacja je wyświetla jako listę plików i pozwala skopiować treść.
 
@@ -62,10 +63,10 @@ Karta wpisu pokazuje nazwę, `summary` i chipy projektów z `deployed`. Filtry: 
 
 W szczegółach skilla użytkownik wybiera projekt docelowy i tryb. Lista projektów pochodzi z `listProjects()` kontekstu `bc_projects` (wołanego przez jego `services`, bez czytania `_registry.yaml` wprost); ścieżka docelowa to pole `localPath` (`local_path` w rejestrze). W odróżnieniu od `bc_nexus_docs` Arsenał **nie ukrywa projektów z `owner: work`**: skille wdraża się także do nich, więc takie projekty są na liście i w chipach `deployed`, oznaczone jak w paczce kontekstu (`OWNER_WORK_WARNING`). `deployed.project` spoza listy to wpis pomijany z licznikiem (sekcja 6). Tryby:
 
-- **W całości:** aplikacja generuje polecenie kopiujące `skill.md` jako `SKILL.md` (z zamianą nazwy) wraz z `templates/` do `<local_path>/.claude/skills/<slug>/`. Skrypt `scripts/deploy-skill.sh` powstaje w etapie 2 i jest uruchamiany przez użytkownika.
-- **Zredagowany:** aplikacja generuje gotowy prompt dla agenta (np. wywołanie `ask-helper --role task`) zawierający treść skilla, wskazanie `CLAUDE.md` i stacku projektu oraz polecenie „dostosuj i zapisz w repo”.
+- **W całości:** aplikacja generuje polecenie `scripts/deploy-skill.sh <slug> '<local_path>'`, które kopiuje `skill.md` jako `SKILL.md` (bez kluczy `type`, `slug`, `summary`, `origin`, `deployed`, żeby do repozytorium projektu nie trafiła lista innych projektów) oraz zawartość `templates/` obok niego do `<local_path>/.claude/skills/<slug>/`. Skrypt uruchamia użytkownik; odmawia nadpisania istniejącego `SKILL.md` bez `--force`.
+- **Zredagowany:** aplikacja generuje sam prompt do skopiowania (do wklejenia dowolnemu agentowi, także przez `ask-helper --role task`) zawierający treść skilla i szablonów, wskazanie `CLAUDE.md` i stacku projektu oraz polecenie „dostosuj i zapisz w repo”.
 
-Po wykonaniu użytkownik klika „Oznacz jako wdrożone”. To jedyny zapis tej zakładki: dopisanie wpisu do `deployed` we frontmatterze (w Vaulcie). Wykrywanie rozjazdu między Vaultem a kopią w repo oraz edycja treści skilla w aplikacji są poza v1.
+Po wykonaniu użytkownik klika „Oznacz jako wdrożone”. To jedyny zapis tej zakładki: dopisanie wpisu do `deployed` we frontmatterze (w Vaulcie), jeden wpis na projekt (ponowne oznaczenie zastępuje wpis). Wykrywanie rozjazdu między Vaultem a kopią w repo oraz edycja treści skilla w aplikacji są poza v1.
 
 ### 3.5 Migracja
 
@@ -145,7 +146,7 @@ Każdy etap ma osobny plan w `docs/superpowers/plans/` i może wejść niezależ
 3. **Kursy:** `courses.yaml`, widok, walidacja certyfikatów.
 4. **Agenci i polecenia:** `agents.yaml`, widok, dane początkowe.
 
-Karta zachowuje `Alt+7`, akcent i motyw `[data-card="arsenal"]` z `src/features/cards/`. Zakładki w rejestrze kart (`arsenal: ["resources", "tags"]`) zostaną dostosowane do nowego zestawu w planie etapu 2.
+Karta zachowuje `Alt+7`, akcent i motyw `[data-card="arsenal"]` z `src/features/cards/`. Zakładki w rejestrze kart: w etapie 2 lista to `resources`, `skills`, `tags` (wejście z `Alt+7` zostaje na `resources`); docelowy zestaw czterech zakładek powstaje po etapach 3–4.
 
 ## 8. Przekazane innym kartom
 
