@@ -88,6 +88,7 @@ export interface UseResourcesResult {
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
+  clearAllFilters: () => void;
   fixOnly: boolean;
   toggleFixOnly: () => void;
   fixCount: number;
@@ -189,6 +190,12 @@ export function useResources(
   const clearTagFilter = () => {
     setSelectedTags([]);
     setFixOnly(false);
+  };
+
+  const clearAllFilters = () => {
+    setSelectedTags([]);
+    setFixOnly(false);
+    setSearchQuery("");
   };
 
   const toggleFixOnly = () => setFixOnly((v) => !v);
@@ -399,6 +406,7 @@ export function useResources(
     selectedTags,
     toggleTag,
     clearTagFilter,
+    clearAllFilters,
     fixOnly,
     toggleFixOnly,
     fixCount,

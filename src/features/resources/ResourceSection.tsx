@@ -2,6 +2,7 @@ import React from "react";
 import { Loader2 } from "lucide-react";
 import type { ResourceSectionProps, NoteResource } from "./resourceTypes";
 import { useResources } from "./useResources";
+import { useResourceShortcuts } from "./useResourceShortcuts";
 import { ResourceFilterSidebar } from "./ResourceFilterSidebar";
 import { ResourceAddForm } from "./ResourceAddForm";
 import { ResourceFavoritesBar } from "./ResourceFavoritesBar";
@@ -21,6 +22,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
     selectedTags,
     toggleTag,
     clearTagFilter,
+    clearAllFilters,
     fixOnly,
     toggleFixOnly,
     fixCount,
@@ -55,6 +57,13 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
     handleSaveEdit,
   } = useResources(apiFetch, t);
 
+  const searchRef = React.useRef<HTMLInputElement>(null);
+  useResourceShortcuts({
+    searchRef,
+    onClear: clearAllFilters,
+    enabled: editingResource == null,
+  });
+
   const favorites = resources.filter((r) => r.isFavorite === true);
 
   return (
@@ -70,12 +79,14 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
         </div>
         <div className="ars-head__actions">
           <input
+            ref={searchRef}
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder={labels.resourceSearchPlaceholder}
             className="input ars-search"
             aria-label={labels.resourceSearchPlaceholder}
+            title="/ — szukaj, Esc — wyczyść"
           />
         </div>
       </header>
