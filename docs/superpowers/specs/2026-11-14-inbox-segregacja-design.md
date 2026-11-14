@@ -29,7 +29,7 @@ Wpis z `Vault/Inbox/inbox.md` da się dziś tylko oznaczyć jako „Gotowe” (`
   - `{ target: "project", projectId: string, column: "next" | "icebox", text }`;
   - `{ target: "task", text }`;
   - `{ target: "note", title, text }`.
-    `text`: po `trim` 1–500 znaków (limit jak `CreateInboxItemSchema`; zgodność z `MAX_INBOX_TEXT` pilnuje test, jak dotąd), nowe linie zamieniane na spację, jak w `addItem`. `title`: po `trim` 1–120 znaków. Kolumna `now` i każda inna wartość odrzucane. DTO: `MoveResultDto = { ok: true; target; ref: string; warning?: string }`.
+    `text`: po `trim` 1–500 znaków (limit jak `CreateInboxItemSchema`; zgodność z `MAX_INBOX_TEXT` pilnuje test, jak dotąd), nowe linie zamieniane na spację, jak w `addItem`. `title`: po `trim` 1–120 znaków. Dla `target: "project"` dodatkowo reguły zadania w `tasks.md` (kopia `taskText` z `bc_projects/schemas`, bo `schemas` nie importuje innego kontekstu, a `applyTaskOp` wywołany z serwisu niczego nie waliduje): maks. 300 znaków, bez `[now::]`, bez końcowej daty ukończenia `— RRRR-MM-DD`. Kolumna `now` i każda inna wartość odrzucane. DTO: `MoveResultDto = { ok: true; target; ref: string; warning?: string }`.
 - `services.ts`: `moveItem(id, input)`:
   1. sprawdza, że otwarty wpis `id` istnieje (inaczej `NotFoundError`, bez zapisu w celu);
   2. zapis w celu przez `services` innego kontekstu:
