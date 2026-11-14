@@ -12,3 +12,12 @@ export type InboxItem = {
 };
 
 export const MAX_INBOX_TEXT = 500;
+
+/** Cel przeniesienia wpisu (po walidacji przez `MoveInboxItemSchema`; tekst jednoliniowy i przycięty). */
+export type MoveInput =
+  | { target: "project"; projectId: string; column: "next" | "icebox"; text: string }
+  | { target: "task"; text: string }
+  | { target: "note"; title: string; text: string };
+
+/** `ref`: id projektu, zadania albo notatki, które powstały. `warning`: cel zapisany, ale wpis nie został zamknięty. */
+export type MoveResult = { target: MoveInput["target"]; ref: string; warning?: string };

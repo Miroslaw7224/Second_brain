@@ -1,6 +1,6 @@
 // src/features/home/InboxPanel.tsx
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import type { InboxDto, InboxItemDto } from "@/contexts/bc_inbox/schemas";
+import type { InboxDto, InboxItemDto, MoveInboxBody } from "@/contexts/bc_inbox/schemas";
 import { InboxItemDialog } from "./InboxItemDialog";
 
 type ApiFetch = (url: string, options?: RequestInit) => Promise<Response>;
@@ -88,6 +88,36 @@ export function InboxPanel({
       body: JSON.stringify({ text: value }),
     });
     if (ok) setText("");
+  }
+
+  async function move(item: InboxItemDto, body: MoveInboxBody) {
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/inbox/${encodeURIComponent(item.id)}/move`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const payload = (await res.json().catch(() => ({}))) as { error?: string };
+        throw new Error(
+          res.status === 409
+            ? "Plik zadań zmienił się, spróbuj ponownie"
+            : (payload.error ?? `HTTP ${res.status}`)
+        );
+      }
+      const result = (await res.json().catch(() => ({}))) as { warning?: string };
+      const refreshed = await load();
+      onChanged();
+      setOpen(null);
+      if (result.warning) setError(result.warning);
+      else if (!refreshed) setError("Przeniesiono, ale nie udało się odświeżyć listy");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Nie udało się przenieść");
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -187,6 +217,8 @@ export function InboxPanel({
       {open ? (
         <InboxItemDialog
           item={open}
+          apiFetch={apiFetch}
+          onMove={(body) => void move(open, body)}
           busy={busy}
           error={error}
           onClose={() => setOpen(null)}

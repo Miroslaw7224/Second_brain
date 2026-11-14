@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DomainError, NotFoundError } from "@/lib/errors";
+import { ConflictError, DomainError, NotFoundError } from "@/lib/errors";
 
 const mockRead = vi.hoisted(() => vi.fn());
 const mockAppend = vi.hoisted(() => vi.fn());
@@ -17,6 +17,17 @@ vi.mock("@/contexts/bc_inbox/repositories", () => ({
   removeClosedItems: mockRemoveClosed,
 }));
 
+const mockGetProject = vi.hoisted(() => vi.fn());
+const mockApplyTaskOp = vi.hoisted(() => vi.fn());
+const mockCreateTask = vi.hoisted(() => vi.fn());
+const mockCreateNote = vi.hoisted(() => vi.fn());
+vi.mock("@/contexts/bc_projects/services", () => ({
+  getProject: mockGetProject,
+  applyTaskOp: mockApplyTaskOp,
+}));
+vi.mock("@/contexts/bc_tasks/services", () => ({ createTask: mockCreateTask }));
+vi.mock("@/contexts/bc_notes/services", () => ({ createNote: mockCreateNote }));
+
 import {
   addItem,
   clearClosed,
@@ -24,6 +35,7 @@ import {
   countOpen,
   detectType,
   listItems,
+  moveItem,
   remove,
   resolve,
 } from "@/contexts/bc_inbox/services";
@@ -117,5 +129,127 @@ describe("countClosed / clearClosed", () => {
   it("clearClosed zwraca liczbę usuniętych", async () => {
     mockRemoveClosed.mockResolvedValue(2);
     await expect(clearClosed()).resolves.toBe(2);
+  });
+});
+
+describe("moveItem", () => {
+  const OPEN = [{ id: "e1", text: "Wpis", type: "myśl", at: null }];
+  const VERSION = { size: 10, hash: "abc" };
+
+  beforeEach(() => {
+    mockRead.mockReturnValue(OPEN);
+    mockResolve.mockResolvedValue(true);
+    mockGetProject.mockReturnValue({ board: { version: VERSION } });
+    mockApplyTaskOp.mockResolvedValue({});
+    mockCreateTask.mockResolvedValue({ id: "t1" });
+    mockCreateNote.mockResolvedValue({ id: "n1" });
+  });
+
+  it("project/next: applyTaskOp z wersją pliku, potem [x]; ref = id projektu", async () => {
+    const r = await moveItem("e1", {
+      target: "project",
+      projectId: "nexus",
+      column: "next",
+      text: "Zrób X",
+    });
+    expect(mockGetProject).toHaveBeenCalledWith("nexus");
+    expect(mockApplyTaskOp).toHaveBeenCalledWith(
+      "nexus",
+      { op: "add", column: "next", text: "Zrób X" },
+      VERSION
+    );
+    expect(mockResolve).toHaveBeenCalledWith("e1");
+    expect(r).toEqual({ target: "project", ref: "nexus" });
+  });
+
+  it("project/icebox: kolumna trafia do applyTaskOp", async () => {
+    await moveItem("e1", {
+      target: "project",
+      projectId: "nexus",
+      column: "icebox",
+      text: "Kiedyś",
+    });
+    expect(mockApplyTaskOp.mock.calls[0][1]).toEqual({
+      op: "add",
+      column: "icebox",
+      text: "Kiedyś",
+    });
+  });
+
+  it("task: createTask z tytułem = tekst; ref = id zadania", async () => {
+    const r = await moveItem("e1", { target: "task", text: "Kup mleko" });
+    expect(mockCreateTask).toHaveBeenCalledWith({ title: "Kup mleko" });
+    expect(mockResolve).toHaveBeenCalledWith("e1");
+    expect(r).toEqual({ target: "task", ref: "t1" });
+  });
+
+  it("note: createNote z tytułem i treścią; ref = id notatki", async () => {
+    const r = await moveItem("e1", {
+      target: "note",
+      title: "Vitest",
+      text: "https://vitest.dev",
+    });
+    expect(mockCreateNote).toHaveBeenCalledWith({
+      title: "Vitest",
+      content: "https://vitest.dev",
+    });
+    expect(r).toEqual({ target: "note", ref: "n1" });
+  });
+
+  it("wpis nieznany albo już zamknięty: NotFoundError, bez zapisu w celu", async () => {
+    mockRead.mockReturnValue([]);
+    await expect(moveItem("e1", { target: "task", text: "a" })).rejects.toBeInstanceOf(
+      NotFoundError
+    );
+    expect(mockCreateTask).not.toHaveBeenCalled();
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("nieznany projekt (getProject rzuca NotFoundError): wpis nietknięty", async () => {
+    mockGetProject.mockImplementation(() => {
+      throw new NotFoundError("Nie ma projektu o id x");
+    });
+    await expect(
+      moveItem("e1", { target: "project", projectId: "x", column: "next", text: "a" })
+    ).rejects.toBeInstanceOf(NotFoundError);
+    expect(mockApplyTaskOp).not.toHaveBeenCalled();
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("konflikt wersji tasks.md (applyTaskOp rzuca ConflictError): wpis nietknięty", async () => {
+    mockApplyTaskOp.mockRejectedValue(new ConflictError("Plik zadań zmienił się w międzyczasie"));
+    await expect(
+      moveItem("e1", { target: "project", projectId: "nexus", column: "next", text: "a" })
+    ).rejects.toBeInstanceOf(ConflictError);
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("limit „Teraz” itp. (DomainError z applyTaskOp) przechodzi dalej, wpis nietknięty", async () => {
+    mockApplyTaskOp.mockRejectedValue(new DomainError("Limit 3 zadań w kolumnie Teraz", 422));
+    await expect(
+      moveItem("e1", { target: "project", projectId: "nexus", column: "next", text: "a" })
+    ).rejects.toBeInstanceOf(DomainError);
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("błąd zapisu zadania ogólnego: wpis nietknięty", async () => {
+    mockCreateTask.mockRejectedValue(new Error("disk"));
+    await expect(moveItem("e1", { target: "task", text: "a" })).rejects.toThrow("disk");
+    expect(mockResolve).not.toHaveBeenCalled();
+  });
+
+  it("resolve rzuca po udanym zapisie: wynik z ostrzeżeniem, cel istnieje", async () => {
+    mockResolve.mockRejectedValue(new Error("disk"));
+    const r = await moveItem("e1", { target: "task", text: "a" });
+    expect(mockCreateTask).toHaveBeenCalled();
+    expect(r.target).toBe("task");
+    expect(r.ref).toBe("t1");
+    expect(r.warning).toMatch(/wpis zostaje otwarty/i);
+  });
+
+  it("resolve zwraca false (wpis zniknął w międzyczasie): też ostrzeżenie, nie błąd", async () => {
+    mockResolve.mockResolvedValue(false);
+    const r = await moveItem("e1", { target: "task", text: "a" });
+    expect(r.warning).toBeDefined();
   });
 });
