@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  alertItems,
   checklistProgress,
   countLevels,
   filterCodex,
@@ -101,5 +102,37 @@ describe("checklistProgress", () => {
     const r = run(["c-1"]);
     r.items["c-2"] = { checked: false, note: "x" };
     expect(checklistProgress(items, r).done).toBe(1);
+  });
+});
+
+describe("alertItems", () => {
+  it("brak ostrzeżeń daje pustą listę", () => {
+    expect(alertItems([], 0, false, "2026-11.jsonl")).toEqual([]);
+  });
+
+  it("ostrzeżenia parsera dostają tagi, uszkodzone linie jedną zbiorczą pozycję", () => {
+    const items = alertItems(
+      [
+        { kind: "duplicate-id", message: "Reguła [TDD-1] powtórzona", line: 9 },
+        { kind: "unknown-ref", message: "Brak [SEC-4]", line: 20 },
+      ],
+      2,
+      false,
+      "2026-11.jsonl"
+    );
+    expect(items.map((i) => i.tag)).toEqual([
+      "Zduplikowany identyfikator",
+      "Brakująca reguła",
+      "Dziennik zdarzeń",
+    ]);
+    expect(items[2].text).toContain("2 uszkodzone linie");
+    expect(items[2].text).toContain("2026-11.jsonl");
+  });
+
+  it("jedna uszkodzona linia w liczbie pojedynczej, niedokończony ogon to osobna pozycja", () => {
+    const items = alertItems([], 1, true, null);
+    expect(items).toHaveLength(2);
+    expect(items[0].text).toContain("1 uszkodzoną linię");
+    expect(items[1].text).toContain("nie jest dokończona");
   });
 });

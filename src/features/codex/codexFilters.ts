@@ -60,3 +60,35 @@ export function checklistProgress(
   const done = items.filter((item) => run?.items[item.id]?.checked === true).length;
   return { done, total, pct: total === 0 ? 0 : Math.round((done / total) * 100) };
 }
+
+export type AlertItem = { tag: string; text: string };
+
+/**
+ * Pozycje panelu ostrzeżeń: ostrzeżenia parsera oraz jedna zbiorcza pozycja za uszkodzone linie dziennika
+ * i jedna za niedokończoną ostatnią linię. Długość tablicy = liczba na kaflu „Stan walidacji”.
+ */
+export function alertItems(
+  warnings: CodexOk["warnings"],
+  skippedLines: number,
+  unterminatedTail: boolean,
+  journalName: string | null
+): AlertItem[] {
+  const items: AlertItem[] = warnings.map((w) => ({
+    tag: w.kind === "duplicate-id" ? "Zduplikowany identyfikator" : "Brakująca reguła",
+    text: w.message,
+  }));
+  const file = journalName ?? "dziennika";
+  if (skippedLines > 0) {
+    items.push({
+      tag: "Dziennik zdarzeń",
+      text: `Pominięto ${skippedLines} ${skippedLines === 1 ? "uszkodzoną linię" : "uszkodzone linie"} w ${file} (stan odtworzony z poprawnych wpisów).`,
+    });
+  }
+  if (unterminatedTail) {
+    items.push({
+      tag: "Dziennik zdarzeń",
+      text: `Ostatnia linia ${file} nie jest dokończona; zignorowano ją do czasu dopisania końca linii.`,
+    });
+  }
+  return items;
+}
