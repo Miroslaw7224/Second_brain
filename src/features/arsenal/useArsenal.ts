@@ -11,6 +11,8 @@ import { EMPTY_FILTERS, filterEntries, type ArsenalFilters } from "./arsenalFilt
 
 export type ApiFetch = (url: string, options?: RequestInit) => Promise<Response>;
 
+const messageOf = (err: unknown): string => (err instanceof Error ? err.message : "Błąd");
+
 async function errorText(res: Response): Promise<string> {
   const body = (await res.json().catch(() => null)) as { error?: unknown } | null;
   return typeof body?.error === "string" ? body.error : `Błąd ${res.status}`;
@@ -23,22 +25,18 @@ export function useArsenal(apiFetch: ApiFetch) {
   const [filters, setFilters] = useState<ArsenalFilters>(EMPTY_FILTERS);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      const res = await apiFetch("/api/arsenal");
-      if (!res.ok) throw new Error(await errorText(res));
-      setCatalog(CatalogDtoSchema.parse(await res.json()));
-      setError(null);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Nie udało się wczytać Arsenału");
-    } finally {
-      setLoading(false);
-    }
+  const fetchCatalog = useCallback(async () => {
+    const res = await apiFetch("/api/arsenal");
+    if (!res.ok) throw new Error(await errorText(res));
+    setCatalog(CatalogDtoSchema.parse(await res.json()));
+    setError(null);
   }, [apiFetch]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    fetchCatalog()
+      .catch((err) => setError(messageOf(err)))
+      .finally(() => setLoading(false));
+  }, [fetchCatalog]);
 
   const allEntries = useMemo<ArsenalEntryDto[]>(() => catalog?.entries ?? [], [catalog]);
   const entries = useMemo(() => filterEntries(allEntries, filters), [allEntries, filters]);
@@ -65,9 +63,14 @@ export function useArsenal(apiFetch: ApiFetch) {
         body: JSON.stringify({ project, mode }),
       });
       if (!res.ok) throw new Error(await errorText(res));
-      await load();
+      try {
+        await fetchCatalog();
+      } catch (err) {
+        // Zapis się udał; błąd odświeżenia nie może zastąpić widoku, więc trafia tylko do wywołującego.
+        throw new Error(`Zapisano, ale nie udało się odświeżyć listy: ${messageOf(err)}`);
+      }
     },
-    [apiFetch, load]
+    [apiFetch, fetchCatalog]
   );
 
   return {

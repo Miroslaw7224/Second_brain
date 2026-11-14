@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import type {
   DeployInstructionsDto,
   DeployModeDto,
@@ -27,24 +27,31 @@ export function DeployPanel({ skill, targets, fetchInstructions, markDeployed }:
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [marked, setMarked] = useState(false);
+  /** Numer ostatniego żądania; zmiana projektu/trybu unieważnia żądania w locie. */
+  const request = useRef(0);
 
   if (targets.length === 0) return <p className="asv-empty">Brak projektów w rejestrze.</p>;
 
   const reset = () => {
+    request.current += 1;
     setResult(null);
     setError(null);
     setMarked(false);
+    setBusy(false);
   };
 
   const generate = async () => {
-    setBusy(true);
+    const id = request.current + 1;
     reset();
+    request.current = id;
+    setBusy(true);
     try {
-      setResult(await fetchInstructions(skill.slug, project, mode));
+      const out = await fetchInstructions(skill.slug, project, mode);
+      if (request.current === id) setResult(out);
     } catch (err) {
-      setError(message(err));
+      if (request.current === id) setError(message(err));
     } finally {
-      setBusy(false);
+      if (request.current === id) setBusy(false);
     }
   };
 

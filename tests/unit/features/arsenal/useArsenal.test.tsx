@@ -89,4 +89,21 @@ describe("useArsenal", () => {
     const gets = apiFetch.mock.calls.filter(([url]) => url === "/api/arsenal");
     expect(gets).toHaveLength(2);
   });
+
+  it("błąd odświeżenia po zapisie odrzuca markDeployed, ale nie zastępuje widoku błędem", async () => {
+    let gets = 0;
+    const { result } = setup((_url, init) => {
+      if (init?.method === "POST") return json({});
+      gets += 1;
+      return gets === 1 ? json(catalog) : json({ error: "pad" }, false, 500);
+    });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {
+      await expect(result.current.markDeployed("tdd", "p", "full")).rejects.toThrow(
+        /nie udało się odświeżyć/i
+      );
+    });
+    expect(result.current.error).toBeNull();
+    expect(result.current.entries).toHaveLength(2);
+  });
 });

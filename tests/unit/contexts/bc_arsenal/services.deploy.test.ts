@@ -43,6 +43,10 @@ describe("buildDeployCommand", () => {
     );
   });
 
+  it("odrzuca zły slug (400), zanim złoży polecenie", () => {
+    expect(statusOf(() => services.buildDeployCommand("../x; rm -rf ~", "~/p"))).toBe(400);
+  });
+
   it("ucieka apostrof w ścieżce", () => {
     expect(services.buildDeployCommand("tdd", "a'b")).toBe(`scripts/deploy-skill.sh tdd 'a'\\''b'`);
   });

@@ -182,6 +182,7 @@ const shQuote = (value: string): string => `'${value.replace(/'/g, `'\\''`)}'`;
 
 /** Polecenie dla użytkownika (uruchamiane z katalogu Monolith); aplikacja niczego nie wykonuje. */
 export function buildDeployCommand(slug: string, localPath: string): string {
+  assertSlug(slug);
   return `scripts/deploy-skill.sh ${slug} ${shQuote(localPath)}`;
 }
 

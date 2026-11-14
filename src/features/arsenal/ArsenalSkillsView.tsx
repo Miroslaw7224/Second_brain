@@ -69,6 +69,7 @@ export function ArsenalSkillsView({ apiFetch }: { apiFetch: ApiFetch }) {
               )}
             </ul>
             <ArsenalDetail
+              key={a.selected?.id ?? "none"}
               entry={a.selected}
               targets={a.targets}
               fetchInstructions={a.fetchInstructions}

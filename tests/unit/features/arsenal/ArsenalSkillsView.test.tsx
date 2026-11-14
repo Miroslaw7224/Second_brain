@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ArsenalSkillsView } from "@/src/features/arsenal/ArsenalSkillsView";
 
@@ -43,10 +43,11 @@ function setup() {
   const apiFetch = vi.fn(async (url: string, init?: RequestInit) => {
     if (init?.method === "POST") return json({});
     if (url.includes("/deploy?")) {
+      const project = new URL(url, "http://x").searchParams.get("project");
       return json({
         mode: "full",
-        text: "scripts/deploy-skill.sh tdd '~/w'",
-        note: "Dane z firmy: sprawdź, gdzie wklejasz",
+        text: `scripts/deploy-skill.sh tdd '~/${project}'`,
+        ...(project === "w" && { note: "Dane z firmy: sprawdź, gdzie wklejasz" }),
       });
     }
     return json(catalog);
@@ -115,8 +116,39 @@ describe("ArsenalSkillsView", () => {
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: /test-driven-development/ }));
     await user.click(screen.getByRole("button", { name: "Generuj" }));
-    await screen.findByText("scripts/deploy-skill.sh tdd '~/w'");
+    await screen.findByText("scripts/deploy-skill.sh tdd '~/p'");
     await user.selectOptions(screen.getByLabelText("Projekt docelowy"), "w");
-    expect(screen.queryByText("scripts/deploy-skill.sh tdd '~/w'")).toBeNull();
+    expect(screen.queryByText("scripts/deploy-skill.sh tdd '~/p'")).toBeNull();
+  });
+
+  it("spóźniona odpowiedź dla poprzedniego projektu nie nadpisuje wyniku", async () => {
+    let release: (r: Response) => void = () => {};
+    const apiFetch = vi.fn((url: string) =>
+      url.includes("/deploy?")
+        ? new Promise<Response>((resolve) => {
+            release = resolve;
+          })
+        : Promise.resolve(json(catalog))
+    );
+    render(<ArsenalSkillsView apiFetch={apiFetch} />);
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /test-driven-development/ }));
+    await user.click(screen.getByRole("button", { name: "Generuj" }));
+    await user.selectOptions(screen.getByLabelText("Projekt docelowy"), "w");
+    await act(async () => {
+      release(json({ mode: "full", text: "STARY WYNIK" }));
+    });
+    expect(screen.queryByText("STARY WYNIK")).toBeNull();
+    expect(screen.getByRole("button", { name: "Generuj" })).toBeEnabled();
+  });
+
+  it("stan „Skopiowano” nie przechodzi na inny wpis", async () => {
+    setup();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: /test-driven-development/ }));
+    await user.click(screen.getAllByRole("button", { name: "Kopiuj" })[0]);
+    expect(await screen.findByText("Skopiowano")).toBeVisible();
+    await user.click(screen.getByRole("button", { name: /Rada ekspertów/ }));
+    expect(screen.queryByText("Skopiowano")).toBeNull();
   });
 });

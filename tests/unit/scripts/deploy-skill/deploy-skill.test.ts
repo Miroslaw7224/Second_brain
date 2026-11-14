@@ -56,9 +56,9 @@ beforeEach(() => {
 
 afterEach(() => fs.rmSync(tmp, { recursive: true, force: true }));
 
-const run = (args: string[]) =>
+const run = (args: string[], extraEnv: Record<string, string> = {}) =>
   spawnSync("bash", [SCRIPT, ...args], {
-    env: { ...process.env, NEXUS_VAULT_PATH: vault },
+    env: { ...process.env, NEXUS_VAULT_PATH: vault, ...extraEnv },
     encoding: "utf8",
   });
 
@@ -100,6 +100,20 @@ describe("deploy-skill.sh", () => {
   it("brak skilla albo katalogu projektu: kod 3", () => {
     expect(run(["nie-ma", project]).status).toBe(3);
     expect(run(["demo", path.join(tmp, "brak")]).status).toBe(3);
+  });
+
+  it("skill.md z CRLF też traci klucze Vaultowe", () => {
+    fs.writeFileSync(
+      path.join(vault, "Arsenal/Skills/demo/skill.md"),
+      SKILL_MD.replace(/\n/g, "\r\n")
+    );
+    expect(run(["demo", project]).status).toBe(0);
+    expect(fs.readFileSync(path.join(dest(), "SKILL.md"), "utf8")).toBe(EXPECTED);
+  });
+
+  it("rozwija ~/ do $HOME", () => {
+    expect(run(["demo", "~/proj"], { HOME: tmp }).status).toBe(0);
+    expect(fs.existsSync(path.join(dest(), "SKILL.md"))).toBe(true);
   });
 
   it("zła liczba argumentów: kod 1", () => {

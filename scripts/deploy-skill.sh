@@ -23,7 +23,8 @@ TARGET="${ARGS[1]}"
 [[ "$SLUG" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]] || { echo "Nieprawidłowy slug: $SLUG" >&2; exit 2; }
 
 VAULT="${NEXUS_VAULT_PATH:-$HOME/projects/Brain_7224/NEXUS/Vault}"
-TARGET="${TARGET/#\~/$HOME}"
+# Tylko `~` i `~/...` (nie `~user`).
+if [[ "$TARGET" == "~" || "$TARGET" == "~/"* ]]; then TARGET="$HOME${TARGET#\~}"; fi
 SRC="$VAULT/Arsenal/Skills/$SLUG"
 [[ -f "$SRC/skill.md" ]] || { echo "Brak skilla: $SRC/skill.md" >&2; exit 3; }
 [[ -d "$TARGET" ]] || { echo "Brak katalogu projektu: $TARGET" >&2; exit 3; }
@@ -33,11 +34,12 @@ if [[ -e "$DEST/SKILL.md" && $FORCE -ne 1 ]]; then
   echo "Cel już istnieje: $DEST/SKILL.md (użyj --force, by nadpisać)" >&2
   exit 4
 fi
-mkdir -p "$DEST"
+mkdir -p -- "$DEST"
 
 # Frontmatter: usuwamy klucze tylko-Vaultowe (type, slug, summary, origin, deployed) razem z ich
-# wcięciami/listą; reszta (name, description, ...) i treść zostają bajt w bajt.
-awk '
+# wcięciami/listą; reszta (name, description, ...) i treść zostają. CRLF jest sprowadzany do LF
+# (jak robi to Monolith przy odczycie), żeby plik edytowany w Windows nie ominął filtra.
+tr -d '\r' < "$SRC/skill.md" | awk '
   NR == 1 && $0 == "---" { infm = 1; print; next }
   infm && $0 == "---" { infm = 0; skip = 0; print; next }
   infm {
@@ -46,11 +48,11 @@ awk '
     skip = 0
   }
   { print }
-' "$SRC/skill.md" > "$DEST/SKILL.md"
+' > "$DEST/SKILL.md"
 
 # Szablony wracają obok SKILL.md (taki układ miały oryginalne skille).
 if [[ -d "$SRC/templates" ]]; then
-  cp -R "$SRC/templates/." "$DEST/"
+  cp -R -- "$SRC/templates/." "$DEST/"
 fi
 
 echo "Wdrożono: $DEST"
