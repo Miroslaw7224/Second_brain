@@ -117,3 +117,9 @@ test("toggleFixOnly zawęża listę do zasobów do poprawy", async () => {
   act(() => result.current.clearTagFilter());
   expect(result.current.fixOnly).toBe(false);
 });
+
+test("formularz dodawania jest domyślnie zwinięty", async () => {
+  const { result } = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.formExpanded).toBe(false);
+});

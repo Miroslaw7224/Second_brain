@@ -50,4 +50,12 @@ describe("ResourceSection", () => {
     await user.keyboard("/");
     expect(screen.getByRole("searchbox")).toHaveFocus();
   });
+
+  it("pole URL formularza pojawia się dopiero po rozwinięciu", async () => {
+    await setup();
+    const user = userEvent.setup();
+    expect(screen.queryByPlaceholderText("URL")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /description/i }));
+    expect(screen.getByPlaceholderText("URL")).toBeInTheDocument();
+  });
 });

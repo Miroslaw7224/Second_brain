@@ -156,7 +156,7 @@ export function useResources(
   const [blockFormatError, setBlockFormatError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [fixOnly, setFixOnly] = useState(false);
-  const [formExpanded, setFormExpanded] = useState(true);
+  const [formExpanded, setFormExpanded] = useState(false);
   const [blockFormatExpanded, setBlockFormatExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingResource, setEditingResource] = useState<NoteResource | null>(null);

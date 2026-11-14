@@ -93,6 +93,37 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
 
       <div className="ars-layout">
         <div className="ars-col-main">
+          <aside className="ars-sidebar" aria-label="Dodawanie zasobów">
+            <ResourceAddForm
+              resourceDescriptionPlaceholder={labels.resourceDescriptionPlaceholder}
+              resourceUrlPlaceholder={labels.resourceUrlPlaceholder}
+              resourceTagsPlaceholder={labels.resourceTagsPlaceholder}
+              addResourceLabel={labels.addResource}
+              blockFormatLabel={labels.resourceBlockFormatLabel}
+              blockFormatPlaceholder={labels.resourceBlockFormatPlaceholder}
+              blockFormatHint={labels.resourceBlockFormatHint}
+              addFromBlockLabel={labels.resourceAddFromBlock}
+              addDescription={addDescription}
+              setAddDescription={setAddDescription}
+              addUrl={addUrl}
+              setAddUrl={setAddUrl}
+              addTags={addTags}
+              setAddTags={setAddTags}
+              adding={adding}
+              formExpanded={formExpanded}
+              setFormExpanded={setFormExpanded}
+              handleAdd={handleAdd}
+              blockFormatText={blockFormatText}
+              setBlockFormatText={setBlockFormatText}
+              setBlockFormatError={setBlockFormatError}
+              blockFormatExpanded={blockFormatExpanded}
+              setBlockFormatExpanded={setBlockFormatExpanded}
+              handleAddFromBlock={handleAddFromBlock}
+              blockFormatError={blockFormatError}
+              copyMessage={copyMessage}
+            />
+          </aside>
+
           <ResourceFavoritesBar
             favorites={favorites}
             sectionTitle={labels.resourceFavoritesSectionTitle}
@@ -144,37 +175,6 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
             )}
           </div>
         </div>
-
-        <aside className="ars-sidebar" aria-label="Dodawanie zasobów">
-          <ResourceAddForm
-            resourceDescriptionPlaceholder={labels.resourceDescriptionPlaceholder}
-            resourceUrlPlaceholder={labels.resourceUrlPlaceholder}
-            resourceTagsPlaceholder={labels.resourceTagsPlaceholder}
-            addResourceLabel={labels.addResource}
-            blockFormatLabel={labels.resourceBlockFormatLabel}
-            blockFormatPlaceholder={labels.resourceBlockFormatPlaceholder}
-            blockFormatHint={labels.resourceBlockFormatHint}
-            addFromBlockLabel={labels.resourceAddFromBlock}
-            addDescription={addDescription}
-            setAddDescription={setAddDescription}
-            addUrl={addUrl}
-            setAddUrl={setAddUrl}
-            addTags={addTags}
-            setAddTags={setAddTags}
-            adding={adding}
-            formExpanded={formExpanded}
-            setFormExpanded={setFormExpanded}
-            handleAdd={handleAdd}
-            blockFormatText={blockFormatText}
-            setBlockFormatText={setBlockFormatText}
-            setBlockFormatError={setBlockFormatError}
-            blockFormatExpanded={blockFormatExpanded}
-            setBlockFormatExpanded={setBlockFormatExpanded}
-            handleAddFromBlock={handleAddFromBlock}
-            blockFormatError={blockFormatError}
-            copyMessage={copyMessage}
-          />
-        </aside>
       </div>
 
       <ResourceEditModal
