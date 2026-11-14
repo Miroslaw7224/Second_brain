@@ -61,6 +61,7 @@ describe("cardForView", () => {
     expect(cardForView("planowanie", "board")).toBe("plotno");
     expect(cardForView("planowanie", "mindmaps")).toBe("plotno");
     expect(cardForView("planowanie", "resources")).toBe("arsenal");
+    expect(cardForView("planowanie", "skills")).toBe("arsenal");
     expect(cardForView("planowanie", "tags")).toBe("arsenal");
     expect(cardForView("planowanie", "activity")).toBe("kalendarz");
   });
@@ -96,9 +97,9 @@ describe("filterCommands", () => {
 });
 
 describe("subtabsForCard", () => {
-  test("subtabsForCard('plotno') = ['board','mindmaps'], 'arsenal' = ['resources','tags'], 'kokpit' = []", () => {
+  test("subtabsForCard('plotno') = ['board','mindmaps'], 'arsenal' = ['resources','skills','tags'], 'kokpit' = []", () => {
     expect(subtabsForCard("plotno")).toEqual(["board", "mindmaps"]);
-    expect(subtabsForCard("arsenal")).toEqual(["resources", "tags"]);
+    expect(subtabsForCard("arsenal")).toEqual(["resources", "skills", "tags"]);
     expect(subtabsForCard("kokpit")).toEqual([]);
   });
 
@@ -106,7 +107,7 @@ describe("subtabsForCard", () => {
     expect(CARD_SUBTABS).toEqual({
       kalendarz: ["calendar", "activity"],
       plotno: ["board", "mindmaps"],
-      arsenal: ["resources", "tags"],
+      arsenal: ["resources", "skills", "tags"],
     });
   });
 });

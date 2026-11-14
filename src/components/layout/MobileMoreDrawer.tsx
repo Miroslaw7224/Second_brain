@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { Link, Briefcase, Tag, Map, LayoutDashboard } from "lucide-react";
+import { Link, Briefcase, Tag, Map, LayoutDashboard, Sparkles } from "lucide-react";
 import type { PlanningTab } from "@/src/features/planowanie/planningTab";
 
 interface MobileMoreDrawerProps {
@@ -52,6 +52,12 @@ export function MobileMoreDrawer({
       icon: <Link className="w-5 h-5" />,
       labelPl: "Zasoby",
       labelEn: "Resources",
+    },
+    {
+      id: "skills",
+      icon: <Sparkles className="w-5 h-5" />,
+      labelPl: "Skille i prompty",
+      labelEn: "Skills & prompts",
     },
     {
       id: "mindmaps",

@@ -9,6 +9,7 @@ import { CalendarView } from "@/src/features/calendar/CalendarView";
 import { TasksSection } from "@/src/features/tasks/TasksSection";
 import { TagsSection, type UserTag } from "@/src/features/tags/TagsSection";
 import { ResourceSection } from "@/src/features/resources/ResourceSection";
+import { ArsenalSkillsView } from "@/src/features/arsenal/ArsenalSkillsView";
 import { MindMapsTab } from "@/src/features/mind-maps/MindMapsTab";
 import { BoardTab } from "@/src/features/board/BoardTab";
 import { NotesPanel } from "@/src/features/notes/NotesPanel";
@@ -186,9 +187,11 @@ export default function PlanowanieView({
               ? ((t.tabMindMaps as string) ?? "Mapy myśli")
               : tab === "resources"
                 ? ((t.tabResources as string) ?? "Zasoby")
-                : tab === "tags"
-                  ? t.tabTags
-                  : tab,
+                : tab === "skills"
+                  ? ((t.tabSkills as string) ?? "Skille i prompty")
+                  : tab === "tags"
+                    ? t.tabTags
+                    : tab,
   }));
 
   return (
@@ -277,6 +280,10 @@ export default function PlanowanieView({
                 setPlanningTab("notes");
               }}
             />
+          </div>
+        ) : planningTab === "skills" ? (
+          <div className="flex-1 flex flex-col overflow-auto bg-[var(--bg)]">
+            <ArsenalSkillsView apiFetch={apiFetch} />
           </div>
         ) : planningTab === "mindmaps" ? (
           <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">

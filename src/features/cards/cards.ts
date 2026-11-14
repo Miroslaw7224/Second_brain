@@ -56,6 +56,7 @@ const TAB_TO_CARD: Record<PlanningTab, CardId> = {
   board: "plotno",
   mindmaps: "plotno",
   resources: "arsenal",
+  skills: "arsenal",
   tags: "arsenal",
   activity: "kalendarz",
 };
@@ -63,7 +64,7 @@ const TAB_TO_CARD: Record<PlanningTab, CardId> = {
 export const CARD_SUBTABS: Partial<Record<CardId, readonly PlanningTab[]>> = {
   kalendarz: ["calendar", "activity"],
   plotno: ["board", "mindmaps"],
-  arsenal: ["resources", "tags"],
+  arsenal: ["resources", "skills", "tags"],
 };
 
 export function subtabsForCard(id: CardId): readonly PlanningTab[] {

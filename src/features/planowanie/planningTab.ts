@@ -5,5 +5,6 @@ export type PlanningTab =
   | "calendar"
   | "tags"
   | "resources"
+  | "skills"
   | "mindmaps"
   | "board";
