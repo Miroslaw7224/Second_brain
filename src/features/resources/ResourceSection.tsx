@@ -12,7 +12,7 @@ import "./resources.css";
 
 export type { NoteResource } from "./resourceTypes";
 
-export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
+export function ResourceSection({ apiFetch, t, onOpenNote }: ResourceSectionProps) {
   const {
     resources,
     loading,
@@ -180,6 +180,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
                     onToggleFavorite={handleToggleFavorite}
                     onCopy={handleCopy}
                     onDelete={handleDelete}
+                    onOpenNote={onOpenNote}
                   />
                 ))}
               </ul>

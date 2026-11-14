@@ -200,4 +200,33 @@ describe("ResourceListItem: otwieranie i edycja", () => {
     expect(screen.queryByText("Test description")).not.toBeInTheDocument();
     expect(screen.queryByText("tag1")).not.toBeInTheDocument();
   });
+
+  it("pokazuje link notatka tylko gdy jest notePath i woła onOpenNote", async () => {
+    const onOpenNote = vi.fn();
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ notePath: "Knowledge/a.md" })}
+          onOpenEdit={vi.fn()}
+          onOpenNote={onOpenNote}
+        />
+      </ul>
+    );
+    await user.click(screen.getByRole("button", { name: /notatka/i }));
+    expect(onOpenNote).toHaveBeenCalledWith("Knowledge/a.md");
+
+    rerender(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource()}
+          onOpenEdit={vi.fn()}
+          onOpenNote={onOpenNote}
+        />
+      </ul>
+    );
+    expect(screen.queryByRole("button", { name: /notatka/i })).not.toBeInTheDocument();
+  });
 });

@@ -14,6 +14,7 @@ export interface ResourceListItemProps {
   onCopy: (url: string) => void;
   onDelete: (id: string) => void;
   dense?: boolean;
+  onOpenNote?: (notePath: string) => void;
 }
 
 export function ResourceListItem({
@@ -26,6 +27,7 @@ export function ResourceListItem({
   onCopy,
   onDelete,
   dense = false,
+  onOpenNote,
 }: ResourceListItemProps) {
   const favicon = getFaviconUrl(r.url);
   const [showFavicon, setShowFavicon] = React.useState(true);
@@ -88,6 +90,20 @@ export function ResourceListItem({
         </div>
       </div>
       <div className="ars-res-actions">
+        {r.notePath && onOpenNote && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenNote(r.notePath as string);
+            }}
+            className="btn btn--sm btn--ghost ars-action-btn"
+            title="Otwórz notatkę w Bazie wiedzy"
+            aria-label="Notatka"
+          >
+            notatka
+          </button>
+        )}
         <button
           type="button"
           onClick={(e) => {

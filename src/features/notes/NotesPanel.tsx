@@ -42,6 +42,10 @@ export interface NotesPanelProps {
   inboxOpen?: number | null;
   /** Gdy podane, panel pokazuje sekcję „Baza wiedzy NEXUS” (tylko odczyt). */
   apiFetch?: ApiFetch;
+  /** Dokument NEXUS do otwarcia przy wejściu do panelu (np. z mostu w Arsenale). */
+  initialNexusPath?: string | null;
+  /** Wołane raz po zużyciu `initialNexusPath`, żeby rodzic wyczyścił stan. */
+  onInitialNexusPathConsumed?: () => void;
 }
 
 function formatSize(text: string): string {
@@ -66,11 +70,18 @@ export function NotesPanel({
   deleteNote,
   inboxOpen = null,
   apiFetch,
+  initialNexusPath,
+  onInitialNexusPathConsumed,
 }: NotesPanelProps) {
   const [filter, setFilter] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
   const [split, setSplit] = useState(false);
-  const [nexusPath, setNexusPath] = useState<string | null>(null);
+  const [nexusPath, setNexusPath] = useState<string | null>(initialNexusPath ?? null);
+  useEffect(() => {
+    if (initialNexusPath) onInitialNexusPathConsumed?.();
+    // tylko przy montowaniu: panel jest montowany warunkowo przy wejściu na kartę Notatki
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const nexus = useNexusDocs(apiFetch);
   const nexusDoc = useMemo(
     () => nexus.docs.find((d) => d.path === nexusPath) ?? null,
