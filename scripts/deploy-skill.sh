@@ -36,14 +36,14 @@ if [[ -e "$DEST/SKILL.md" && $FORCE -ne 1 ]]; then
 fi
 mkdir -p -- "$DEST"
 
-# Frontmatter: usuwamy klucze tylko-Vaultowe (type, slug, summary, origin, deployed) razem z ich
+# Frontmatter: usuwamy klucze tylko-Vaultowe (type, slug, summary, origin, source_path, deployed) razem z ich
 # wcięciami/listą; reszta (name, description, ...) i treść zostają. CRLF jest sprowadzany do LF
 # (jak robi to Monolith przy odczycie), żeby plik edytowany w Windows nie ominął filtra.
 tr -d '\r' < "$SRC/skill.md" | awk '
   NR == 1 && $0 == "---" { infm = 1; print; next }
   infm && $0 == "---" { infm = 0; skip = 0; print; next }
   infm {
-    if ($0 ~ /^(type|slug|summary|origin|deployed):/) { skip = 1; next }
+    if ($0 ~ /^(type|slug|summary|origin|source_path|deployed):/) { skip = 1; next }
     if (skip && ($0 ~ /^[[:space:]]/ || $0 ~ /^-/)) next
     skip = 0
   }

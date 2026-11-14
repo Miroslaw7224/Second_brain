@@ -71,6 +71,19 @@ describe("deploy-skill.sh", () => {
     expect(fs.readFileSync(path.join(dest(), "SKILL.md"), "utf8")).toBe(EXPECTED);
   });
 
+  it("usuwa też klucz source_path (ścieżka źródła zostaje w Vaulcie)", () => {
+    fs.writeFileSync(
+      path.join(vault, "Arsenal/Skills/demo/skill.md"),
+      SKILL_MD.replace(
+        "origin: global\n",
+        'origin: global\nsource_path: "C:\\\\Users\\\\x\\\\skills\\\\demo"\n'
+      )
+    );
+    const res = run(["demo", project]);
+    expect(res.status).toBe(0);
+    expect(fs.readFileSync(path.join(dest(), "SKILL.md"), "utf8")).toBe(EXPECTED);
+  });
+
   it("kopiuje zawartość templates/ obok SKILL.md (także zagnieżdżoną)", () => {
     run(["demo", project]);
     expect(fs.readFileSync(path.join(dest(), "t.md"), "utf8")).toBe("szablon");
