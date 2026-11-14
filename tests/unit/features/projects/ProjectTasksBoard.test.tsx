@@ -210,7 +210,8 @@ describe("ProjectTasksBoard (przez ProjectsView)", () => {
     await user.click(within(column("Teraz")).getByRole("checkbox", { name: "Drugie" }));
     await waitFor(() => expect(posts(api)).toHaveLength(2));
     expect(screen.queryByRole("button", { name: /Potwierdź usunięcie/ })).not.toBeInTheDocument();
-  });
+    // Długi scenariusz (ok. 10 akcji userEvent): pod obciążeniem pełnego przebiegu przekracza domyślne 5 s.
+  }, 20_000);
 
   it("usuwanie dwuetapowe: dopiero potwierdzenie wysyła POST remove", async () => {
     const user = userEvent.setup();
