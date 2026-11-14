@@ -294,6 +294,48 @@ export function listVaultFilesRecursive(relDir: string, opts?: VaultFsOptions): 
   return out.sort();
 }
 
+/** `mtime` pliku w ms, `null` gdy plik nie istnieje. Ścieżka przechodzi przez resolveInsideVault. */
+export function vaultFileMtimeMs(rel: string, opts?: VaultFsOptions): number | null {
+  const abs = resolveInsideVault(rootOf(opts), rel, opts);
+  try {
+    return fs.statSync(abs).mtimeMs;
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code === "ENOENT") return null;
+    throw err;
+  }
+}
+
+/**
+ * Dopisuje jedną linię (bez końca linii w środku) i kończy ją `\n`. Gdy istniejący plik nie kończy
+ * się `\n` (niedokończona linia z innego procesu), najpierw dopisuje `\n`, żeby nowa linia nie
+ * skleiła się ze starą. Tworzy katalogi i plik. Tryb dopisywania: plik nie jest przepisywany,
+ * więc kontrola wersji i zapis atomowy (dotyczące plików nadpisywanych) tu nie obowiązują.
+ */
+export function appendVaultLine(rel: string, line: string, opts?: VaultFsOptions): void {
+  if (line.includes("\n") || line.includes("\r")) {
+    throw new Error("Linia dziennika nie może zawierać końca linii");
+  }
+  const abs = resolveInsideVault(rootOf(opts), rel, opts);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  let prefix = "";
+  try {
+    const size = fs.statSync(abs).size;
+    if (size > 0) {
+      const fd = fs.openSync(abs, "r");
+      try {
+        const last = Buffer.alloc(1);
+        fs.readSync(fd, last, 0, 1, size - 1);
+        if (last[0] !== 0x0a) prefix = "\n";
+      } finally {
+        fs.closeSync(fd);
+      }
+    }
+  } catch (err) {
+    if ((err as NodeJS.ErrnoException).code !== "ENOENT") throw err;
+  }
+  fs.appendFileSync(abs, `${prefix}${line}\n`, { encoding: "utf8" });
+}
+
 /**
  * Usuwa plik, jeśli jego wersja jest taka jak `expected` (z ostatniego odczytu).
  * Zwraca false, gdy pliku nie ma; inna wersja daje ConflictError (plik zostaje).

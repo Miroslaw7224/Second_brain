@@ -492,6 +492,7 @@ const VAULT_FS_IMPORTERS = [
   "contexts/bc_arsenal/repositories",
   "contexts/bc_board/repositories",
   "contexts/bc_calendar/repositories",
+  "contexts/bc_codex/repositories",
   "contexts/bc_inbox/repositories",
   "contexts/bc_map/repositories",
   "contexts/bc_mind_maps/repositories",

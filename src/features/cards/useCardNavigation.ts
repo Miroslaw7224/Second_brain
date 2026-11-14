@@ -9,9 +9,9 @@ export interface CardNavigation {
   setAppMode: (mode: AppMode) => void;
   planningTab: PlanningTab;
   setPlanningTab: (tab: PlanningTab) => void;
-  placeholder: CardId | null;
   projectsOpen: boolean;
   mapOpen: boolean;
+  codexOpen: boolean;
   activeCard: CardId;
   selectCard: (id: CardId) => void;
 }
@@ -33,7 +33,7 @@ export function useCardNavigation(): CardNavigation {
 
   const selectCard = useCallback((id: CardId) => {
     const { target } = getCard(id);
-    if (target.kind === "placeholder" || target.kind === "projects" || target.kind === "map") {
+    if (target.kind === "projects" || target.kind === "map" || target.kind === "codex") {
       setStandalone(id);
       return;
     }
@@ -46,10 +46,9 @@ export function useCardNavigation(): CardNavigation {
     }
   }, []);
 
-  const placeholder =
-    standalone && getCard(standalone).target.kind === "placeholder" ? standalone : null;
   const projectsOpen = standalone === "projekty";
   const mapOpen = standalone === "mapa";
+  const codexOpen = standalone === "kodeks";
   const activeCard = standalone ?? cardForView(appMode, planningTab);
 
   // Hash czytamy tylko raz: w StrictMode efekty biegną dwa razy, a drugi odczyt
@@ -72,9 +71,9 @@ export function useCardNavigation(): CardNavigation {
     setAppMode,
     planningTab,
     setPlanningTab,
-    placeholder,
     projectsOpen,
     mapOpen,
+    codexOpen,
     activeCard,
     selectCard,
   };

@@ -12,7 +12,7 @@ describe("useCardNavigation", () => {
     const { result } = renderHook(() => useCardNavigation());
     expect(result.current.appMode).toBe("home");
     expect(result.current.activeCard).toBe("kokpit");
-    expect(result.current.placeholder).toBeNull();
+    expect(result.current.codexOpen).toBe(false);
   });
 
   test("selectCard ustawia widok planowania i zakładkę", () => {
@@ -23,13 +23,13 @@ describe("useCardNavigation", () => {
     expect(result.current.activeCard).toBe("kalendarz");
   });
 
-  test("karta bez kodu ustawia zaślepkę, kolejna karta ją zdejmuje", () => {
+  test("Kodeks otwiera własny widok, kolejna karta go zamyka", () => {
     const { result } = renderHook(() => useCardNavigation());
     act(() => result.current.selectCard("kodeks"));
-    expect(result.current.placeholder).toBe("kodeks");
+    expect(result.current.codexOpen).toBe(true);
     expect(result.current.activeCard).toBe("kodeks");
     act(() => result.current.selectCard("kokpit"));
-    expect(result.current.placeholder).toBeNull();
+    expect(result.current.codexOpen).toBe(false);
     expect(result.current.appMode).toBe("home");
   });
 
@@ -37,7 +37,6 @@ describe("useCardNavigation", () => {
     const { result } = renderHook(() => useCardNavigation());
     act(() => result.current.selectCard("mapa"));
     expect(result.current.mapOpen).toBe(true);
-    expect(result.current.placeholder).toBeNull();
     expect(result.current.activeCard).toBe("mapa");
     act(() => result.current.selectCard("kokpit"));
     expect(result.current.mapOpen).toBe(false);
@@ -46,11 +45,9 @@ describe("useCardNavigation", () => {
   test("setter starego widoku zdejmuje zaślepkę", () => {
     const { result } = renderHook(() => useCardNavigation());
     act(() => result.current.selectCard("projekty"));
-    expect(result.current.placeholder).toBeNull();
     expect(result.current.projectsOpen).toBe(true);
     expect(result.current.activeCard).toBe("projekty");
     act(() => result.current.setPlanningTab("mindmaps"));
-    expect(result.current.placeholder).toBeNull();
     act(() => result.current.setAppMode("planowanie"));
     expect(result.current.activeCard).toBe("plotno");
   });
@@ -81,14 +78,15 @@ describe("useCardNavigation", () => {
     expect(window.location.hash).toBe("#arsenal");
   });
 
-  test("przejście zaślepka → zaślepka ustawia Kodeks i adres #kodeks", () => {
+  test("przejście Projekty → Kodeks zamyka projekty, otwiera Kodeks i ustawia adres #kodeks", () => {
     const { result } = renderHook(() => useCardNavigation());
     act(() => result.current.selectCard("projekty"));
-    expect(result.current.placeholder).toBeNull();
+    expect(result.current.codexOpen).toBe(false);
     expect(result.current.projectsOpen).toBe(true);
     expect(result.current.activeCard).toBe("projekty");
     act(() => result.current.selectCard("kodeks"));
-    expect(result.current.placeholder).toBe("kodeks");
+    expect(result.current.projectsOpen).toBe(false);
+    expect(result.current.codexOpen).toBe(true);
     expect(result.current.activeCard).toBe("kodeks");
     expect(window.location.hash).toBe("#kodeks");
   });
@@ -97,7 +95,7 @@ describe("useCardNavigation", () => {
     window.history.replaceState(null, "", "/dashboard#kodeks");
     const { result } = renderHook(() => useCardNavigation());
     expect(result.current.activeCard).toBe("kodeks");
-    expect(result.current.placeholder).toBe("kodeks");
+    expect(result.current.codexOpen).toBe(true);
   });
 
   test("projekty → zadania zamyka widok projektów", () => {

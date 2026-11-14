@@ -18,7 +18,7 @@ export type CardTarget =
   | { kind: "planning"; tab: PlanningTab }
   | { kind: "projects" }
   | { kind: "map" }
-  | { kind: "placeholder"; stage: string };
+  | { kind: "codex" };
 
 export interface CardDef {
   id: CardId;
@@ -41,12 +41,7 @@ export const CARDS: readonly CardDef[] = [
   { id: "plotno", label: "Płótno", hotkey: 6, target: { kind: "planning", tab: "board" } },
   { id: "arsenal", label: "Arsenał", hotkey: 7, target: { kind: "planning", tab: "skills" } },
   { id: "mapa", label: "Mapa", hotkey: 8, target: { kind: "map" } },
-  {
-    id: "kodeks",
-    label: "Kodeks",
-    hotkey: 9,
-    target: { kind: "placeholder", stage: "po etapie 0c" },
-  },
+  { id: "kodeks", label: "Kodeks", hotkey: 9, target: { kind: "codex" } },
 ];
 
 const TAB_TO_CARD: Record<PlanningTab, CardId> = {

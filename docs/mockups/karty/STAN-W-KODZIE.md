@@ -7,7 +7,7 @@ Legenda: **JEST** · **CZĘŚCIOWO** (co brakuje) · **BRAK**.
 **Wygląd (2026-11-13):** karty Kokpit, Kalendarz, Zadania, Projekty, Notatki, Płótno i Arsenał mają wygląd z makiet
 (osobny plik CSS z motywem `[data-card]`: `home.css`, `calendar.css`, `tasks.css`, `projects.css`, `notes.css`,
 `board.css`, `resources.css`). Odmalowany jest tylko **wygląd istniejących funkcji**: statusy funkcji w tabelach
-poniżej się nie zmieniły. Mapa i Kodeks zostają zaślepkami (makieta Kodeksu `09-kodeks.html` jest pełna, kod: część B specu Kodeksu).
+poniżej się nie zmieniły. Mapa i Kodeks mają już własne widoki (Mapa: `src/features/map/`, Kodeks: `src/features/codex/`, kontekst `contexts/bc_codex/`).
 
 ## 1. Kokpit (`src/features/home/HomeView.tsx`)
 
@@ -23,7 +23,7 @@ poniżej się nie zmieniły. Mapa i Kodeks zostają zaślepkami (makieta Kodeksu
 | Historia commitów (dzień po dniu) | JEST          | CommitHistory.tsx, GET /api/cockpit/commits (K8, 2026-11-13)                                                                              |
 | Rytuał zamknięcia dnia / zaczep   | JEST          | ClosingAnchor.tsx, CloseDayDialog.tsx, Cockpit/closing.yaml (K6, 2026-11-13)                                                              |
 | Przełącznik praca / życie         | POZA ZAKRESEM | decyzja 2026-11-11: etat nie na tym PC, praca i życie się nie mieszają                                                                    |
-| Ctrl+K i Alt+1…9                  | JEST          | src/features/cards/ (pasek kart, skróty, paleta); gałąź feat/karty-szkielet; Alt+9 = Kodeks (zaślepka)                                    |
+| Ctrl+K i Alt+1…9                  | JEST          | src/features/cards/ (pasek kart, skróty, paleta); gałąź feat/karty-szkielet; Alt+9 = Kodeks (własny widok)                                |
 
 ## 2. Kalendarz (`src/features/calendar/CalendarView.tsx`)
 
@@ -118,9 +118,19 @@ usunięto (aplikacja nie woła modeli po API).
 
 ## 9. Kodeks
 
-Wszystko **BRAK** poza zaślepką w szkielecie kart (`src/features/cards/`, `Alt+9`). Czytnik kodeksu
-(`Vault/Knowledge/kodeks.md`) i checklisty to część B specu `2026-11-12-karta-kodeks-design.md`,
-zależna od warstwy `lib/nexus/` (etap 0c).
+Karta ma kod (część B specu `2026-11-12-karta-kodeks-design.md`, plan `docs/superpowers/plans/2026-11-14-karta-kodeks-czesc-b.md`):
+`contexts/bc_codex/` (parser reguł, dziennik zdarzeń, trasy `/api/nexus/codex` i `/api/nexus/checklists`) oraz
+`src/features/codex/` (widok wg makiety `09-kodeks.html`). Źródło: `Vault/Knowledge/kodeks.md`; dziennik:
+`Vault/Checklists/RRRR-MM.jsonl` (`owner: work` → `Vault/Work/Checklists/`). Pominięte względem makiety: pasek trybów demo
+i chipy projekt/gałąź (pokazuje je pasek statusu).
+
+| Funkcja                                                | Status | Gdzie                                           |
+| ------------------------------------------------------ | ------ | ----------------------------------------------- |
+| Czytnik reguł (MUST/SHOULD), spis treści, wyszukiwarka | JEST   | `src/features/codex/CodexRules.tsx`, `CodexToc` |
+| Ostrzeżenia parsera i dziennika                        | JEST   | `CodexAlerts.tsx`, `codexFilters.ts`            |
+| Checklisty z notatką, postęp, `owner` personal/work    | JEST   | `ChecklistPanel.tsx`, `useChecklistRun.ts`      |
+| Stany: brak pliku, błąd konfiguracji                   | JEST   | `CodexStates.tsx`                               |
+| Edycja kodeksu w aplikacji, dowody per punkt (K4)      | BRAK   | poza zakresem pierwszej wersji (spec §6)        |
 
 ## Wnioski do planu wdrożenia
 

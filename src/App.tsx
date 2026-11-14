@@ -15,13 +15,13 @@ import { useCardNavigation } from "@/src/features/cards/useCardNavigation";
 import { useCardHotkeys } from "@/src/features/cards/useCardHotkeys";
 import { CardRail } from "@/src/features/cards/CardRail";
 import { CommandPalette } from "@/src/features/cards/CommandPalette";
-import { CardPlaceholder } from "@/src/features/cards/CardPlaceholder";
 import { buildCardCommands } from "@/src/features/cards/cards";
 import { buildAppCommands } from "@/src/features/cards/appCommands";
 import { FeedbackModal } from "@/src/components/layout/FeedbackModal";
 import { useTheme } from "@/src/components/theme/ThemeProvider";
 import { ProjectsView } from "@/src/features/projects/ProjectsView";
 import { MapView } from "@/src/features/map/MapView";
+import { CodexView } from "@/src/features/codex/CodexView";
 
 export default function App() {
   const [lang, setLang] = useState<"en" | "pl">("pl");
@@ -31,7 +31,7 @@ export default function App() {
     setAppMode,
     planningTab,
     setPlanningTab,
-    placeholder,
+    codexOpen,
     projectsOpen,
     mapOpen,
     activeCard,
@@ -82,7 +82,7 @@ export default function App() {
       data-card={activeCard}
     >
       <CardRail activeCard={activeCard} onSelect={selectCard} onOpenPalette={openPalette} />
-      {!projectsOpen && !mapOpen && !placeholder && appMode === "home" ? (
+      {!projectsOpen && !mapOpen && !codexOpen && appMode === "home" ? (
         <HomeView
           apiFetch={apiFetch}
           onOpenProject={openProject}
@@ -96,8 +96,8 @@ export default function App() {
             <ProjectsView apiFetch={apiFetch} initialProjectId={projectToOpen} />
           ) : mapOpen ? (
             <MapView apiFetch={apiFetch} onOpenProject={openProject} />
-          ) : placeholder ? (
-            <CardPlaceholder cardId={placeholder} />
+          ) : codexOpen ? (
+            <CodexView apiFetch={apiFetch} />
           ) : (
             <PlanowanieView
               apiFetch={apiFetch}

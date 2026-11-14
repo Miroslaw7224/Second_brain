@@ -26,9 +26,9 @@ describe("CARDS", () => {
     ]);
   });
 
-  test("mapa ma własny widok, kodeks to zaślepka", () => {
+  test("mapa i kodeks mają własne widoki", () => {
     expect(getCard("mapa").target).toEqual({ kind: "map" });
-    expect(getCard("kodeks").target).toEqual({ kind: "placeholder", stage: "po etapie 0c" });
+    expect(getCard("kodeks").target).toEqual({ kind: "codex" });
   });
 
   test("arsenał otwiera się na Skillach i promptach", () => {
