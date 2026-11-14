@@ -86,3 +86,34 @@ test("tagCounts liczy tagi wczytanych zasobów", async () => {
     { tag: "y", count: 1 },
   ]);
 });
+
+test("toggleFixOnly zawęża listę do zasobów do poprawy", async () => {
+  apiFetch.mockImplementation(async () => ({
+    ok: true,
+    json: async () => [
+      {
+        id: "ok",
+        description: "",
+        url: "https://a",
+        title: "A",
+        tags: [],
+        thumbnailUrl: "https://i",
+      },
+      {
+        id: "bad",
+        description: "",
+        url: "https://b",
+        title: "Just a moment...",
+        tags: [],
+        thumbnailUrl: "https://i",
+      },
+    ],
+  }));
+  const { result } = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.fixCount).toBe(1);
+  act(() => result.current.toggleFixOnly());
+  expect(result.current.filteredResources.map((r) => r.id)).toEqual(["bad"]);
+  act(() => result.current.clearTagFilter());
+  expect(result.current.fixOnly).toBe(false);
+});

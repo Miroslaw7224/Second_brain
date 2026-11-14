@@ -5,6 +5,7 @@ import {
   countResourceTags,
   filterResourcesBySearch,
   filterResourcesByTags,
+  filterResourcesNeedingFix,
   sortResourcesByFavorite,
   type TagCount,
 } from "./resourceFilters";
@@ -87,6 +88,9 @@ export interface UseResourcesResult {
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
+  fixOnly: boolean;
+  toggleFixOnly: () => void;
+  fixCount: number;
   filteredResources: NoteResource[];
   labels: UseResourcesLabels;
   // Add form
@@ -150,6 +154,7 @@ export function useResources(
   const [blockFormatText, setBlockFormatText] = useState("");
   const [blockFormatError, setBlockFormatError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [fixOnly, setFixOnly] = useState(false);
   const [formExpanded, setFormExpanded] = useState(true);
   const [blockFormatExpanded, setBlockFormatExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -167,13 +172,13 @@ export function useResources(
   const allTags = useMemo(() => collectResourceTags(resources), [resources]);
   const tagCounts = useMemo(() => countResourceTags(resources), [resources]);
 
-  const filteredResources = useMemo(
-    () =>
-      sortResourcesByFavorite(
-        filterResourcesBySearch(filterResourcesByTags(resources, selectedTags), searchQuery)
-      ),
-    [resources, selectedTags, searchQuery]
-  );
+  const fixCount = useMemo(() => filterResourcesNeedingFix(resources).length, [resources]);
+
+  const filteredResources = useMemo(() => {
+    const byTags = filterResourcesByTags(resources, selectedTags);
+    const byFix = fixOnly ? filterResourcesNeedingFix(byTags) : byTags;
+    return sortResourcesByFavorite(filterResourcesBySearch(byFix, searchQuery));
+  }, [resources, selectedTags, fixOnly, searchQuery]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -181,7 +186,12 @@ export function useResources(
     );
   };
 
-  const clearTagFilter = () => setSelectedTags([]);
+  const clearTagFilter = () => {
+    setSelectedTags([]);
+    setFixOnly(false);
+  };
+
+  const toggleFixOnly = () => setFixOnly((v) => !v);
 
   useEffect(() => {
     let cancelled = false;
@@ -389,6 +399,9 @@ export function useResources(
     selectedTags,
     toggleTag,
     clearTagFilter,
+    fixOnly,
+    toggleFixOnly,
+    fixCount,
     filteredResources,
     labels,
     addDescription,

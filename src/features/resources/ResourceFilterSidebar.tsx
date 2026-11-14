@@ -6,6 +6,10 @@ export interface ResourceFilterSidebarProps {
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
+  fixOnly: boolean;
+  fixCount: number;
+  onToggleFix: () => void;
+  fixLabel: string;
   loading: boolean;
   resourcesLength: number;
   filterByTagsLabel: string;
@@ -17,6 +21,10 @@ export function ResourceFilterSidebar({
   selectedTags,
   toggleTag,
   clearTagFilter,
+  fixOnly,
+  fixCount,
+  onToggleFix,
+  fixLabel,
   loading,
   resourcesLength,
   filterByTagsLabel,
@@ -28,13 +36,21 @@ export function ResourceFilterSidebar({
     <div className="ars-filter-box">
       <div className="ars-filter-box__head">
         <span className="ars-filter-box__label">{filterByTagsLabel}</span>
-        {selectedTags.length > 0 && (
+        {(selectedTags.length > 0 || fixOnly) && (
           <button type="button" onClick={clearTagFilter} className="ars-filter-box__clear">
             {clearFiltersLabel}
           </button>
         )}
       </div>
       <div className="ars-filter-chips">
+        <button
+          type="button"
+          onClick={onToggleFix}
+          className={`chip ${fixOnly ? "chip--accent" : ""}`}
+          aria-pressed={fixOnly}
+        >
+          {fixLabel} ({fixCount})
+        </button>
         {tagCounts.map(({ tag, count }) => {
           const isSelected = selectedTags.includes(tag);
           return (

@@ -43,6 +43,18 @@ export function countResourceTags(resources: readonly NoteResource[]): TagCount[
     .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pl"));
 }
 
+const CLOUDFLARE_TITLE = /^just a moment/i;
+
+/** Zasób do poprawy: tytuł ze strony Cloudflare, tytuł równy URL-owi albo brak miniatury. */
+export function resourceNeedsFix(r: NoteResource): boolean {
+  const title = (r.title ?? "").trim();
+  return CLOUDFLARE_TITLE.test(title) || title === (r.url ?? "").trim() || !r.thumbnailUrl;
+}
+
+export function filterResourcesNeedingFix(resources: readonly NoteResource[]): NoteResource[] {
+  return resources.filter(resourceNeedsFix);
+}
+
 /** Favorites first. Order within each group stays as given. */
 export function sortResourcesByFavorite(resources: readonly NoteResource[]): NoteResource[] {
   return [...resources].sort((a, b) => {

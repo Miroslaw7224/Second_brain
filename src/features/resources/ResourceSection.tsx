@@ -21,6 +21,9 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
     selectedTags,
     toggleTag,
     clearTagFilter,
+    fixOnly,
+    toggleFixOnly,
+    fixCount,
     filteredResources,
     labels,
     addDescription,
@@ -90,6 +93,10 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
               selectedTags={selectedTags}
               toggleTag={toggleTag}
               clearTagFilter={clearTagFilter}
+              fixOnly={fixOnly}
+              fixCount={fixCount}
+              onToggleFix={toggleFixOnly}
+              fixLabel="Do poprawy"
               loading={loading}
               resourcesLength={resources.length}
               filterByTagsLabel={labels.resourceFilterByTags}
