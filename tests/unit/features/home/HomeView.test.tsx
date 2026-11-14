@@ -863,6 +863,149 @@ describe("K1: układ wg makiety", () => {
     });
   });
 
+  describe("modal wpisu inboxu: przenieś do… (segregacja)", () => {
+    const moveCalls = () =>
+      mockApiFetch.mock.calls.filter(
+        (c) => String(c[0]).endsWith("/move") && c[1]?.method === "POST"
+      );
+
+    async function openEntry(name: string) {
+      respond(FULL);
+      render(<HomeView {...defaultProps} />);
+      const panel = await screen.findByRole("region", { name: "Inbox" });
+      fireEvent.click(await within(panel).findByRole("button", { name }));
+      const dialog = await screen.findByRole("dialog", { name: "Wpis z inboxu" });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś do…" }));
+      return dialog;
+    }
+
+    test("link: domyślny cel to notatka, tytuł z pierwszego zdania; „Przenieś” wysyła move i odświeża listę", async () => {
+      const dialog = await openEntry("Artykuł o vitest");
+      expect(within(dialog).getByRole("radio", { name: "Notatka" })).toBeChecked();
+      expect(within(dialog).getByLabelText("Tytuł notatki")).toHaveValue("Artykuł o vitest");
+      const before = mockApiFetch.mock.calls.filter((c) => c[0] === "/api/inbox").length;
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś" }));
+      await waitFor(() => expect(moveCalls()).toHaveLength(1));
+      expect(moveCalls()[0][0]).toBe("/api/inbox/a-0/move");
+      expect(JSON.parse(moveCalls()[0][1].body)).toEqual({
+        target: "note",
+        title: "Artykuł o vitest",
+        text: "Artykuł o vitest",
+      });
+      await waitFor(() =>
+        expect(screen.queryByRole("dialog", { name: "Wpis z inboxu" })).not.toBeInTheDocument()
+      );
+      await waitFor(() =>
+        expect(mockApiFetch.mock.calls.filter((c) => c[0] === "/api/inbox").length).toBeGreaterThan(
+          before
+        )
+      );
+    });
+
+    test("bug: domyślny cel to zadanie w projekcie; bez wybranego projektu „Przenieś” jest zablokowane", async () => {
+      const dialog = await openEntry("Code Sensei: pusty stan listy");
+      expect(within(dialog).getByRole("radio", { name: "Zadanie w projekcie" })).toBeChecked();
+      expect(within(dialog).getByRole("button", { name: "Przenieś" })).toBeDisabled();
+    });
+
+    test("projekt i kolumna Backlog: ciało move; projekt z firmy pokazuje „Dane z firmy”", async () => {
+      const dialog = await openEntry("Code Sensei: pusty stan listy");
+      const select = await within(dialog).findByLabelText("Projekt");
+      await within(dialog).findByRole("option", { name: "Projekt firmowy" });
+      fireEvent.change(select, { target: { value: "firma" } });
+      expect(within(dialog).getByText("Dane z firmy")).toBeInTheDocument();
+      fireEvent.change(select, { target: { value: "nexus" } });
+      expect(within(dialog).queryByText("Dane z firmy")).not.toBeInTheDocument();
+      fireEvent.change(within(dialog).getByLabelText("Kolumna"), { target: { value: "icebox" } });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś" }));
+      await waitFor(() => expect(moveCalls()).toHaveLength(1));
+      expect(JSON.parse(moveCalls()[0][1].body)).toEqual({
+        target: "project",
+        projectId: "nexus",
+        column: "icebox",
+        text: "Code Sensei: pusty stan listy",
+      });
+    });
+
+    test("zadanie ogólne: ciało move bez projektu", async () => {
+      const dialog = await openEntry("Code Sensei: pusty stan listy");
+      fireEvent.click(within(dialog).getByRole("radio", { name: "Zadanie ogólne" }));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś" }));
+      await waitFor(() => expect(moveCalls()).toHaveLength(1));
+      expect(JSON.parse(moveCalls()[0][1].body)).toEqual({
+        target: "task",
+        text: "Code Sensei: pusty stan listy",
+      });
+    });
+
+    test("409 pokazuje komunikat w oknie i zostawia je otwarte", async () => {
+      const dialog = await openEntry("Code Sensei: pusty stan listy");
+      const base = mockApiFetch.getMockImplementation()!;
+      mockApiFetch.mockImplementation((url: string, init?: RequestInit) =>
+        String(url).endsWith("/move")
+          ? Promise.resolve({ ok: false, status: 409, json: async () => ({ error: "x" }) })
+          : base(url, init)
+      );
+      fireEvent.click(within(dialog).getByRole("radio", { name: "Zadanie ogólne" }));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś" }));
+      expect(
+        await within(dialog).findByText("Plik zadań zmienił się, spróbuj ponownie")
+      ).toBeInTheDocument();
+      expect(screen.getByRole("dialog", { name: "Wpis z inboxu" })).toBeInTheDocument();
+    });
+
+    test("warning z serwera: okno się zamyka, ostrzeżenie widać w panelu", async () => {
+      const dialog = await openEntry("Code Sensei: pusty stan listy");
+      const base = mockApiFetch.getMockImplementation()!;
+      mockApiFetch.mockImplementation((url: string, init?: RequestInit) =>
+        String(url).endsWith("/move")
+          ? Promise.resolve({
+              ok: true,
+              json: async () => ({
+                ok: true,
+                target: "task",
+                ref: "t1",
+                warning: "Wpis zostaje otwarty",
+              }),
+            })
+          : base(url, init)
+      );
+      fireEvent.click(within(dialog).getByRole("radio", { name: "Zadanie ogólne" }));
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś" }));
+      const panel = screen.getByRole("region", { name: "Inbox" });
+      expect(await within(panel).findByText("Wpis zostaje otwarty")).toBeInTheDocument();
+      expect(screen.queryByRole("dialog", { name: "Wpis z inboxu" })).not.toBeInTheDocument();
+    });
+
+    test("pusty rejestr projektów: cel „Zadanie w projekcie” jest zablokowany i wybrane zostaje zadanie ogólne", async () => {
+      respond(FULL);
+      const base = mockApiFetch.getMockImplementation()!;
+      mockApiFetch.mockImplementation((url: string, init?: RequestInit) =>
+        url === "/api/projects"
+          ? Promise.resolve({ ok: true, json: async () => ({ projects: [], warnings: [] }) })
+          : base(url, init)
+      );
+      render(<HomeView {...defaultProps} />);
+      const panel = await screen.findByRole("region", { name: "Inbox" });
+      fireEvent.click(
+        await within(panel).findByRole("button", { name: "Code Sensei: pusty stan listy" })
+      );
+      const dialog = await screen.findByRole("dialog", { name: "Wpis z inboxu" });
+      fireEvent.click(within(dialog).getByRole("button", { name: "Przenieś do…" }));
+      await waitFor(() =>
+        expect(within(dialog).getByRole("radio", { name: "Zadanie w projekcie" })).toBeDisabled()
+      );
+      expect(within(dialog).getByRole("radio", { name: "Zadanie ogólne" })).toBeChecked();
+    });
+
+    test("„Anuluj” wraca do widoku wpisu bez wywołania move", async () => {
+      const dialog = await openEntry("Artykuł o vitest");
+      fireEvent.click(within(dialog).getByRole("button", { name: "Anuluj" }));
+      expect(within(dialog).getByRole("button", { name: "Usuń" })).toBeInTheDocument();
+      expect(moveCalls()).toHaveLength(0);
+    });
+  });
+
   test("Alt+I (focusInbox): fokus w polu zapisu i potwierdzenie", async () => {
     respond(FULL);
     const onInboxFocused = vi.fn();
