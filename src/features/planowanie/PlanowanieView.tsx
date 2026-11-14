@@ -58,6 +58,7 @@ export default function PlanowanieView({
   const [sessionEndError, setSessionEndError] = useState<string | null>(null);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [noteEditMode, setNoteEditMode] = useState(false);
+  const [pendingNexusPath, setPendingNexusPath] = useState<string | null>(null);
 
   const { notes, fetchNotes } = useNotesData(apiFetch);
   const inboxOpen = useInboxOpen(apiFetch, planningTab === "notes");
@@ -263,10 +264,19 @@ export default function PlanowanieView({
             deleteNote={t.deleteNote}
             inboxOpen={inboxOpen}
             apiFetch={apiFetch}
+            initialNexusPath={pendingNexusPath}
+            onInitialNexusPathConsumed={() => setPendingNexusPath(null)}
           />
         ) : planningTab === "resources" ? (
           <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">
-            <ResourceSection apiFetch={apiFetch} t={t as Record<string, string | string[]>} />
+            <ResourceSection
+              apiFetch={apiFetch}
+              t={t as Record<string, string | string[]>}
+              onOpenNote={(path) => {
+                setPendingNexusPath(path);
+                setPlanningTab("notes");
+              }}
+            />
           </div>
         ) : planningTab === "mindmaps" ? (
           <div className="flex-1 flex flex-col overflow-hidden bg-[var(--bg)]">

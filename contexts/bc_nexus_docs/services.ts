@@ -147,3 +147,51 @@ export function getDoc(segments: string[]): NexusDoc {
     body: raw.body,
   };
 }
+
+export type KnowledgeLinkIndex = {
+  hostToPath: ReadonlyMap<string, string>;
+  paths: ReadonlySet<string>;
+};
+
+/** Host z URL-a: małe litery, bez `www.`; `null` dla nieprawidłowego adresu. */
+export function normalizeHost(url: string): string | null {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./, "");
+  } catch {
+    return null;
+  }
+}
+
+function sourceUrls(meta: Record<string, unknown>): string[] {
+  const value = meta.source_urls;
+  const items = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  return items.filter((item): item is string => typeof item === "string");
+}
+
+/**
+ * Indeks do mostu zasób → notatka: hosty z `source_urls` dokumentów `Knowledge/`.
+ * Kolejność dokumentów jak na liście (obszar, grupa, tytuł, ścieżka): pierwszy trafiony host wygrywa.
+ */
+export function buildKnowledgeLinkIndex(): KnowledgeLinkIndex {
+  const entries: { path: string; group: string; title: string; hosts: string[] }[] = [];
+  for (const rel of listVisiblePaths()) {
+    if (!rel.startsWith("Knowledge/")) continue;
+    const raw = readNexusDoc(rel);
+    if (raw === null || raw.bytes > MAX_DOC_BYTES) continue; // getDoc dałby 413
+    const hosts = sourceUrls(raw.meta)
+      .map(normalizeHost)
+      .filter((h): h is string => h !== null);
+    entries.push({
+      path: rel,
+      group: docGroup(rel),
+      title: docTitle(raw.meta, raw.body, rel),
+      hosts,
+    });
+  }
+  entries.sort((a, b) => cmp(a.group, b.group) || cmp(a.title, b.title) || cmp(a.path, b.path));
+  const hostToPath = new Map<string, string>();
+  for (const entry of entries) {
+    for (const host of entry.hosts) if (!hostToPath.has(host)) hostToPath.set(host, entry.path);
+  }
+  return { hostToPath, paths: new Set(entries.map((e) => e.path)) };
+}

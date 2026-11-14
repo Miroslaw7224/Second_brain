@@ -1,10 +1,15 @@
 import React from "react";
+import type { TagCount } from "./resourceFilters";
 
 export interface ResourceFilterSidebarProps {
-  allTags: string[];
+  tagCounts: TagCount[];
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
+  fixOnly: boolean;
+  fixCount: number;
+  onToggleFix: () => void;
+  fixLabel: string;
   loading: boolean;
   resourcesLength: number;
   filterByTagsLabel: string;
@@ -12,10 +17,14 @@ export interface ResourceFilterSidebarProps {
 }
 
 export function ResourceFilterSidebar({
-  allTags,
+  tagCounts,
   selectedTags,
   toggleTag,
   clearTagFilter,
+  fixOnly,
+  fixCount,
+  onToggleFix,
+  fixLabel,
   loading,
   resourcesLength,
   filterByTagsLabel,
@@ -27,14 +36,22 @@ export function ResourceFilterSidebar({
     <div className="ars-filter-box">
       <div className="ars-filter-box__head">
         <span className="ars-filter-box__label">{filterByTagsLabel}</span>
-        {selectedTags.length > 0 && (
+        {(selectedTags.length > 0 || fixOnly) && (
           <button type="button" onClick={clearTagFilter} className="ars-filter-box__clear">
             {clearFiltersLabel}
           </button>
         )}
       </div>
       <div className="ars-filter-chips">
-        {allTags.map((tag) => {
+        <button
+          type="button"
+          onClick={onToggleFix}
+          className={`chip ${fixOnly ? "chip--accent" : ""}`}
+          aria-pressed={fixOnly}
+        >
+          {fixLabel} ({fixCount})
+        </button>
+        {tagCounts.map(({ tag, count }) => {
           const isSelected = selectedTags.includes(tag);
           return (
             <button
@@ -47,7 +64,7 @@ export function ResourceFilterSidebar({
               <span className="ars-hash" aria-hidden="true">
                 #
               </span>
-              {tag}
+              {tag} ({count})
             </button>
           );
         })}

@@ -326,15 +326,9 @@
 /* ---------- Układ główny (.ars-layout) ---------- */
 .ars-layout {
   display: grid;
-  grid-template-columns: 1fr 350px;
+  grid-template-columns: 1fr;
   gap: var(--s-4);
   align-items: start;
-}
-
-@media (max-width: 960px) {
-  .ars-layout {
-    grid-template-columns: 1fr;
-  }
 }
 
 .ars-col-main {
@@ -345,15 +339,13 @@
 }
 
 .ars-sidebar {
-  position: sticky;
-  top: var(--s-4);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
-  padding: var(--s-4);
+  padding: var(--s-3) var(--s-4);
   display: flex;
   flex-direction: column;
-  gap: var(--s-4);
+  gap: var(--s-3);
 }
 
 /* ---------- Ulubione (.ars-favs) ---------- */
@@ -388,14 +380,12 @@
 }
 
 .ars-fav-btn {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  width: 76px;
-  height: 76px;
-  padding: var(--s-2);
+  gap: var(--s-2);
+  height: 28px;
+  padding: 0 var(--s-3);
   background: var(--surface-2);
   border: 1px solid var(--line);
   border-radius: var(--r-md);
@@ -417,21 +407,21 @@
 }
 
 .ars-fav-btn__icon {
-  width: 32px;
-  height: 32px;
+  width: 16px;
+  height: 16px;
   object-fit: contain;
   border-radius: 4px;
 }
 
 .ars-fav-btn__fallback {
-  font: 700 var(--fs-lg)/1 var(--font-mono);
+  font: 700 var(--fs-sm)/1 var(--font-mono);
   color: var(--accent-text);
 }
 
 .ars-fav-btn__label {
-  font: 500 10px/1.2 var(--font-body);
+  font: 500 var(--fs-sm)/1.2 var(--font-body);
   color: var(--muted);
-  max-width: 64px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -522,6 +512,15 @@
 .ars-res-item:hover {
   border-color: var(--accent);
   background: var(--surface-2);
+}
+
+.ars-res-item--dense {
+  padding-block: var(--s-1);
+}
+
+.ars-res-item--dense .ars-res-favicon__img {
+  width: 20px !important;
+  height: 20px !important;
 }
 
 .ars-res-main {

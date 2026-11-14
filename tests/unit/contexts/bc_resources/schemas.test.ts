@@ -27,6 +27,20 @@ describe("toResourceDto", () => {
   });
 });
 
+describe("toResourceDto: notePath", () => {
+  it("toResourceDto przenosi notePath", () => {
+    const dto = toResourceDto({
+      id: "1",
+      description: "",
+      url: "https://a",
+      title: "t",
+      tags: [],
+      notePath: "Knowledge/a.md",
+    });
+    expect(dto.notePath).toBe("Knowledge/a.md");
+  });
+});
+
 describe("CreateResourceBodySchema", () => {
   it("defaults tags to []", () => {
     expect(CreateResourceBodySchema.parse({ description: "d", url: "https://a.com" }).tags).toEqual(

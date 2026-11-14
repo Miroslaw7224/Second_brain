@@ -13,6 +13,8 @@ export interface ResourceListItemProps {
   onToggleFavorite: (r: NoteResource) => void;
   onCopy: (url: string) => void;
   onDelete: (id: string) => void;
+  dense?: boolean;
+  onOpenNote?: (notePath: string) => void;
 }
 
 export function ResourceListItem({
@@ -24,18 +26,28 @@ export function ResourceListItem({
   onToggleFavorite,
   onCopy,
   onDelete,
+  dense = false,
+  onOpenNote,
 }: ResourceListItemProps) {
   const favicon = getFaviconUrl(r.url);
   const [showFavicon, setShowFavicon] = React.useState(true);
 
+  const openUrl = () => window.open(r.url, "_blank", "noopener,noreferrer");
+
   return (
-    <li className="ars-res-item">
+    <li className={`ars-res-item${dense ? " ars-res-item--dense" : ""}`}>
       <div
         className="ars-res-main"
-        onClick={() => onOpenEdit(r)}
-        onKeyDown={(e) => e.key === "Enter" && onOpenEdit(r)}
-        role="button"
+        onClick={openUrl}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openUrl();
+          }
+        }}
+        role="link"
         tabIndex={0}
+        aria-label={r.title || r.url}
       >
         {favicon && showFavicon && (
           <div className="ars-res-favicon">
@@ -62,20 +74,36 @@ export function ResourceListItem({
               <span className="ars-res-title-text">{r.title}</span>
             )}
           </div>
-          <p className="ars-res-desc">{r.description}</p>
-          <div className="ars-res-meta">
-            {(r.tags || []).map((tag) => (
-              <span key={tag} className="chip ars-res-tag">
-                <span className="ars-hash" aria-hidden="true">
-                  #
+          {!dense && <p className="ars-res-desc">{r.description}</p>}
+          {!dense && (
+            <div className="ars-res-meta">
+              {(r.tags || []).map((tag) => (
+                <span key={tag} className="chip ars-res-tag">
+                  <span className="ars-hash" aria-hidden="true">
+                    #
+                  </span>
+                  {tag}
                 </span>
-                {tag}
-              </span>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       <div className="ars-res-actions">
+        {r.notePath && onOpenNote && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onOpenNote(r.notePath as string);
+            }}
+            className="btn btn--sm btn--ghost ars-action-btn"
+            title="Otwórz notatkę w Bazie wiedzy"
+            aria-label="Notatka"
+          >
+            notatka
+          </button>
+        )}
         <button
           type="button"
           onClick={(e) => {

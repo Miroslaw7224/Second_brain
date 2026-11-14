@@ -1,6 +1,6 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ResourceListItem } from "@/src/features/resources/ResourceListItem";
 import type { NoteResource } from "@/src/features/resources/resourceTypes";
@@ -16,6 +16,8 @@ function mockResource(overrides?: Partial<NoteResource>): NoteResource {
     ...overrides,
   };
 }
+
+afterEach(cleanup);
 
 describe("ResourceListItem", () => {
   it("renders title, description and tags", () => {
@@ -115,5 +117,116 @@ describe("ResourceListItem", () => {
 
     expect(onCopy).toHaveBeenCalledTimes(1);
     expect(onCopy).toHaveBeenCalledWith("https://copy-me.com");
+  });
+});
+
+describe("ResourceListItem: otwieranie i edycja", () => {
+  const baseProps = {
+    titleUnavailableLabel: "(brak)",
+    resourceFavoriteLabel: "Ulubione",
+    resourceEditLabel: "Edytuj",
+    onToggleFavorite: vi.fn(),
+    onCopy: vi.fn(),
+    onDelete: vi.fn(),
+  };
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("klik w wiersz otwiera URL w nowej karcie i nie otwiera edycji", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ url: "https://open.me" })}
+          onOpenEdit={onOpenEdit}
+        />
+      </ul>
+    );
+    await user.click(screen.getByText("Example Title"));
+    expect(open).toHaveBeenCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    expect(onOpenEdit).not.toHaveBeenCalled();
+  });
+
+  it("wiersz jest linkiem dostępnym z klawiatury: Enter i spacja otwierają URL, nie edycję", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ url: "https://open.me" })}
+          onOpenEdit={onOpenEdit}
+        />
+      </ul>
+    );
+    const row = screen.getByRole("link");
+    row.focus();
+    expect(row).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(open).toHaveBeenCalledTimes(1);
+    expect(open).toHaveBeenLastCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    await user.keyboard(" ");
+    expect(open).toHaveBeenCalledTimes(2);
+    expect(open).toHaveBeenLastCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    expect(onOpenEdit).not.toHaveBeenCalled();
+  });
+
+  it("ołówek otwiera edycję i nie otwiera URL", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    const resource = mockResource();
+    render(
+      <ul>
+        <ResourceListItem {...baseProps} resource={resource} onOpenEdit={onOpenEdit} />
+      </ul>
+    );
+    await user.click(screen.getByRole("button", { name: "Edytuj" }));
+    expect(onOpenEdit).toHaveBeenCalledWith(resource);
+    expect(open).not.toHaveBeenCalled();
+  });
+
+  it("w trybie gęstym ukrywa opis i tagi", () => {
+    render(
+      <ul>
+        <ResourceListItem {...baseProps} dense resource={mockResource()} onOpenEdit={vi.fn()} />
+      </ul>
+    );
+    expect(screen.getByText("Example Title")).toBeInTheDocument();
+    expect(screen.queryByText("Test description")).not.toBeInTheDocument();
+    expect(screen.queryByText("tag1")).not.toBeInTheDocument();
+  });
+
+  it("pokazuje link notatka tylko gdy jest notePath i woła onOpenNote", async () => {
+    const onOpenNote = vi.fn();
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ notePath: "Knowledge/a.md" })}
+          onOpenEdit={vi.fn()}
+          onOpenNote={onOpenNote}
+        />
+      </ul>
+    );
+    await user.click(screen.getByRole("button", { name: /notatka/i }));
+    expect(onOpenNote).toHaveBeenCalledWith("Knowledge/a.md");
+
+    rerender(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource()}
+          onOpenEdit={vi.fn()}
+          onOpenNote={onOpenNote}
+        />
+      </ul>
+    );
+    expect(screen.queryByRole("button", { name: /notatka/i })).not.toBeInTheDocument();
   });
 });

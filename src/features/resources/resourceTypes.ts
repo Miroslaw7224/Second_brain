@@ -21,4 +21,5 @@ export {
 export interface ResourceSectionProps {
   apiFetch: (url: string, options?: RequestInit) => Promise<Response>;
   t: TranslationDict;
+  onOpenNote?: (notePath: string) => void;
 }

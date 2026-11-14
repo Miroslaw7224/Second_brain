@@ -90,6 +90,33 @@ describe("NotesPanel: baza wiedzy NEXUS", () => {
     expect(queryByLabelText("Baza wiedzy NEXUS")).toBeNull();
   });
 
+  it("initialNexusPath otwiera dokument NEXUS i zgłasza zużycie dokładnie raz", async () => {
+    const onConsumed = vi.fn();
+    const utils = render(
+      <NotesPanel
+        {...props({ initialNexusPath: "Knowledge/a.md", onInitialNexusPathConsumed: onConsumed })}
+      />
+    );
+    expect(await utils.findByTestId("nexus-readonly-badge")).toBeTruthy();
+    expect(apiFetch).toHaveBeenCalledWith("/api/nexus-docs/Knowledge/a.md");
+    expect(utils.container.querySelector(".not-kv")?.textContent ?? "").toContain("Knowledge/a.md");
+    expect(onConsumed).toHaveBeenCalledTimes(1);
+  });
+
+  it("initialNexusPath zeruje zaznaczoną notatkę i tryb edycji", async () => {
+    const p = props({ initialNexusPath: "Knowledge/a.md", onInitialNexusPathConsumed: vi.fn() });
+    render(<NotesPanel {...p} />);
+    expect(p.setSelectedNote).toHaveBeenCalledWith(null);
+    expect(p.setNoteEditMode).toHaveBeenCalledWith(false);
+  });
+
+  it("bez initialNexusPath nie rusza zaznaczonej notatki przy montowaniu", () => {
+    const p = props();
+    render(<NotesPanel {...p} />);
+    expect(p.setSelectedNote).not.toHaveBeenCalled();
+    expect(p.setNoteEditMode).not.toHaveBeenCalled();
+  });
+
   it("pokazuje sekcję NEXUS obok sekcji Notatki", async () => {
     const utils = render(<NotesPanel {...props()} />);
     expect(await utils.findByLabelText("Baza wiedzy NEXUS")).toBeTruthy();

@@ -1,10 +1,13 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import type { NoteResource, TranslationDict } from "./resourceTypes";
 import {
   collectResourceTags,
+  countResourceTags,
   filterResourcesBySearch,
   filterResourcesByTags,
+  filterResourcesNeedingFix,
   sortResourcesByFavorite,
+  type TagCount,
 } from "./resourceFilters";
 import { parseMultipleBlocks } from "./resourceParsing";
 
@@ -75,15 +78,32 @@ function resolveLabels(t: TranslationDict): UseResourcesLabels {
   };
 }
 
+const DENSE_KEY = "monolith.resources.dense";
+
+function readDense(): boolean {
+  try {
+    return window.localStorage.getItem(DENSE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export interface UseResourcesResult {
   resources: NoteResource[];
   loading: boolean;
   searchQuery: string;
   setSearchQuery: (v: string) => void;
   allTags: string[];
+  tagCounts: TagCount[];
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
+  clearAllFilters: () => void;
+  fixOnly: boolean;
+  toggleFixOnly: () => void;
+  fixCount: number;
+  dense: boolean;
+  setDense: (v: boolean) => void;
   filteredResources: NoteResource[];
   labels: UseResourcesLabels;
   // Add form
@@ -147,7 +167,18 @@ export function useResources(
   const [blockFormatText, setBlockFormatText] = useState("");
   const [blockFormatError, setBlockFormatError] = useState<string | null>(null);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [formExpanded, setFormExpanded] = useState(true);
+  const [fixOnly, setFixOnly] = useState(false);
+  const [dense, setDenseState] = useState(false);
+  useEffect(() => setDenseState(readDense()), []);
+  const setDense = (value: boolean) => {
+    setDenseState(value);
+    try {
+      window.localStorage.setItem(DENSE_KEY, value ? "1" : "0");
+    } catch {
+      /* brak storage: wybór działa tylko do końca sesji */
+    }
+  };
+  const [formExpanded, setFormExpanded] = useState(false);
   const [blockFormatExpanded, setBlockFormatExpanded] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [editingResource, setEditingResource] = useState<NoteResource | null>(null);
@@ -162,14 +193,15 @@ export function useResources(
   const labels = useMemo(() => resolveLabels(t), [t]);
 
   const allTags = useMemo(() => collectResourceTags(resources), [resources]);
+  const tagCounts = useMemo(() => countResourceTags(resources), [resources]);
 
-  const filteredResources = useMemo(
-    () =>
-      sortResourcesByFavorite(
-        filterResourcesBySearch(filterResourcesByTags(resources, selectedTags), searchQuery)
-      ),
-    [resources, selectedTags, searchQuery]
-  );
+  const fixCount = useMemo(() => filterResourcesNeedingFix(resources).length, [resources]);
+
+  const filteredResources = useMemo(() => {
+    const byTags = filterResourcesByTags(resources, selectedTags);
+    const byFix = fixOnly ? filterResourcesNeedingFix(byTags) : byTags;
+    return sortResourcesByFavorite(filterResourcesBySearch(byFix, searchQuery));
+  }, [resources, selectedTags, fixOnly, searchQuery]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) =>
@@ -177,7 +209,18 @@ export function useResources(
     );
   };
 
-  const clearTagFilter = () => setSelectedTags([]);
+  const clearTagFilter = () => {
+    setSelectedTags([]);
+    setFixOnly(false);
+  };
+
+  const clearAllFilters = useCallback(() => {
+    setSelectedTags([]);
+    setFixOnly(false);
+    setSearchQuery("");
+  }, []);
+
+  const toggleFixOnly = () => setFixOnly((v) => !v);
 
   useEffect(() => {
     let cancelled = false;
@@ -348,7 +391,11 @@ export function useResources(
       if (res.ok) {
         const updated = await res.json();
         setResources((prev) =>
-          prev.map((r) => (r.id === editingResource.id ? { ...r, ...updated, id: r.id } : r))
+          prev.map((r) =>
+            r.id === editingResource.id
+              ? { ...r, ...updated, id: r.id, notePath: updated.notePath }
+              : r
+          )
         );
         closeEditModal();
       }
@@ -381,9 +428,16 @@ export function useResources(
     searchQuery,
     setSearchQuery,
     allTags,
+    tagCounts,
     selectedTags,
     toggleTag,
     clearTagFilter,
+    clearAllFilters,
+    fixOnly,
+    toggleFixOnly,
+    fixCount,
+    dense,
+    setDense,
     filteredResources,
     labels,
     addDescription,

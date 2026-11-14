@@ -24,10 +24,10 @@ function FavoriteResourceButton({ resource }: { resource: NoteResource }) {
       {favicon && showFavicon ? (
         <Image
           src={favicon}
-          width={32}
-          height={32}
+          width={16}
+          height={16}
           className="ars-fav-btn__icon"
-          style={{ borderRadius: "4px", width: 32, height: 32, objectFit: "contain" }}
+          style={{ borderRadius: "4px", width: 16, height: 16, objectFit: "contain" }}
           alt=""
           unoptimized
           onError={() => setShowFavicon(false)}
