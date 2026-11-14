@@ -13,7 +13,6 @@ vi.mock("@tiptap/core", () => {
 
 // Mock @tiptap/react — factory must be self-contained (no outer variable refs)
 vi.mock("@tiptap/react", () => {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const React = require("react");
 
   const run = () => true;
