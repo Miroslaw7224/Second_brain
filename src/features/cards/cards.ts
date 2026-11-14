@@ -39,7 +39,7 @@ export const CARDS: readonly CardDef[] = [
   },
   { id: "notatki", label: "Notatki", hotkey: 5, target: { kind: "planning", tab: "notes" } },
   { id: "plotno", label: "Płótno", hotkey: 6, target: { kind: "planning", tab: "board" } },
-  { id: "arsenal", label: "Arsenał", hotkey: 7, target: { kind: "planning", tab: "resources" } },
+  { id: "arsenal", label: "Arsenał", hotkey: 7, target: { kind: "planning", tab: "skills" } },
   { id: "mapa", label: "Mapa", hotkey: 8, target: { kind: "map" } },
   {
     id: "kodeks",
@@ -64,7 +64,7 @@ const TAB_TO_CARD: Record<PlanningTab, CardId> = {
 export const CARD_SUBTABS: Partial<Record<CardId, readonly PlanningTab[]>> = {
   kalendarz: ["calendar", "activity"],
   plotno: ["board", "mindmaps"],
-  arsenal: ["resources", "skills", "tags"],
+  arsenal: ["skills", "resources", "tags"],
 };
 
 export function subtabsForCard(id: CardId): readonly PlanningTab[] {

@@ -31,6 +31,10 @@ describe("CARDS", () => {
     expect(getCard("kodeks").target).toEqual({ kind: "placeholder", stage: "po etapie 0c" });
   });
 
+  test("arsenał otwiera się na Skillach i promptach", () => {
+    expect(getCard("arsenal").target).toEqual({ kind: "planning", tab: "skills" });
+  });
+
   test("projekty celuje w widok projects", () => {
     expect(getCard("projekty").target).toEqual({ kind: "projects" });
   });
@@ -97,9 +101,9 @@ describe("filterCommands", () => {
 });
 
 describe("subtabsForCard", () => {
-  test("subtabsForCard('plotno') = ['board','mindmaps'], 'arsenal' = ['resources','skills','tags'], 'kokpit' = []", () => {
+  test("subtabsForCard('plotno') = ['board','mindmaps'], 'arsenal' = ['skills','resources','tags'], 'kokpit' = []", () => {
     expect(subtabsForCard("plotno")).toEqual(["board", "mindmaps"]);
-    expect(subtabsForCard("arsenal")).toEqual(["resources", "skills", "tags"]);
+    expect(subtabsForCard("arsenal")).toEqual(["skills", "resources", "tags"]);
     expect(subtabsForCard("kokpit")).toEqual([]);
   });
 
@@ -107,7 +111,7 @@ describe("subtabsForCard", () => {
     expect(CARD_SUBTABS).toEqual({
       kalendarz: ["calendar", "activity"],
       plotno: ["board", "mindmaps"],
-      arsenal: ["resources", "skills", "tags"],
+      arsenal: ["skills", "resources", "tags"],
     });
   });
 });

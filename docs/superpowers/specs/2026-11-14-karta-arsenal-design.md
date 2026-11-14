@@ -146,7 +146,7 @@ Każdy etap ma osobny plan w `docs/superpowers/plans/` i może wejść niezależ
 3. **Kursy:** `courses.yaml`, widok, walidacja certyfikatów.
 4. **Agenci i polecenia:** `agents.yaml`, widok, dane początkowe.
 
-Karta zachowuje `Alt+7`, akcent i motyw `[data-card="arsenal"]` z `src/features/cards/`. Zakładki w rejestrze kart: w etapie 2 lista to `resources`, `skills`, `tags` (wejście z `Alt+7` zostaje na `resources`); docelowy zestaw czterech zakładek powstaje po etapach 3–4.
+Karta zachowuje `Alt+7`, akcent i motyw `[data-card="arsenal"]` z `src/features/cards/`. Zakładki w rejestrze kart: w etapie 2 lista to `skills`, `resources`, `tags` (wejście z `Alt+7` na `skills`, czyli Skille i prompty jako widok główny); docelowy zestaw czterech zakładek powstaje po etapach 3–4.
 
 ## 8. Przekazane innym kartom
 
