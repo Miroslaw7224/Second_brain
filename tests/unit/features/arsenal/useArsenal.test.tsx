@@ -55,6 +55,28 @@ describe("useArsenal", () => {
     expect(result.current.entries.map((e) => e.id)).toEqual(["prompt:R"]);
   });
 
+  it("domyślnie wybiera pierwszy widoczny wpis; wybór użytkownika ma pierwszeństwo", async () => {
+    const { result } = setup();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.selected?.id).toBe("skill:tdd");
+    act(() => result.current.setSelectedId("prompt:R"));
+    expect(result.current.selected?.id).toBe("prompt:R");
+  });
+
+  it("gdy wybrany wpis wypadnie z filtra, wybiera pierwszy widoczny", async () => {
+    const { result } = setup();
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    act(() => result.current.setSelectedId("skill:tdd"));
+    act(() => result.current.setFilters({ ...result.current.filters, kind: "prompt" }));
+    expect(result.current.selected?.id).toBe("prompt:R");
+  });
+
+  it("brak wpisów daje selected = null", async () => {
+    const { result } = setup(() => json({ entries: [], targets: [], skipped: 0 }));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    expect(result.current.selected).toBeNull();
+  });
+
   it("błąd HTTP trafia do error z komunikatem serwera", async () => {
     const { result } = setup(() => json({ error: "Vault niedostępny" }, false, 500));
     await waitFor(() => expect(result.current.loading).toBe(false));

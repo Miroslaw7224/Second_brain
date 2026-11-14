@@ -40,9 +40,10 @@ export function useArsenal(apiFetch: ApiFetch) {
 
   const allEntries = useMemo<ArsenalEntryDto[]>(() => catalog?.entries ?? [], [catalog]);
   const entries = useMemo(() => filterEntries(allEntries, filters), [allEntries, filters]);
+  // Wybór użytkownika, a gdy go nie ma lub wypadł z filtra: pierwszy widoczny wpis (jak w makiecie).
   const selected = useMemo(
-    () => allEntries.find((e) => e.id === selectedId) ?? null,
-    [allEntries, selectedId]
+    () => entries.find((e) => e.id === selectedId) ?? entries[0] ?? null,
+    [entries, selectedId]
   );
 
   const fetchInstructions = useCallback(
@@ -84,7 +85,6 @@ export function useArsenal(apiFetch: ApiFetch) {
     filters,
     setFilters,
     selected,
-    selectedId,
     setSelectedId,
     fetchInstructions,
     markDeployed,

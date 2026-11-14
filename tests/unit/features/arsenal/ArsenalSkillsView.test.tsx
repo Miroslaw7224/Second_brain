@@ -1,6 +1,6 @@
 import React from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ArsenalSkillsView } from "@/src/features/arsenal/ArsenalSkillsView";
 
@@ -62,6 +62,43 @@ describe("ArsenalSkillsView", () => {
     expect(await screen.findByRole("button", { name: /test-driven-development/ })).toBeVisible();
     expect(screen.getByRole("button", { name: /Rada ekspertów/ })).toBeVisible();
     expect(screen.getByText(/pominięto 2/i)).toBeVisible();
+  });
+
+  it("pokazuje kafelki statystyk", async () => {
+    setup();
+    await screen.findByRole("button", { name: /test-driven-development/ });
+    const tiles = within(screen.getByRole("region", { name: "Statystyki arsenału" }));
+    expect(tiles.getByText("Skille").parentElement).toHaveTextContent("1");
+    expect(tiles.getByText("Prompty").parentElement).toHaveTextContent("1");
+    expect(tiles.getByText("Niewdrożone nigdzie").parentElement).toHaveTextContent("0");
+  });
+
+  it("karty mają kolor rodzaju (data-kind) i domyślnie wybrany jest pierwszy wpis", async () => {
+    setup();
+    const skillCard = (
+      await screen.findByRole("button", { name: /test-driven-development/ })
+    ).closest("article");
+    const promptCard = screen.getByRole("button", { name: /Rada ekspertów/ }).closest("article");
+    expect(skillCard).toHaveAttribute("data-kind", "skill");
+    expect(promptCard).toHaveAttribute("data-kind", "prompt");
+    expect(skillCard).toHaveAttribute("data-selected", "true");
+    const side = within(screen.getByRole("complementary"));
+    expect(side.getByRole("heading", { name: "test-driven-development" })).toBeVisible();
+  });
+
+  it("„Kopiuj” na karcie skilla kopiuje wywołanie, na karcie promptu treść", async () => {
+    setup();
+    const user = userEvent.setup();
+    const skillCard = (
+      await screen.findByRole("button", { name: /test-driven-development/ })
+    ).closest("article") as HTMLElement;
+    await user.click(within(skillCard).getByRole("button", { name: "Kopiuj wywołanie" }));
+    expect(await navigator.clipboard.readText()).toBe("/tdd");
+    const promptCard = screen
+      .getByRole("button", { name: /Rada ekspertów/ })
+      .closest("article") as HTMLElement;
+    await user.click(within(promptCard).getByRole("button", { name: "Kopiuj prompt" }));
+    expect(await navigator.clipboard.readText()).toBe("Treść promptu");
   });
 
   it("filtr „prompty” ukrywa skille", async () => {
@@ -146,9 +183,10 @@ describe("ArsenalSkillsView", () => {
     setup();
     const user = userEvent.setup();
     await user.click(await screen.findByRole("button", { name: /test-driven-development/ }));
-    await user.click(screen.getAllByRole("button", { name: "Kopiuj" })[0]);
-    expect(await screen.findByText("Skopiowano")).toBeVisible();
+    const side = () => within(screen.getByRole("complementary"));
+    await user.click(side().getByRole("button", { name: "Kopiuj treść" }));
+    expect(await side().findByText("Skopiowano")).toBeVisible();
     await user.click(screen.getByRole("button", { name: /Rada ekspertów/ }));
-    expect(screen.queryByText("Skopiowano")).toBeNull();
+    expect(side().queryByText("Skopiowano")).toBeNull();
   });
 });

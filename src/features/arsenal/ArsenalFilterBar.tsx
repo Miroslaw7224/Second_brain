@@ -41,6 +41,7 @@ export function ArsenalFilterBar({ filters, onChange, targets, models }: Props) 
         ))}
       </div>
       <select
+        className="asv-select"
         aria-label="Projekt"
         value={filters.project ?? ""}
         onChange={(e) => set({ project: e.target.value === "" ? null : e.target.value })}
@@ -54,6 +55,7 @@ export function ArsenalFilterBar({ filters, onChange, targets, models }: Props) 
       </select>
       {models.length > 0 && (
         <select
+          className="asv-select"
           aria-label="Model"
           value={filters.model ?? ""}
           onChange={(e) => set({ model: e.target.value === "" ? null : e.target.value })}

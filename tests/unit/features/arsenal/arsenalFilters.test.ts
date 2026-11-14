@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ArsenalEntryDto } from "@/contexts/bc_arsenal/schemas";
 import {
+  catalogStats,
   EMPTY_FILTERS,
   entryProjects,
   filterEntries,
@@ -87,6 +88,13 @@ describe("filterEntries", () => {
     expect(ids(filterEntries(entries, { ...EMPTY_FILTERS, undeployedOnly: true }))).toEqual([
       "skill:plans",
     ]);
+  });
+});
+
+describe("catalogStats", () => {
+  it("liczy skille, prompty i skille niewdrożone nigdzie", () => {
+    expect(catalogStats(entries)).toEqual({ skills: 2, prompts: 2, undeployed: 1 });
+    expect(catalogStats([])).toEqual({ skills: 0, prompts: 0, undeployed: 0 });
   });
 });
 

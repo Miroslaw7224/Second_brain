@@ -54,6 +54,24 @@ export function promptModels(entries: ArsenalEntryDto[]): string[] {
   return [...models].sort((a, b) => a.localeCompare(b, "pl"));
 }
 
+export type CatalogStats = { skills: number; prompts: number; undeployed: number };
+
+/** Liczniki do kafelków: skille, prompty i skille bez żadnego wpisu `deployed`. */
+export function catalogStats(entries: ArsenalEntryDto[]): CatalogStats {
+  let skills = 0;
+  let prompts = 0;
+  let undeployed = 0;
+  for (const entry of entries) {
+    if (entry.kind === "prompt") {
+      prompts += 1;
+    } else {
+      skills += 1;
+      if (entry.deployed.length === 0) undeployed += 1;
+    }
+  }
+  return { skills, prompts, undeployed };
+}
+
 export function isFiltered(filters: ArsenalFilters): boolean {
   return (
     filters.query.trim() !== "" ||

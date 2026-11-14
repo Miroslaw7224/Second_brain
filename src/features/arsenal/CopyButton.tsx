@@ -1,6 +1,14 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export function CopyButton({ text, label = "Kopiuj" }: { text: string; label?: string }) {
+type Props = {
+  text: string;
+  label?: string;
+  /** Pełna nazwa dla czytników ekranu, gdy `label` jest skrócony. */
+  ariaLabel?: string;
+  primary?: boolean;
+};
+
+export function CopyButton({ text, label = "Kopiuj", ariaLabel, primary = false }: Props) {
   const [done, setDone] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
@@ -20,7 +28,12 @@ export function CopyButton({ text, label = "Kopiuj" }: { text: string; label?: s
     }
   };
   return (
-    <button type="button" className="asv-btn" onClick={copy}>
+    <button
+      type="button"
+      className={primary ? "asv-btn asv-btn--primary" : "asv-btn"}
+      aria-label={done ? undefined : ariaLabel}
+      onClick={copy}
+    >
       {done ? "Skopiowano" : label}
     </button>
   );

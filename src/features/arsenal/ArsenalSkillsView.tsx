@@ -1,14 +1,87 @@
 import React from "react";
 import { Loader2 } from "lucide-react";
+import type { ArsenalEntryDto, DeployTargetDto } from "@/contexts/bc_arsenal/schemas";
 import "@/src/features/resources/resources.css";
 import "./arsenal.css";
-import { ArsenalDetail, projectName } from "./ArsenalDetail";
+import { ArsenalDetail, KIND_LABEL, projectName } from "./ArsenalDetail";
 import { ArsenalFilterBar } from "./ArsenalFilterBar";
-import { promptModels } from "./arsenalFilters";
+import { catalogStats, entryProjects, promptModels } from "./arsenalFilters";
+import { CopyButton } from "./CopyButton";
 import { useArsenal, type ApiFetch } from "./useArsenal";
+
+function Tile({
+  label,
+  value,
+  meta,
+  accent = false,
+}: {
+  label: string;
+  value: number;
+  meta: string;
+  accent?: boolean;
+}) {
+  return (
+    <div className={accent ? "asv-tile asv-tile--accent" : "asv-tile"}>
+      <span className="asv-tile__label">{label}</span>
+      <span className="asv-tile__value">{value}</span>
+      <span className="asv-tile__meta">{meta}</span>
+    </div>
+  );
+}
+
+function EntryCard({
+  entry,
+  targets,
+  selected,
+  onSelect,
+}: {
+  entry: ArsenalEntryDto;
+  targets: DeployTargetDto[];
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const projects = entryProjects(entry);
+  const meta =
+    entry.kind === "skill"
+      ? entry.deployed.length === 0
+        ? "niewdrożony"
+        : `wdrożony w ${entry.deployed.length}`
+      : (entry.model ?? "prompt");
+  return (
+    <article className="asv-card" data-kind={entry.kind} data-selected={selected}>
+      <button type="button" className="asv-card__main" aria-pressed={selected} onClick={onSelect}>
+        <span className="asv-card__head">
+          <span className="asv-card__name">{entry.name}</span>
+          <span className="asv-badge" data-kind={entry.kind}>
+            {KIND_LABEL[entry.kind]}
+          </span>
+        </span>
+        <span className="asv-card__desc">{entry.summary}</span>
+        {projects.length > 0 && (
+          <span className="asv-card__projects">
+            {projects.map((id) => (
+              <span key={id} className="asv-chip-static">
+                {projectName(targets, id)}
+              </span>
+            ))}
+          </span>
+        )}
+      </button>
+      <div className="asv-card__foot">
+        <span className="asv-card__meta">{meta}</span>
+        {entry.kind === "skill" ? (
+          <CopyButton text={`/${entry.slug}`} label="Kopiuj" ariaLabel="Kopiuj wywołanie" />
+        ) : (
+          <CopyButton text={entry.body} label="Kopiuj" ariaLabel="Kopiuj prompt" />
+        )}
+      </div>
+    </article>
+  );
+}
 
 export function ArsenalSkillsView({ apiFetch }: { apiFetch: ApiFetch }) {
   const a = useArsenal(apiFetch);
+  const stats = catalogStats(a.allEntries);
 
   return (
     <div className="ars asv" data-card="arsenal">
@@ -31,43 +104,40 @@ export function ArsenalSkillsView({ apiFetch }: { apiFetch: ApiFetch }) {
         </p>
       ) : (
         <>
-          <ArsenalFilterBar
-            filters={a.filters}
-            onChange={a.setFilters}
-            targets={a.targets}
-            models={promptModels(a.allEntries)}
-          />
+          <section className="asv-tiles" aria-label="Statystyki arsenału">
+            <Tile label="Skille" value={stats.skills} meta="dokumenty skilli w Vaulcie" accent />
+            <Tile label="Prompty" value={stats.prompts} meta="z Bazy wiedzy, bez przenoszenia" />
+            <Tile
+              label="Niewdrożone nigdzie"
+              value={stats.undeployed}
+              meta="skille bez znacznika wdrożenia"
+            />
+          </section>
+
           <div className="asv-layout">
-            <ul className="asv-list" role="list">
-              {a.entries.map((entry) => (
-                <li key={entry.id}>
-                  <button
-                    type="button"
-                    className="asv-item"
-                    aria-pressed={entry.id === a.selectedId}
-                    onClick={() => a.setSelectedId(entry.id)}
-                  >
-                    <span className="asv-badge" data-kind={entry.kind}>
-                      {entry.kind === "skill" ? "Skill" : "Prompt"}
-                    </span>
-                    <strong>{entry.name}</strong>
-                    <span className="asv-summary">{entry.summary}</span>
-                    {entry.kind === "skill" && entry.deployed.length > 0 && (
-                      <span className="asv-chips-row">
-                        {entry.deployed.map((d) => (
-                          <span key={d.project} className="asv-chip-static">
-                            {projectName(a.targets, d.project)}
-                          </span>
-                        ))}
-                      </span>
-                    )}
-                  </button>
-                </li>
-              ))}
-              {a.entries.length === 0 && (
-                <li className="asv-empty">Brak wpisów dla tych filtrów.</li>
-              )}
-            </ul>
+            <div className="asv-main">
+              <ArsenalFilterBar
+                filters={a.filters}
+                onChange={a.setFilters}
+                targets={a.targets}
+                models={promptModels(a.allEntries)}
+              />
+              <ul className="asv-grid" role="list">
+                {a.entries.map((entry) => (
+                  <li key={entry.id}>
+                    <EntryCard
+                      entry={entry}
+                      targets={a.targets}
+                      selected={entry.id === a.selected?.id}
+                      onSelect={() => a.setSelectedId(entry.id)}
+                    />
+                  </li>
+                ))}
+                {a.entries.length === 0 && (
+                  <li className="asv-empty">Brak wpisów dla tych filtrów.</li>
+                )}
+              </ul>
+            </div>
             <ArsenalDetail
               key={a.selected?.id ?? "none"}
               entry={a.selected}
