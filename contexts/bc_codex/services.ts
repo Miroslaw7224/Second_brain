@@ -1,16 +1,21 @@
-import type {
-  Checklist,
-  ChecklistEvent,
-  CodexRule,
-  CodexSection,
-  CodexWarning,
-  JournalState,
-  OwnerZone,
-  ParsedCodex,
-  RuleLevel,
-  RunState,
-  SectionBlock,
+import { randomUUID } from "node:crypto";
+import { DomainError } from "@/lib/errors";
+import {
+  CODEX_PATH,
+  type Checklist,
+  type ChecklistEvent,
+  type ChecklistEventInput,
+  type CodexRule,
+  type CodexSection,
+  type CodexWarning,
+  type JournalState,
+  type OwnerZone,
+  type ParsedCodex,
+  type RuleLevel,
+  type RunState,
+  type SectionBlock,
 } from "./models";
+import { appendJournalLine, readCodexFile, readJournal } from "./repositories";
 
 /** Wzorzec reguły ze specu §4.1: jedna linia, początek listy najwyższego poziomu. */
 const RULE_RE = /^- \*\*\[([A-Z][A-Z0-9]*-[0-9]+)\] (MUST|SHOULD)\*\*[ \t]+(.+)$/;
@@ -278,4 +283,62 @@ export function replayJournal(text: string | null): JournalState {
     }
   }
   return state;
+}
+
+export type CodexResult =
+  | { status: "ok"; path: string; mtimeMs: number; parsed: ParsedCodex }
+  | { status: "missing"; path: string }
+  | { status: "config-error"; message: string };
+
+export type WorkJournal = JournalState | { blocked: string };
+export type ChecklistStateResult = { month: string; personal: JournalState; work: WorkJournal };
+
+const MONTH_RE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** Kodeks z vaulta: brak pliku i brak konfiguracji to wyniki, nie błędy (widok pokazuje pusty stan). */
+export function getCodex(): CodexResult {
+  const file = readCodexFile();
+  if (file.kind === "missing") return { status: "missing", path: CODEX_PATH };
+  if (file.kind === "config-error") return { status: "config-error", message: file.message };
+  return { status: "ok", path: CODEX_PATH, mtimeMs: file.mtimeMs, parsed: parseCodex(file.text) };
+}
+
+/** Stan dziennika miesiąca (domyślnie bieżącego). Zablokowana strefa `work` nie przeszkadza w `personal`. */
+export function getChecklistState(month?: string): ChecklistStateResult {
+  const target = month ?? new Date().toISOString().slice(0, 7);
+  if (!MONTH_RE.test(target)) {
+    throw new DomainError("Miesiąc musi mieć postać RRRR-MM (np. 2026-11)", 400);
+  }
+  const personal = readJournal("personal", target);
+  const work = readJournal("work", target);
+  return {
+    month: target,
+    personal: replayJournal(personal.kind === "ok" ? personal.text : null),
+    work: work.kind === "blocked" ? { blocked: work.message } : replayJournal(work.text),
+  };
+}
+
+/** Zapisy w obrębie procesu idą jeden po drugim, żeby linie dziennika nie przeplatały się. */
+let writeTail: Promise<void> = Promise.resolve();
+function enqueue<T>(job: () => T): Promise<T> {
+  const result = writeTail.then(job);
+  writeTail = result.then(
+    () => undefined,
+    () => undefined
+  );
+  return result;
+}
+
+/**
+ * Dopisuje zdarzenie do dziennika strefy z pola `owner` (nigdzie indziej). `ts` nadaje serwer,
+ * a dla `start` także `run`. Zwraca zdarzenie tak, jak trafiło do pliku.
+ */
+export function recordEvent(input: ChecklistEventInput): Promise<ChecklistEvent> {
+  const ts = new Date().toISOString();
+  const event: ChecklistEvent =
+    input.type === "start" ? { ...input, run: randomUUID(), ts } : { ...input, ts };
+  return enqueue(() => {
+    appendJournalLine(event.owner, ts.slice(0, 7), JSON.stringify(event));
+    return event;
+  });
 }
