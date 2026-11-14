@@ -12,7 +12,7 @@ import {
   type RawFile,
   type SkillEntry,
 } from "./models";
-import { readPromptFiles, readSkillFiles, readTemplates } from "./repositories";
+import { readPromptFiles, readSkillFiles, readTemplates, writeDeployed } from "./repositories";
 
 const cmp = (a: string, b: string): number => a.localeCompare(b, "pl");
 
@@ -234,4 +234,28 @@ export function getDeployInstructions(
       ? buildDeployCommand(skill.slug, target.localPath)
       : buildAdaptPrompt(skill, target);
   return { mode, text, ...(target.owner === "work" && { note: WORK_TARGET_NOTE }) };
+}
+
+const ymd = (d: Date): string =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+
+/**
+ * Jedyny zapis zakładki: wpis `deployed` (jeden na projekt, nowszy zastępuje). Wpisy innych projektów
+ * (także spoza rejestru) zostają w pliku; uszkodzone kształtem są usuwane przy zapisie.
+ */
+export async function markDeployed(
+  slug: string,
+  projectId: string,
+  mode: DeployMode,
+  today: Date = new Date()
+): Promise<SkillEntry> {
+  const catalog = listArsenal();
+  const skill = findSkill(catalog, slug);
+  findTarget(catalog, projectId);
+  const entry: Deployment = { project: projectId, mode, date: ymd(today) };
+  await writeDeployed(skill.path, (current) => [
+    ...parseDeployments(current).valid.filter((d) => d.project !== projectId),
+    entry,
+  ]);
+  return findSkill(listArsenal(), slug);
 }

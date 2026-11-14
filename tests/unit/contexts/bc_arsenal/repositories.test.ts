@@ -1,6 +1,12 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { readPromptFiles, readSkillFiles, readTemplates } from "@/contexts/bc_arsenal/repositories";
+import {
+  readPromptFiles,
+  readSkillFiles,
+  readTemplates,
+  writeDeployed,
+} from "@/contexts/bc_arsenal/repositories";
+import { parseFrontmatter } from "@/lib/nexus/frontmatter";
 import { useTempVault } from "../../helpers/tempVault";
 
 const vault = useTempVault();
@@ -47,5 +53,38 @@ describe("readTemplates", () => {
 
   it("brak katalogu daje pustą listę", () => {
     expect(readTemplates("nie-ma")).toEqual([]);
+  });
+});
+
+describe("writeDeployed", () => {
+  const PATH = "Arsenal/Skills/a/skill.md";
+
+  it("podmienia deployed, zostawia pozostałe klucze i treść", async () => {
+    vault.write(PATH, "---\nname: A\nslug: a\ncustom: zostaje\n---\n\nTreść\n");
+    await writeDeployed(PATH, () => [{ project: "p", mode: "full", date: "2026-11-14" }]);
+    const parsed = parseFrontmatter(vault.read(PATH) ?? "");
+    expect(parsed?.meta).toMatchObject({
+      name: "A",
+      slug: "a",
+      custom: "zostaje",
+      deployed: [{ project: "p", mode: "full", date: "2026-11-14" }],
+    });
+    expect(parsed?.body.trim()).toBe("Treść");
+  });
+
+  it("przekazuje funkcji bieżącą wartość deployed", async () => {
+    vault.write(PATH, "---\nname: A\ndeployed:\n  - project: x\n---\nT\n");
+    let seen: unknown;
+    await writeDeployed(PATH, (current) => {
+      seen = current;
+      return [];
+    });
+    expect(seen).toEqual([{ project: "x" }]);
+  });
+
+  it("plik bez frontmattera: 409 i plik nietknięty", async () => {
+    vault.write(PATH, "bez frontmattera");
+    await expect(writeDeployed(PATH, () => [])).rejects.toMatchObject({ statusCode: 409 });
+    expect(vault.read(PATH)).toBe("bez frontmattera");
   });
 });

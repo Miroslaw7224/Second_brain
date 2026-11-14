@@ -1,7 +1,18 @@
 import { DomainError } from "@/lib/errors";
-import { parseFrontmatter } from "@/lib/nexus/frontmatter";
-import { listVaultFiles, listVaultFilesRecursive, readVaultFile } from "@/lib/nexus/vault-fs";
-import { PROMPTS_DIR, SKILLS_DIR, type RawFile, type TemplateFile } from "./models";
+import { formatFrontmatter, parseFrontmatter } from "@/lib/nexus/frontmatter";
+import {
+  listVaultFiles,
+  listVaultFilesRecursive,
+  readVaultFile,
+  updateVaultFile,
+} from "@/lib/nexus/vault-fs";
+import {
+  PROMPTS_DIR,
+  SKILLS_DIR,
+  type Deployment,
+  type RawFile,
+  type TemplateFile,
+} from "./models";
 
 const SKILL_FILE = /^Arsenal\/Skills\/([^/]+)\/skill\.md$/;
 
@@ -52,4 +63,22 @@ export function readTemplates(slug: string): TemplateFile[] {
     }
   }
   return out;
+}
+
+/**
+ * Jedyny zapis kontekstu: podmienia klucz `deployed` we frontmatterze `skill.md`, reszta kluczy i treść
+ * zostają. Plik bez poprawnego frontmattera to 409 (nigdy go nie nadpisujemy).
+ */
+export async function writeDeployed(
+  path: string,
+  change: (current: unknown) => Deployment[]
+): Promise<void> {
+  await updateVaultFile(path, (current) => {
+    const parsed = current === null ? null : parseFrontmatter(current);
+    if (parsed === null) throw new DomainError("Dokument skilla jest uszkodzony", 409);
+    return formatFrontmatter(
+      { ...parsed.meta, deployed: change(parsed.meta.deployed) },
+      parsed.body
+    );
+  });
 }
