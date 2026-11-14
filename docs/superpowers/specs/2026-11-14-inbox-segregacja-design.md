@@ -60,7 +60,7 @@ UI importuje z `bc_inbox` tylko `schemas`.
 2. Czyta `GET /api/inbox` i `GET /api/projects`, pomija projekty `owner: work` (D7).
 3. Pokazuje tabelę propozycji: wpis → cel (projekt / zadanie ogólne / notatka), kolumna lub tytuł, poprawiony tekst. Wpisy bez dobrego celu zostawia w inboxie.
 4. Czeka na zatwierdzenie użytkownika w terminalu (całość, wybrane wiersze albo z poprawkami).
-5. Dla zatwierdzonych woła `POST /api/inbox/<id>/move` po jednym, na końcu raportuje: co przeniesiono (`ref`), co zawiodło (kod błędu), co zostało.
+5. Dla zatwierdzonych woła `POST /api/inbox/<id>/move` (z nagłówkiem `X-Nexus-Client: 1`, bo strażnik `lib/http/localGuard.ts` odrzuca zapisy spoza przeglądarki bez niego) po jednym, na końcu raportuje: co przeniesiono (`ref`), co zawiodło (kod błędu), co zostało.
    Skilla nie zapisuje niczego poza wywołaniami `move`.
 
 ## 4. Testy (TDD, czerwony przed zielonym)

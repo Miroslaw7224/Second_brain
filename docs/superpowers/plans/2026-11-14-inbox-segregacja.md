@@ -1268,7 +1268,7 @@ Wpisy leżą w `Inbox/inbox.md` vaulta. **Nie edytujesz vaulta ręcznie** i nie 
 
 ## Reguły
 
-- Wołaj tylko `GET /api/inbox`, `GET /api/projects` i `POST /api/inbox/<id>/move`.
+- Wołaj tylko `GET /api/inbox`, `GET /api/projects` i `POST /api/inbox/<id>/move`. **Każdy POST wymaga nagłówka `X-Nexus-Client: 1`**: strażnik aplikacji (`lib/http/localGuard.ts`) bez niego odpowiada 403 „Niedozwolone żądanie spoza aplikacji”.
 - **Pomijaj projekty z `owner: "work"`**: nie proponuj ich i nie przenoś do nich wpisów (dane z firmy). Wpis, który pasuje tylko do takiego projektu, zostaje w inboxie, a użytkownik przenosi go sam w UI.
 - Bez zatwierdzenia użytkownika nie wołaj `move`.
 - Nie ruszaj `Projects/_registry.yaml`, `tasks.md` ani innych plików bezpośrednio.
@@ -1289,13 +1289,14 @@ Wpisy leżą w `Inbox/inbox.md` vaulta. **Nie edytujesz vaulta ręcznie** i nie 
 
    ```bash
    curl -s -X POST "http://127.0.0.1:3100/api/inbox/<id>/move" \
+     -H 'X-Nexus-Client: 1' \
      -H 'Content-Type: application/json' \
      -d '{"target":"project","projectId":"<id projektu>","column":"next","text":"<tekst>"}'
    ```
 
    Warianty ciała: `{"target":"task","text":"…"}` oraz `{"target":"note","title":"…","text":"…"}`. Pamiętaj o poprawnym JSON (cudzysłowy w tekście). Id wpisu w URL zakoduj, jeśli zawiera znaki specjalne.
 
-7. Obsługa odpowiedzi: `200` z `ref` = zrobione; `200` z `warning` = cel zapisany, ale wpis został otwarty (zgłoś, nie ponawiaj, bo powstałby duplikat); `404` = wpis albo projekt nie istnieje (pomiń); `409` = plik zadań zmienił się, ponów **raz**; `400`/`422` = zgłoś komunikat błędu i pomiń wiersz.
+7. Obsługa odpowiedzi: `200` z `ref` = zrobione; `200` z `warning` = cel zapisany, ale wpis został otwarty (zgłoś, nie ponawiaj, bo powstałby duplikat); `404` = wpis albo projekt nie istnieje (pomiń); `409` = plik zadań zmienił się, ponów **raz**; `400` = zły kształt albo reguły tekstu (komunikat to ogólne „Validation failed”: sprawdź kolumnę `next`/`icebox`, długość do 300 znaków, brak `[now::]`); `422` = limit kolumny; oba zgłoś i pomiń wiersz; `403` = brak nagłówka `X-Nexus-Client: 1`.
 8. Na koniec podsumuj: ile przeniesiono (z `ref`), co zawiodło (kod i komunikat), co zostało w inboxie.
 ````
 
