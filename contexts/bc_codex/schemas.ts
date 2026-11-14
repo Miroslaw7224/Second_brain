@@ -92,7 +92,6 @@ export const CodexDtoSchema = z.discriminatedUnion("status", [
       })
     ),
     wikilinks: z.array(z.string()),
-    counts: z.object({ must: count, should: count }),
   }),
   z.object({ status: z.literal("missing"), path: z.string() }),
   z.object({ status: z.literal("config-error"), message: z.string() }),
@@ -142,10 +141,6 @@ export function toCodexDto(
     checklists: parsed.checklists,
     warnings: parsed.warnings,
     wikilinks: parsed.wikilinks,
-    counts: {
-      must: parsed.rules.filter((r) => r.level === "MUST").length,
-      should: parsed.rules.filter((r) => r.level === "SHOULD").length,
-    },
   };
 }
 

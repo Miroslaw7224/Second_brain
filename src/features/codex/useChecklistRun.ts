@@ -115,6 +115,9 @@ export function useChecklistRun(apiFetch: ApiFetch, { checklist, owner, task, it
           return true;
         } catch (err) {
           setError(messageOf(err));
+          // `start` mógł się udać mimo błędu dalszych kroków: odśwież stan, żeby kolejna akcja
+          // znalazła otwarte uruchomienie zamiast tworzyć drugie.
+          await load();
           return false;
         }
       }),
@@ -174,6 +177,5 @@ export function useChecklistRun(apiFetch: ApiFetch, { checklist, owner, task, it
     setNote,
     end,
     reload: load,
-    clearError: () => setError(null),
   };
 }

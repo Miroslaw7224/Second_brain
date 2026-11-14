@@ -4,6 +4,7 @@ import React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChecklistPanel } from "./ChecklistPanel";
 import { CodexAlerts } from "./CodexAlerts";
+import { CheckIcon } from "./CodexIcons";
 import { CodexRules, ruleElementId } from "./CodexRules";
 import { CodexConfigError, CodexMissing } from "./CodexStates";
 import { CodexToasts, useToasts } from "./CodexToast";
@@ -33,10 +34,16 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
   const [query, setQuery] = useState("");
   const [checklistId, setChecklistId] = useState("");
   const [owner, setOwner] = useState<OwnerZone>("personal");
-  const [task, setTask] = useState("");
+  // Opis zadania jest osobny dla każdej strefy: tekst wpisany w `work` nie może trafić do `personal`.
+  const [tasks, setTasks] = useState<Record<OwnerZone, string>>({ personal: "", work: "" });
+  const task = tasks[owner];
+  const setTask = (value: string) => setTasks((prev) => ({ ...prev, [owner]: value }));
   const [activeId, setActiveId] = useState<string | null>(null);
   const [highlightId, setHighlightId] = useState<string | null>(null);
-  const [pendingJump, setPendingJump] = useState<string | null>(null);
+  const [pendingScroll, setPendingScroll] = useState<{
+    elementId: string;
+    ruleId: string | null;
+  } | null>(null);
 
   const data = state.status === "ok" ? state.data : null;
   const checklists = useMemo(() => data?.checklists ?? [], [data]);
@@ -50,6 +57,19 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
     itemIds,
   });
 
+  const selectSection = useCallback((id: string) => {
+    const el = document.getElementById(id);
+    if (!el) {
+      // sekcja ukryta przez filtr: czyścimy filtr i przewijamy po renderze
+      setLevel("all");
+      setQuery("");
+      setPendingScroll({ elementId: id, ruleId: null });
+      return;
+    }
+    setActiveId(id);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
   const jumpToRule = useCallback(
     (ruleId: string) => {
       const el = document.getElementById(ruleElementId(ruleId));
@@ -57,7 +77,7 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
         // reguła ukryta przez filtr: czyścimy filtr i przewijamy po renderze
         setLevel("all");
         setQuery("");
-        setPendingJump(ruleId);
+        setPendingScroll({ elementId: ruleElementId(ruleId), ruleId });
         return;
       }
       el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -72,12 +92,12 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
   );
 
   useEffect(() => {
-    if (pendingJump && document.getElementById(ruleElementId(pendingJump))) {
-      const id = pendingJump;
-      setPendingJump(null);
-      jumpToRule(id);
-    }
-  }, [pendingJump, jumpToRule, level, query]);
+    if (!pendingScroll || !document.getElementById(pendingScroll.elementId)) return;
+    const { elementId, ruleId } = pendingScroll;
+    setPendingScroll(null);
+    if (ruleId) jumpToRule(ruleId);
+    else selectSection(elementId);
+  }, [pendingScroll, jumpToRule, selectSection, level, query]);
 
   const sectionIds = useMemo(() => data?.sections.map((s) => s.id) ?? [], [data]);
   useEffect(() => {
@@ -94,12 +114,8 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
       if (el) observer.observe(el);
     }
     return () => observer.disconnect();
-  }, [sectionIds]);
-
-  const selectSection = (id: string) => {
-    setActiveId(id);
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
+    // `level` i `query` zmieniają zestaw wyrenderowanych sekcji, więc obserwator musi je zebrać od nowa.
+  }, [sectionIds, level, query]);
 
   const copy = async (text: string, okMessage: string) => {
     push((await copyText(text)) ? okMessage : "Nie udało się skopiować do schowka");
@@ -147,7 +163,10 @@ export function CodexView({ apiFetch }: { apiFetch: ApiFetch }) {
       <>
         <div className="kod-filebar">
           <div className="kod-filebar__main">
-            <span className="kod-filebar__badge">Tylko do odczytu</span>
+            <span className="kod-filebar__badge">
+              <CheckIcon />
+              Tylko do odczytu
+            </span>
             <span className="kod-filebar__path">Vault/{codex.path}</span>
             <span className="kod-filebar__mtime">
               mtime: <b>{formatMtime(codex.mtimeMs)}</b>

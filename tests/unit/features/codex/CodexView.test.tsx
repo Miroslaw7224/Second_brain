@@ -262,6 +262,32 @@ describe("CodexView: checklisty", () => {
     expect(screen.getByText("Brak definicji ID")).toBeInTheDocument();
   });
 
+  it("opis zadania wpisany w strefie work nie trafia do personal po przełączeniu strefy", async () => {
+    setup({});
+    const user = userEvent.setup();
+    await screen.findByRole("textbox", { name: "Opis zadania" });
+    await user.click(screen.getByRole("radio", { name: "work" }));
+    await user.type(screen.getByRole("textbox", { name: "Opis zadania" }), "tajne z etatu");
+    await user.click(screen.getByRole("radio", { name: "personal" }));
+    expect(screen.getByRole("textbox", { name: "Opis zadania" })).toHaveValue("");
+    await user.click(screen.getByRole("radio", { name: "work" }));
+    expect(screen.getByRole("textbox", { name: "Opis zadania" })).toHaveValue("tajne z etatu");
+  });
+
+  it("klik w spis treści przy filtrze ukrywającym sekcję czyści filtr i przewija do sekcji", async () => {
+    setup({});
+    const user = userEvent.setup();
+    await screen.findByText("Pętla Red-Green-Refactor");
+    await user.type(screen.getByRole("searchbox", { name: "Wyszukiwanie reguł" }), "zzz-brak");
+    expect(screen.getByText("Brak reguł dla filtra")).toBeInTheDocument();
+    await user.click(screen.getByRole("link", { name: /1\. Zasady TDD/ }));
+    expect(await screen.findByText("Pętla Red-Green-Refactor")).toBeInTheDocument();
+    const scroll = Element.prototype.scrollIntoView as ReturnType<typeof vi.fn>;
+    await waitFor(() =>
+      expect(scroll.mock.contexts.some((el) => (el as HTMLElement).id === "sec-tdd")).toBe(true)
+    );
+  });
+
   it("zakładka Przed PR przełącza listę punktów", async () => {
     setup({});
     const user = userEvent.setup();

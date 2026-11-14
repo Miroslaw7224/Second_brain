@@ -2,6 +2,7 @@
 
 import React from "react";
 import type { CodexOk } from "./codexFilters";
+import { CheckIcon } from "./CodexIcons";
 import { ruleElementId } from "./CodexRules";
 import type { OwnerZone, useChecklistRun } from "./useChecklistRun";
 
@@ -67,18 +68,21 @@ function ItemLabel({
 
 function NoteInput({
   label,
+  identity,
   saved,
   disabled,
   onSave,
 }: {
   label: string;
+  /** Strefa, uruchomienie i punkt: zmiana któregokolwiek czyści niewysłany tekst z pola. */
+  identity: string;
   saved: string;
   disabled: boolean;
   onSave: (text: string) => void;
 }) {
   return (
     <input
-      key={saved}
+      key={`${identity}|${saved}`}
       type="text"
       className="input kod-note"
       defaultValue={saved}
@@ -267,6 +271,7 @@ export function ChecklistPanel({
                       <span
                         className={`kod-item__status-tag kod-item__status-tag--${checked ? "done" : "todo"}`}
                       >
+                        {checked ? <CheckIcon /> : null}
                         {checked ? "Odhaczone" : "Do zrobienia"}
                       </span>
                     )}
@@ -274,6 +279,7 @@ export function ChecklistPanel({
                 </div>
                 <NoteInput
                   label={`Notatka do punktu ${index + 1}`}
+                  identity={`${owner}|${run?.run ?? "new"}|${item.id}`}
                   saved={state?.note ?? ""}
                   disabled={readOnly}
                   onSave={(text) => {
@@ -309,7 +315,10 @@ export function ChecklistPanel({
             disabled={!run || readOnly}
             onClick={() => {
               void runApi.end().then((ok) => {
-                if (ok) onToast("Zapisano sesję: uruchomienie zamknięte w dzienniku .jsonl");
+                if (ok) {
+                  onTask("");
+                  onToast("Zapisano sesję: uruchomienie zamknięte w dzienniku .jsonl");
+                }
               });
             }}
           >

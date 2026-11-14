@@ -22,6 +22,8 @@ const RULE_RE = /^- \*\*\[([A-Z][A-Z0-9]*-[0-9]+)\] (MUST|SHOULD)\*\*[ \t]+(.+)$
 const ITEM_RE = /^- \[( |x|X)\] (.+)$/;
 const REF_RE = /\[([A-Z][A-Z0-9]*-[0-9]+)\]/g;
 const CHECKLISTS_HEADING_RE = /^(\d+\.\s*)?Checklisty$/i;
+/** Kontynuacja reguły: wcięcie co najmniej dwiema spacjami albo tabulatorem. */
+const INDENT_RE = /^( {2,}|\t)/;
 const WIKILINK_RE = /\[\[([^\]\n]+)\]\]/g;
 
 /** Krótki identyfikator z tytułu: małe litery, `[a-z0-9-]`, bez znaków diakrytycznych. Nigdy pusty. */
@@ -95,7 +97,8 @@ export function parseCodex(source: string): ParsedCodex {
     const h3 = /^### +(.+?)\s*$/.exec(line);
     const h1 = /^# +(.+?)\s*$/.exec(line);
 
-    if (h1) {
+    // `# ...` jest tytułem tylko przed pierwszym `##`; dalej to zwykła treść (np. komentarz w przykładzie).
+    if (h1 && mode === "preamble") {
       if (title === "") title = h1[1];
       continue;
     }
@@ -165,9 +168,18 @@ export function parseCodex(source: string): ParsedCodex {
       continue;
     }
 
-    if (/^ {2,}/.test(line) && (rule || skippingDuplicate)) {
-      if (rule) rule.lines.push(line.slice(2));
+    if (INDENT_RE.test(line) && (rule || skippingDuplicate)) {
+      if (rule) rule.lines.push(line.replace(/^( {2}|\t)/, ""));
       continue;
+    }
+    // Pusta linia w środku reguły: jeśli dalej jest wcięta kontynuacja, to ten sam wpis (wieloakapitowy).
+    if (line.trim() === "" && (rule || skippingDuplicate)) {
+      let next = i + 1;
+      while (next < lines.length && lines[next].trim() === "") next += 1;
+      if (next < lines.length && INDENT_RE.test(lines[next])) {
+        if (rule) rule.lines.push("");
+        continue;
+      }
     }
 
     flushRule();

@@ -74,6 +74,39 @@ describe("parseCodex: reguły", () => {
   });
 });
 
+describe("parseCodex: treść, która nie może zginąć", () => {
+  it("pusta linia w środku reguły z wciętą kontynuacją zostaje w regule", () => {
+    const parsed = parseCodex(
+      "## 1. TDD\n- **[TDD-1] MUST** Pierwszy akapit\n\n  Drugi akapit\n\n## 2. X\n"
+    );
+    expect(parsed.rules[0].text).toBe("Pierwszy akapit\n\nDrugi akapit");
+    expect(parsed.sections[0].blocks).toEqual([{ kind: "rule", ruleId: "TDD-1" }]);
+  });
+
+  it("pusta linia bez wciętej kontynuacji kończy regułę, a akapit zostaje tekstem sekcji", () => {
+    const parsed = parseCodex("## 1. TDD\n- **[TDD-1] MUST** x\n\nAkapit poza regułą\n");
+    expect(parsed.rules[0].text).toBe("x");
+    expect(parsed.sections[0].blocks).toEqual([
+      { kind: "rule", ruleId: "TDD-1" },
+      { kind: "text", text: "Akapit poza regułą" },
+    ]);
+  });
+
+  it("wcięcie tabulatorem też należy do reguły", () => {
+    const parsed = parseCodex("## 1. TDD\n- **[TDD-1] MUST** x\n\t- y\n");
+    expect(parsed.rules[0].text).toBe("x\n- y");
+  });
+
+  it("linia `# ...` w treści sekcji (np. komentarz) nie jest tytułem i nie ginie", () => {
+    const parsed = parseCodex("# Tytuł\n## 1. A\n# komentarz bash\n- **[A-1] MUST** x\n");
+    expect(parsed.title).toBe("Tytuł");
+    expect(parsed.sections[0].blocks).toEqual([
+      { kind: "text", text: "# komentarz bash" },
+      { kind: "rule", ruleId: "A-1" },
+    ]);
+  });
+});
+
 describe("parseCodex: checklisty", () => {
   const rule = "## 1. TDD\n- **[TDD-1] MUST** Czerwony test\n";
 

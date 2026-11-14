@@ -30,7 +30,7 @@ const post = (body: unknown) =>
   });
 
 describe("GET /api/nexus/codex", () => {
-  it("status ok: DTO z licznikami MUST/SHOULD", async () => {
+  it("status ok: DTO z sekcjami, regułami, checklistami i ostrzeżeniami", async () => {
     mockGetCodex.mockReturnValue({
       status: "ok",
       path: "Knowledge/kodeks.md",
@@ -61,7 +61,7 @@ describe("GET /api/nexus/codex", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.status).toBe("ok");
-    expect(body.counts).toEqual({ must: 1, should: 1 });
+    expect(body.counts).toBeUndefined();
     expect(body.rules).toHaveLength(2);
     expect(body.sections[0].blocks[1]).toEqual({ kind: "text", text: "uwaga" });
     expect(body.warnings).toEqual([{ kind: "duplicate-id", message: "dubel", line: 9 }]);

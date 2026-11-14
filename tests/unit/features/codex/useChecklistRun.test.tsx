@@ -100,6 +100,32 @@ describe("useChecklistRun", () => {
     expect(posts(calls).map((b) => b?.type)).toEqual(["start", "toggle", "toggle"]);
   });
 
+  it("po nieudanym toggle (start się udał) kolejny toggle nie tworzy drugiego uruchomienia", async () => {
+    let existing: unknown[] = [];
+    let toggles = 0;
+    const { calls, result } = setup(
+      () => state(existing),
+      (b) => {
+        if (b.type === "start") {
+          existing = [run({ run: "r-new" })];
+        } else if (b.type === "toggle") {
+          toggles += 1;
+          if (toggles === 1) return json({ error: "Dysk pełny" }, false, 500);
+        }
+        return json({ ...b, run: b.run ?? "r-new", ts: "t" }, true, 201);
+      }
+    );
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => {
+      await result.current.toggle("dod-1", true);
+    });
+    expect(result.current.error).toBe("Dysk pełny");
+    await act(async () => {
+      await result.current.toggle("dod-1", true);
+    });
+    expect(posts(calls).map((b) => b?.type)).toEqual(["start", "toggle", "toggle"]);
+  });
+
   it("odpowiedź 403 ustawia error z komunikatem serwera i nie rzuca wyjątku", async () => {
     const { result } = setup(
       () => state(),
