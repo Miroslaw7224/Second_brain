@@ -1,7 +1,8 @@
 import React from "react";
+import type { TagCount } from "./resourceFilters";
 
 export interface ResourceFilterSidebarProps {
-  allTags: string[];
+  tagCounts: TagCount[];
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
@@ -12,7 +13,7 @@ export interface ResourceFilterSidebarProps {
 }
 
 export function ResourceFilterSidebar({
-  allTags,
+  tagCounts,
   selectedTags,
   toggleTag,
   clearTagFilter,
@@ -34,7 +35,7 @@ export function ResourceFilterSidebar({
         )}
       </div>
       <div className="ars-filter-chips">
-        {allTags.map((tag) => {
+        {tagCounts.map(({ tag, count }) => {
           const isSelected = selectedTags.includes(tag);
           return (
             <button
@@ -47,7 +48,7 @@ export function ResourceFilterSidebar({
               <span className="ars-hash" aria-hidden="true">
                 #
               </span>
-              {tag}
+              {tag} ({count})
             </button>
           );
         })}

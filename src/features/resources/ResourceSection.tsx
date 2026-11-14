@@ -17,7 +17,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
     loading,
     searchQuery,
     setSearchQuery,
-    allTags,
+    tagCounts,
     selectedTags,
     toggleTag,
     clearTagFilter,
@@ -86,7 +86,7 @@ export function ResourceSection({ apiFetch, t }: ResourceSectionProps) {
 
           {!loading && resources.length > 0 && (
             <ResourceFilterSidebar
-              allTags={allTags}
+              tagCounts={tagCounts}
               selectedTags={selectedTags}
               toggleTag={toggleTag}
               clearTagFilter={clearTagFilter}

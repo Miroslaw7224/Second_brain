@@ -2,9 +2,11 @@ import { useState, useEffect, useMemo } from "react";
 import type { NoteResource, TranslationDict } from "./resourceTypes";
 import {
   collectResourceTags,
+  countResourceTags,
   filterResourcesBySearch,
   filterResourcesByTags,
   sortResourcesByFavorite,
+  type TagCount,
 } from "./resourceFilters";
 import { parseMultipleBlocks } from "./resourceParsing";
 
@@ -81,6 +83,7 @@ export interface UseResourcesResult {
   searchQuery: string;
   setSearchQuery: (v: string) => void;
   allTags: string[];
+  tagCounts: TagCount[];
   selectedTags: string[];
   toggleTag: (tag: string) => void;
   clearTagFilter: () => void;
@@ -162,6 +165,7 @@ export function useResources(
   const labels = useMemo(() => resolveLabels(t), [t]);
 
   const allTags = useMemo(() => collectResourceTags(resources), [resources]);
+  const tagCounts = useMemo(() => countResourceTags(resources), [resources]);
 
   const filteredResources = useMemo(
     () =>
@@ -381,6 +385,7 @@ export function useResources(
     searchQuery,
     setSearchQuery,
     allTags,
+    tagCounts,
     selectedTags,
     toggleTag,
     clearTagFilter,

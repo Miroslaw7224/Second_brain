@@ -30,6 +30,19 @@ export function filterResourcesBySearch(
   );
 }
 
+export type TagCount = { tag: string; count: number };
+
+/** Tagi z liczbą zasobów, od najczęstszych; remis rozstrzyga alfabet. */
+export function countResourceTags(resources: readonly NoteResource[]): TagCount[] {
+  const counts = new Map<string, number>();
+  for (const r of resources) {
+    for (const tag of r.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+  }
+  return [...counts.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag, "pl"));
+}
+
 /** Favorites first. Order within each group stays as given. */
 export function sortResourcesByFavorite(resources: readonly NoteResource[]): NoteResource[] {
   return [...resources].sort((a, b) => {

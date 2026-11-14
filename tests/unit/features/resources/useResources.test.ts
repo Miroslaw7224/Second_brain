@@ -70,3 +70,19 @@ test("handleAdd does not post when the url is empty", async () => {
 
   expect(apiFetch.mock.calls.some((call) => call[1]?.method === "POST")).toBe(false);
 });
+
+test("tagCounts liczy tagi wczytanych zasobów", async () => {
+  apiFetch.mockImplementation(async () => ({
+    ok: true,
+    json: async () => [
+      { id: "1", description: "", url: "https://a", title: "A", tags: ["x", "y"] },
+      { id: "2", description: "", url: "https://b", title: "B", tags: ["x"] },
+    ],
+  }));
+  const { result } = renderHook(() => useResources(apiFetch, {}));
+  await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(result.current.tagCounts).toEqual([
+    { tag: "x", count: 2 },
+    { tag: "y", count: 1 },
+  ]);
+});
