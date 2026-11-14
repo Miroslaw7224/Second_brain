@@ -22,6 +22,7 @@ import {
   decodeHtmlEntities,
   hostTitle,
   isBlockedTitle,
+  normalizeTags,
 } from "@/contexts/bc_resources/services";
 
 describe("bc_resources services (resources)", () => {
@@ -182,6 +183,21 @@ describe("bc_resources services (resources)", () => {
       expect(r).toHaveLength(1);
     });
   });
+
+  describe("tagi w addResource/updateResource", () => {
+    it("addResource zapisuje znormalizowane tagi", async () => {
+      mockAdd.mockImplementation(async (p: Record<string, unknown>) => ({ id: "r5", ...p }));
+      await addResource({ description: "d", url: "https://example.com", tags: ["kurs", "nauka"] });
+      expect(mockAdd).toHaveBeenCalledWith(expect.objectContaining({ tags: ["Learning"] }));
+    });
+    it("updateResource normalizuje tagi, a bez tagów ich nie dotyka", async () => {
+      mockUpdate.mockResolvedValue(undefined);
+      await updateResource("r1", { tags: ["Kursy", "kurs"] });
+      expect(mockUpdate).toHaveBeenCalledWith("r1", { tags: ["Learning"] });
+      await updateResource("r1", { isFavorite: true });
+      expect(mockUpdate).toHaveBeenLastCalledWith("r1", { isFavorite: true });
+    });
+  });
 });
 
 describe("pomocnicze tytułu", () => {
@@ -199,5 +215,20 @@ describe("pomocnicze tytułu", () => {
     expect(decodeHtmlEntities("A &lt;b&gt; &quot;c&quot; &#39;d&#39; &#x27;e&#x27; &nbsp;f")).toBe(
       "A <b> \"c\" 'd' 'e'  f"
     );
+  });
+});
+
+describe("normalizeTags", () => {
+  it("scala warianty wg mapy bez względu na wielkość liter", () => {
+    expect(normalizeTags(["kurs", "Nauka", "Learning", "Moje projekty"])).toEqual([
+      "Learning",
+      "Projekty",
+    ]);
+  });
+  it("trimuje, usuwa puste i duplikaty bez względu na wielkość liter, zachowuje kolejność", () => {
+    expect(normalizeTags([" AI ", "", "ai", "Chat", "API", "api"])).toEqual(["AI", "Chat", "API"]);
+  });
+  it("zwraca pustą tablicę dla pustego wejścia", () => {
+    expect(normalizeTags([])).toEqual([]);
   });
 });
