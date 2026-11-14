@@ -28,14 +28,22 @@ export function ResourceListItem({
   const favicon = getFaviconUrl(r.url);
   const [showFavicon, setShowFavicon] = React.useState(true);
 
+  const openUrl = () => window.open(r.url, "_blank", "noopener,noreferrer");
+
   return (
     <li className="ars-res-item">
       <div
         className="ars-res-main"
-        onClick={() => onOpenEdit(r)}
-        onKeyDown={(e) => e.key === "Enter" && onOpenEdit(r)}
-        role="button"
+        onClick={openUrl}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            openUrl();
+          }
+        }}
+        role="link"
         tabIndex={0}
+        aria-label={r.title || r.url}
       >
         {favicon && showFavicon && (
           <div className="ars-res-favicon">

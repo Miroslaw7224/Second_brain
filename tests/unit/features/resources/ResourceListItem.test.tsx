@@ -1,6 +1,6 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { describe, it, expect, vi, afterEach } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ResourceListItem } from "@/src/features/resources/ResourceListItem";
 import type { NoteResource } from "@/src/features/resources/resourceTypes";
@@ -16,6 +16,8 @@ function mockResource(overrides?: Partial<NoteResource>): NoteResource {
     ...overrides,
   };
 }
+
+afterEach(cleanup);
 
 describe("ResourceListItem", () => {
   it("renders title, description and tags", () => {
@@ -115,5 +117,51 @@ describe("ResourceListItem", () => {
 
     expect(onCopy).toHaveBeenCalledTimes(1);
     expect(onCopy).toHaveBeenCalledWith("https://copy-me.com");
+  });
+});
+
+describe("ResourceListItem: otwieranie i edycja", () => {
+  const baseProps = {
+    titleUnavailableLabel: "(brak)",
+    resourceFavoriteLabel: "Ulubione",
+    resourceEditLabel: "Edytuj",
+    onToggleFavorite: vi.fn(),
+    onCopy: vi.fn(),
+    onDelete: vi.fn(),
+  };
+
+  afterEach(() => vi.restoreAllMocks());
+
+  it("klik w wiersz otwiera URL w nowej karcie i nie otwiera edycji", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    render(
+      <ul>
+        <ResourceListItem
+          {...baseProps}
+          resource={mockResource({ url: "https://open.me" })}
+          onOpenEdit={onOpenEdit}
+        />
+      </ul>
+    );
+    await user.click(screen.getByText("Example Title"));
+    expect(open).toHaveBeenCalledWith("https://open.me", "_blank", "noopener,noreferrer");
+    expect(onOpenEdit).not.toHaveBeenCalled();
+  });
+
+  it("ołówek otwiera edycję i nie otwiera URL", async () => {
+    const open = vi.spyOn(window, "open").mockReturnValue(null);
+    const onOpenEdit = vi.fn();
+    const user = userEvent.setup();
+    const resource = mockResource();
+    render(
+      <ul>
+        <ResourceListItem {...baseProps} resource={resource} onOpenEdit={onOpenEdit} />
+      </ul>
+    );
+    await user.click(screen.getByRole("button", { name: "Edytuj" }));
+    expect(onOpenEdit).toHaveBeenCalledWith(resource);
+    expect(open).not.toHaveBeenCalled();
   });
 });
