@@ -8,7 +8,7 @@ import {
   getTaskTemplates,
   updateTaskTemplate,
 } from "@/contexts/bc_tasks/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const FILE = "Tasks/templates.yaml";
 const STORED = [
@@ -29,7 +29,7 @@ const STORED = [
   },
 ];
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const seed = () => vault.write(FILE, formatYamlList("templates", STORED, GENERATED_BY_IMPORT));
 
 describe("task templates repository", () => {

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { RegistryEntry } from "@/contexts/bc_projects/models";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const mockResolve = vi.hoisted(() => vi.fn());
 const mockSnapshot = vi.hoisted(() => vi.fn());
@@ -40,7 +40,7 @@ const entry: RegistryEntry = {
   owner: "personal",
 };
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 beforeEach(() => {
   vi.clearAllMocks();

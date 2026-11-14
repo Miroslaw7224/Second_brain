@@ -9,7 +9,7 @@ import {
   updateTask,
 } from "@/contexts/bc_tasks/repositories";
 import { VaultConfigError } from "@/lib/nexus/vault-path";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const FILE = "Tasks/tasks.md";
 
@@ -24,7 +24,7 @@ const BROKEN = "- [ ] Zepsute [id:: c3] [order:: abc]";
 const BODY = `# Zadania\n\n${T1}\n${T2}\n\n${NOTE}\n${NOID}\n`;
 const SEED = `${GEN}${BODY}`;
 
-const vault = useTempVault();
+const vault = setupTempVault();
 
 async function status(promise: Promise<unknown>): Promise<number | undefined> {
   try {

@@ -9,7 +9,7 @@ import {
 } from "@/contexts/bc_calendar/repositories";
 import { formatYamlList } from "@/lib/nexus/yaml-lists";
 import { readList } from "@/lib/nexus/yaml-store";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const NOV = "Calendar/2026-11.yaml";
 const DEC = "Calendar/2026-12.yaml";
@@ -49,7 +49,7 @@ const E3 = {
   created: "2026-11-01T10:00:00.000Z",
 };
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const writeEvents = (file: string, events: Record<string, unknown>[]) =>
   vault.write(file, formatYamlList("events", events));
 const seed = () => {

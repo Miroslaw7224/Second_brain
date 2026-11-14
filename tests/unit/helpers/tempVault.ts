@@ -11,7 +11,7 @@ export type TempVault = {
 };
 
 /** Tymczasowy vault na czas jednego testu: ustawia NEXUS_VAULT_PATH i sprząta po teście. */
-export function useTempVault(): TempVault {
+export function setupTempVault(): TempVault {
   let tmp = "";
   let root = "";
   let previous: string | undefined;

@@ -7,9 +7,9 @@ import {
   getCalendarEvents as getFromRepo,
   updateCalendarEvent as updateInRepo,
 } from "@/contexts/bc_calendar/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
-const vault = useTempVault();
+const vault = setupTempVault();
 const BASE = {
   date: "2026-11-18",
   start_minutes: 1200,

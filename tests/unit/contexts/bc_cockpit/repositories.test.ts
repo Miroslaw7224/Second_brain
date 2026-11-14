@@ -7,10 +7,10 @@ import {
   writePinned,
 } from "@/contexts/bc_cockpit/repositories";
 import { formatYamlList } from "@/lib/nexus/yaml-lists";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const REL = "Cockpit/pinned.yaml";
-const vault = useTempVault();
+const vault = setupTempVault();
 
 describe("readPinned", () => {
   it("brak pliku to pusta lista", () => {

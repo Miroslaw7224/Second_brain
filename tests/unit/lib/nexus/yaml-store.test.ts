@@ -4,10 +4,10 @@ import { ConflictError } from "@/lib/errors";
 import { VaultConfigError } from "@/lib/nexus/vault-path";
 import { formatYamlList } from "@/lib/nexus/yaml-lists";
 import { readList, updateList } from "@/lib/nexus/yaml-store";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const REL = "Resources/tags.yaml";
-const vault = useTempVault();
+const vault = setupTempVault();
 
 describe("readList", () => {
   it("returns [] for a missing, empty and whitespace-only file", () => {

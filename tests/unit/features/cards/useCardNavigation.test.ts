@@ -65,7 +65,7 @@ describe("useCardNavigation", () => {
     window.history.replaceState(null, "", "/dashboard#arsenal");
     const { result } = renderHook(() => useCardNavigation());
     expect(result.current.activeCard).toBe("arsenal");
-    expect(result.current.planningTab).toBe("resources");
+    expect(result.current.planningTab).toBe("skills");
   });
 
   test("nieznany hash zostawia kokpit", () => {

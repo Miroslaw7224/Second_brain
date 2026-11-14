@@ -8,10 +8,10 @@ import {
   removeItem,
   resolveItem,
 } from "@/contexts/bc_inbox/repositories";
-import { useTempVault } from "../../helpers/tempVault";
+import { setupTempVault } from "../../helpers/tempVault";
 
 const REL = "Inbox/inbox.md";
-const vault = useTempVault();
+const vault = setupTempVault();
 
 describe("readOpenItems", () => {
   it("brak pliku to pusta lista", () => {
