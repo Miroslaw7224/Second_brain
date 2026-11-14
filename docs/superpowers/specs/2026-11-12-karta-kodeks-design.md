@@ -84,10 +84,12 @@ Definicje (np. „Definition of Done”, „Przed PR”) są w tym samym pliku, 
 Uruchomienie checklisty przy zadaniu zapisuje się jako **dziennik zdarzeń dopisywany do** `Vault/Checklists/RRRR-MM.jsonl`. Jedna linia to jedno zdarzenie:
 
 ```
-{ "run": "<id>", "ts": "…", "type": "start" | "toggle" | "note", "owner": "work" | "personal", "projectId": "…", … }
+{ "run": "<id>", "ts": "…", "type": "start" | "toggle" | "note" | "end", "owner": "work" | "personal", "projectId": "…", … }
 ```
 
-Pola zależne od typu: `start` ma nazwę checklisty i opis zadania, `toggle` ma id punktu i stan, `note` ma id punktu i jedną linię tekstu. `owner` jest **wymagane** w każdym zdarzeniu.
+Pola zależne od typu: `start` ma nazwę checklisty i opis zadania, `toggle` ma id punktu i stan, `note` ma id punktu i jedną linię tekstu, `end` (przycisk „Zapisz sesję” w makiecie) ma liczbę odhaczonych i wszystkich punktów (`done`, `total`) i zamyka uruchomienie: kolejna interakcja zaczyna nowe. `owner` jest **wymagane** w każdym zdarzeniu.
+
+Uruchomienie powstaje przy pierwszej interakcji: makieta nie ma przycisku „Rozpocznij”, więc klient przy pierwszym odhaczeniu albo notatce wysyła najpierw `start` (`run` i `ts` nadaje serwer), potem właściwe zdarzenie.
 
 Zasady zapisu (doprecyzowanie względem §4.2 nadrzędnego specu):
 
@@ -101,13 +103,13 @@ Zasady zapisu (doprecyzowanie względem §4.2 nadrzędnego specu):
 
 ### 4.4 Warstwy
 
-- `lib/nexus/codex.ts`: odczyt i parsowanie pliku, `mtime`.
-- `lib/nexus/checklists.ts`: dopisywanie zdarzeń i odtwarzanie stanu.
+- `contexts/bc_codex/` (pięć plików wg ADR-021): `repositories.ts` czyta `kodeks.md` i dopisuje do dziennika, `services.ts` zawiera parser reguł, odtwarzanie stanu z dziennika i kolejkę zapisów (spec pierwotnie przewidywał `lib/nexus/codex.ts` i `lib/nexus/checklists.ts`; reguły domeny leżą w `services` od ADR-021).
+- `lib/nexus/vault-fs.ts` dostaje dwa małe prymitywy I/O, których nie było w etapie 0c: `appendVaultLine` (dopisanie jednej linii, w razie potrzeby poprzedzone `\n`) i `vaultFileMtimeMs`.
 - Trasy `/api/nexus/codex` (GET) i `/api/nexus/checklists` (GET, POST).
 - Interfejs w `src/features/codex/`.
 - `CardTarget` w `cards.ts` dostaje nowy wariant `{ kind: "codex" }`, bo Kodeks nie jest zakładką `PlanningTab`; wpis karty zmienia się z `placeholder` na ten wariant, a `App.tsx` renderuje widok Kodeksu.
 - Nadrzędny spec §4.3 (układ plików vaulta) dostaje katalogi `Checklists/` i `Work/Checklists/` oraz `Knowledge/kodeks.md`, przy specu części B.
-- Zależność: renderer Markdowna tylko do odczytu (`react-markdown` z `remark-gfm`). TipTap w `package.json` służy do edycji notatek, a nie do renderowania pliku Markdown, i nie ma w nim rozszerzenia Markdown.
+- Renderer Markdowna tylko do odczytu: istniejący `markdown-it` przez `lib/markdown/html-markdown.ts` (`html: false`, jak w `NexusDocView`). Bez nowej zależności (pierwotnie `react-markdown` z `remark-gfm`).
 
 ### 4.5 Obsługa błędów
 
@@ -123,6 +125,8 @@ Zgodnie z samym kodeksem, czerwone najpierw. Parser reguł: wzorzec poprawny, zn
 
 Przed kodem powstaje `docs/mockups/karty/cards/09-kodeks.html`, według tego samego procesu co pozostałe karty (nowa karta makiety to osobny kontekst `agy`).
 
+Odstępstwa kodu od makiety (decyzja 2026-11-14): pominięty pasek trybów demo (tylko makieta) oraz chipy „Projekt/Gałąź” w pasku pliku (pokazuje je `ShellStatusBar` pod każdą kartą). `projectId` w zdarzeniach jest opcjonalny i w pierwszej wersji interfejs go nie ustawia. Wszystko inne z makiety wchodzi do pierwszej wersji; elementy zbędne usuwamy po obejrzeniu w przeglądarce. Plan: `docs/superpowers/plans/2026-11-14-karta-kodeks-czesc-b.md`.
+
 ## 5. Część C: treść kodeksu
 
 Tor niekodowy. Punkt wyjścia: opinie `agy` i `cursor` z 2026-11-12 (rozdziały: zakres i hierarchia, TDD i dowód czerwieni, jakość asercji, warstwy testów, dowody przed twierdzeniami, zakres zmian i małe commity, bezpieczeństwo i dane, praca z agentami, egzekucja, anty-wzorce). Zasady przekrojowe: język MUST/SHOULD, krótko, kodeks jako kontrakt z odwołaniami zamiast duplikowania treści (do skilli oraz do istniejących notatek, np. `[[ai-coding-guardrails]]` w `Knowledge/`), każda reguła weryfikowalna. **Rdzeń `kodeks.md` ma rzędu 100 linii**; rozdziały wymagające szerszego omówienia (np. strategia testów wielopoziomowych) są osobnymi notatkami w `Knowledge/` linkowanymi z rdzenia, żeby limit nie zmuszał do płytkich reguł.
@@ -135,7 +139,16 @@ Reguły zgłoszone przez użytkownika do włączenia do rdzenia (rozdział „pr
   Weryfikacja kodu należy do wykonawcy planu (czerwony test, zielony test), nie do autora planu.
 ```
 
-Powód: w sesji 2026-11-12 przy planie kroku 0b zbudowano i przetestowano kod poza repo tylko po to, by plan miał „sprawdzony” kod. Kod i tak trzeba było napisać drugi raz przy wykonaniu, więc tokeny poszły na pracę podwójną. Operacyjnie reguła obowiązuje już w `CLAUDE.md` tego repo (sekcja „Pisanie planów”).
+Propozycja reguły z sesji 2026-11-14 (rozdział „bezpieczeństwo i dane”), do przeglądu przed włączeniem do rdzenia:
+
+```
+- **[ZAPIS-1] MUST** Próbne zapisy (testowy POST, skrypt, eksperyment) nie trafiają do prawdziwych danych użytkownika (vault, baza). Używam tymczasowego vaulta albo kopii (w Monolith: `setupTempVault`).
+  Po każdym zapisie, który mógł dotknąć prawdziwych danych, sprawdzam `git diff` repozytorium danych i cofam wszystko, co nie było zamierzone.
+```
+
+Powód: w sesji 2026-11-14 próbny POST ze zdaniem „test krótki” trafił do prawdziwego `tasks.md` w NEXUS. Wpis usunięto od razu i `git diff` potwierdził czysty stan, ale ochroną był przypadek i diff, a nie zasada.
+
+Powód reguły AGENT-1: w sesji 2026-11-12 przy planie kroku 0b zbudowano i przetestowano kod poza repo tylko po to, by plan miał „sprawdzony” kod. Kod i tak trzeba było napisać drugi raz przy wykonaniu, więc tokeny poszły na pracę podwójną. Operacyjnie reguła obowiązuje już w `CLAUDE.md` tego repo (sekcja „Pisanie planów”).
 
 Do rozstrzygnięcia przy pisaniu: język dokumentu (polski dla czytelności vs angielski dla skuteczności reguł u agentów) oraz sposób podlinkowania z projektowych `CLAUDE.md` jedną linią.
 

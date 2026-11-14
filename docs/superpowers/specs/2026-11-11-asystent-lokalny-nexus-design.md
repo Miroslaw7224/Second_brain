@@ -175,6 +175,7 @@ Aplikacja dzieli się na 9 kart. Wzorcem wizualnym są makiety w `docs/mockups/k
 - **Przenoszenie kart pojedynczo.** Każda karta po kolei dostaje swój motyw (`data-card`, zmienne z `tokens.css`) i układ z makiety. Dopóki karta nie jest przeniesiona, wygląda jak dziś: globalne zmienne aplikacji (`--bg`, `--accent`) nie są nadpisywane, szkielet używa tylko akcentów `--c-<karta>`.
 - **Stary pasek boczny i nawigacja mobilna** zostają do czasu przeniesienia wszystkich kart. Telefon jest poza zakresem (§10), więc pasek kart jest tylko na desktopie.
 - **Skróty:** `Alt+cyfra` jest sprawdzane po `event.code` (niezależnie od układu klawiatury) i ignorowane przy wciśniętym Ctrl, aby nie łapać AltGr z polskiej klawiatury. Ryzyko: Chrome na Linuksie zajmuje `Alt+1…9` do przełączania kart przeglądarki; w przeglądarce z Windows (aplikacja w WSL) skrót jest wolny.
+- **Zadania a Projekty (decyzja 2026-11-14).** Karta Zadania (`Alt+3`) ma własny plik zadań ogólnych i służy do zadań osobistych użytkownika, ale nie wszystkich: np. sprawdzenie cudzego PR, dodanie testów dla kogoś, wysłanie WO. Zadania o projekcie (backlog, wpisy o PR-ach, porządki w repo, wnioski z przeglądarki) żyją w `tasks.md` projektu i są widoczne w karcie Projekty (`Alt+4`) → projekt → Tablica zadań. Agent zapisuje zadanie tam, gdzie ono należy, i w odpowiedzi mówi, gdzie wylądowało. Sformułowanie „wspólna lista z projektów” w wierszu Zadań (tabela wyżej) pochodzi sprzed tej decyzji i do rozstrzygnięcia przy specu karty Zadania.
 
 ## 7. Etapy wdrożenia
 
