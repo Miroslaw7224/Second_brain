@@ -41,14 +41,48 @@ export async function updateResource(
   return repositories.updateResource(resourceId, data);
 }
 
+const BLOCKED_TITLE = /^(just a moment|attention required)/i;
+
+/** Tytuł strony ochronnej (Cloudflare), nie właściwej treści. */
+export function isBlockedTitle(title: string): boolean {
+  return BLOCKED_TITLE.test(title.trim());
+}
+
+const NAMED_ENTITIES: Record<string, string> = {
+  "&amp;": "&",
+  "&lt;": "<",
+  "&gt;": ">",
+  "&quot;": '"',
+  "&#39;": "'",
+  "&#x27;": "'",
+  "&nbsp;": " ",
+};
+
+export function decodeHtmlEntities(text: string): string {
+  return text
+    .replace(/&(?:amp|lt|gt|quot|nbsp|#39|#x27);/gi, (m) => NAMED_ENTITIES[m.toLowerCase()] ?? m)
+    .replace(/&#(\d+);/g, (_, n: string) => String.fromCodePoint(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, h: string) => String.fromCodePoint(parseInt(h, 16)));
+}
+
+/** Host bez `www.` jako tytuł zastępczy; przy nieprawidłowym adresie sam adres. */
+export function hostTitle(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./i, "");
+  } catch {
+    return url;
+  }
+}
+
 async function fetchPageMetadata(url: string): Promise<{ title: string; thumbnailUrl?: string }> {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
     const html = await res.text();
     const titleMatch = html.match(/<title[^>]*>([^<]+)<\/title>/i);
     const ogImage = html.match(/<meta[^>]*property="og:image"[^>]*content="([^"]+)"/i);
+    const rawTitle = decodeHtmlEntities(titleMatch?.[1]?.trim() ?? "");
     return {
-      title: titleMatch?.[1]?.trim() ?? url,
+      title: rawTitle === "" ? url : isBlockedTitle(rawTitle) ? hostTitle(url) : rawTitle,
       thumbnailUrl: ogImage?.[1],
     };
   } catch {

@@ -19,6 +19,9 @@ import {
   deleteResource,
   updateResource,
   searchResources,
+  decodeHtmlEntities,
+  hostTitle,
+  isBlockedTitle,
 } from "@/contexts/bc_resources/services";
 
 describe("bc_resources services (resources)", () => {
@@ -86,6 +89,44 @@ describe("bc_resources services (resources)", () => {
         })
       );
     });
+
+    it("zastępuje tytuł Cloudflare nazwą domeny", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response("<html><head><title>Just a moment...</title></head></html>", {
+            status: 200,
+          })
+        )
+      );
+      mockAdd.mockImplementation(async (payload: Record<string, unknown>) => ({
+        id: "r3",
+        ...payload,
+      }));
+
+      await addResource({ description: "x", url: "https://www.example.com/page" });
+
+      expect(mockAdd).toHaveBeenCalledWith(expect.objectContaining({ title: "example.com" }));
+    });
+
+    it("dekoduje encje HTML w tytule", async () => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn().mockResolvedValue(
+          new Response("<html><head><title>Q&amp;A &#8211; Docs</title></head></html>", {
+            status: 200,
+          })
+        )
+      );
+      mockAdd.mockImplementation(async (payload: Record<string, unknown>) => ({
+        id: "r4",
+        ...payload,
+      }));
+
+      await addResource({ description: "x", url: "https://qa.example" });
+
+      expect(mockAdd).toHaveBeenCalledWith(expect.objectContaining({ title: "Q&A \u2013 Docs" }));
+    });
   });
 
   describe("getResources / deleteResource / updateResource", () => {
@@ -140,5 +181,23 @@ describe("bc_resources services (resources)", () => {
       const r = await searchResources(["REACT"]);
       expect(r).toHaveLength(1);
     });
+  });
+});
+
+describe("pomocnicze tytułu", () => {
+  it("isBlockedTitle rozpoznaje strony Cloudflare", () => {
+    expect(isBlockedTitle("Just a moment...")).toBe(true);
+    expect(isBlockedTitle("Just a moment\u2026")).toBe(true);
+    expect(isBlockedTitle("  attention required! | Cloudflare")).toBe(true);
+    expect(isBlockedTitle("Moment of truth")).toBe(false);
+  });
+  it("hostTitle zwraca host bez www i URL przy błędnym adresie", () => {
+    expect(hostTitle("https://www.example.com/a?b=1")).toBe("example.com");
+    expect(hostTitle("nie-url")).toBe("nie-url");
+  });
+  it("decodeHtmlEntities", () => {
+    expect(decodeHtmlEntities("A &lt;b&gt; &quot;c&quot; &#39;d&#39; &#x27;e&#x27; &nbsp;f")).toBe(
+      "A <b> \"c\" 'd' 'e'  f"
+    );
   });
 });
